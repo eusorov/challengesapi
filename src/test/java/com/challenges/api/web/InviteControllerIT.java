@@ -8,8 +8,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.SubTask;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
+import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
 import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
@@ -37,6 +39,9 @@ class InviteControllerIT {
 
 	@Autowired
 	private ChallengeRepository challenges;
+
+	@Autowired
+	private SubTaskRepository subTasks;
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -80,5 +85,38 @@ class InviteControllerIT {
 						put("/api/invites/" + inviteId).header(HV, V1).contentType(APPLICATION_JSON).content(patch))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("ACCEPTED"));
+
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/participants").header(HV, V1))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].userId").value(invitee.getId().intValue()))
+				.andExpect(jsonPath("$[0].challengeId").value(challenge.getId().intValue()));
+	}
+
+	@Test
+	void subtaskScopedInviteAccept_createsScopedParticipant() throws Exception {
+		SubTask sub = subTasks.save(new SubTask(challenge, "scoped step", 0));
+
+		String body = String.format(
+				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,\"subTaskId\":%d}",
+				inviter.getId(), invitee.getId(), challenge.getId(), sub.getId());
+
+		String created =
+				mockMvc.perform(post("/api/invites").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+
+		long inviteId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(
+						put("/api/invites/" + inviteId).header(HV, V1).contentType(APPLICATION_JSON).content(
+								"{\"status\":\"ACCEPTED\"}"))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/participants").header(HV, V1))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].userId").value(invitee.getId().intValue()))
+				.andExpect(jsonPath("$[0].subTaskId").value(sub.getId().intValue()));
 	}
 }
