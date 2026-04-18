@@ -1,4 +1,4 @@
-package com.challenges.api.web;
+package com.challenges.api.service;
 
 import com.challenges.api.model.Challenge;
 import com.challenges.api.model.Schedule;
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Service
 public class ScheduleService {
@@ -26,7 +27,7 @@ public class ScheduleService {
 		this.subTasks = subTasks;
 	}
 
-	static List<DayOfWeek> parseWeekDays(List<String> raw) {
+	public static List<DayOfWeek> parseWeekDays(List<String> raw) {
 		if (raw == null || raw.isEmpty()) {
 			return List.of();
 		}
@@ -35,11 +36,15 @@ public class ScheduleService {
 
 	@Transactional
 	public Optional<Schedule> createForChallenge(Long challengeId, ScheduleKind kind, List<DayOfWeek> weekDays) {
+		Assert.notNull(challengeId, "challengeId must not be null");
+		Assert.notNull(kind, "kind must not be null");
 		return challenges.findById(challengeId).map(ch -> replaceChallengeSchedule(ch, kind, weekDays));
 	}
 
 	@Transactional
 	public Optional<Schedule> createForSubTask(Long subTaskId, ScheduleKind kind, List<DayOfWeek> weekDays) {
+		Assert.notNull(subTaskId, "subTaskId must not be null");
+		Assert.notNull(kind, "kind must not be null");
 		return subTasks.findById(subTaskId).map(st -> replaceSubTaskSchedule(st, kind, weekDays));
 	}
 
@@ -65,12 +70,16 @@ public class ScheduleService {
 		return schedules.save(s);
 	}
 
+	@Transactional(readOnly = true)
 	public Optional<Schedule> findById(Long id) {
+		Assert.notNull(id, "id must not be null");
 		return schedules.findById(id);
 	}
 
 	@Transactional
 	public Optional<Schedule> update(Long id, ScheduleKind kind, List<DayOfWeek> weekDays) {
+		Assert.notNull(id, "id must not be null");
+		Assert.notNull(kind, "kind must not be null");
 		return schedules.findById(id).map(s -> {
 			s.setKind(kind);
 			s.replaceWeekDays(weekDays);
@@ -80,6 +89,7 @@ public class ScheduleService {
 
 	@Transactional
 	public boolean delete(Long id) {
+		Assert.notNull(id, "id must not be null");
 		return schedules.findById(id).map(s -> {
 			if (s.getChallenge() != null) {
 				s.getChallenge().bindSchedule(null);

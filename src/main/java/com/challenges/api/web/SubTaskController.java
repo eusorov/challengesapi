@@ -1,8 +1,6 @@
 package com.challenges.api.web;
 
-import com.challenges.api.model.SubTask;
-import com.challenges.api.repo.ChallengeRepository;
-import com.challenges.api.repo.SubTaskRepository;
+import com.challenges.api.service.SubTaskService;
 import com.challenges.api.web.dto.SubTaskRequest;
 import com.challenges.api.web.dto.SubTaskResponse;
 import com.challenges.api.web.dto.SubTaskUpdateRequest;
@@ -23,24 +21,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/api", version = "1")
 public class SubTaskController {
 
-	private final ChallengeRepository challenges;
-	private final SubTaskRepository subTasks;
+	private final SubTaskService subTaskService;
 
-	public SubTaskController(ChallengeRepository challenges, SubTaskRepository subTasks) {
-		this.challenges = challenges;
-		this.subTasks = subTasks;
+	public SubTaskController(SubTaskService subTaskService) {
+		this.subTaskService = subTaskService;
 	}
 
 	@GetMapping("/challenges/{challengeId}/subtasks")
 	public List<SubTaskResponse> listForChallenge(@PathVariable Long challengeId) {
-		return subTasks.findByChallenge_IdOrderBySortIndexAsc(challengeId).stream()
-				.map(SubTaskResponse::from)
-				.toList();
+		return subTaskService.listForChallenge(challengeId).stream().map(SubTaskResponse::from).toList();
 	}
 
 	@GetMapping("/subtasks/{id}")
 	public ResponseEntity<SubTaskResponse> get(@PathVariable Long id) {
-		return subTasks.findById(id)
+		return subTaskService.findById(id)
 				.map(SubTaskResponse::from)
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
@@ -48,32 +42,25 @@ public class SubTaskController {
 
 	@PostMapping("/subtasks")
 	public ResponseEntity<SubTaskResponse> create(@Valid @RequestBody SubTaskRequest req) {
-		return challenges.findById(req.challengeId())
-				.map(ch -> {
-					SubTask st = subTasks.save(new SubTask(ch, req.title(), req.sortIndex()));
-					return ResponseEntity.status(HttpStatus.CREATED).body(SubTaskResponse.from(st));
-				})
+		return subTaskService.create(req)
+				.map(st -> ResponseEntity.status(HttpStatus.CREATED).body(SubTaskResponse.from(st)))
 				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@PutMapping("/subtasks/{id}")
 	public ResponseEntity<SubTaskResponse> replace(
 			@PathVariable Long id, @Valid @RequestBody SubTaskUpdateRequest req) {
-		return subTasks.findById(id)
-				.map(st -> {
-					st.setTitle(req.title());
-					st.setSortIndex(req.sortIndex());
-					return ResponseEntity.ok(SubTaskResponse.from(subTasks.save(st)));
-				})
+		return subTaskService.replace(id, req)
+				.map(SubTaskResponse::from)
+				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@DeleteMapping("/subtasks/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
-		if (!subTasks.existsById(id)) {
+		if (!subTaskService.delete(id)) {
 			return ResponseEntity.notFound().build();
 		}
-		subTasks.deleteById(id);
 		return ResponseEntity.noContent().build();
 	}
 }

@@ -1,8 +1,6 @@
 package com.challenges.api.web;
 
-import com.challenges.api.model.Challenge;
-import com.challenges.api.repo.ChallengeRepository;
-import com.challenges.api.repo.UserRepository;
+import com.challenges.api.service.ChallengeService;
 import com.challenges.api.web.dto.ChallengeRequest;
 import com.challenges.api.web.dto.ChallengeResponse;
 import jakarta.validation.Valid;
@@ -22,22 +20,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/api/challenges", version = "1")
 public class ChallengeController {
 
-	private final UserRepository users;
-	private final ChallengeRepository challenges;
+	private final ChallengeService challengeService;
 
-	public ChallengeController(UserRepository users, ChallengeRepository challenges) {
-		this.users = users;
-		this.challenges = challenges;
+	public ChallengeController(ChallengeService challengeService) {
+		this.challengeService = challengeService;
 	}
 
 	@GetMapping
 	public List<ChallengeResponse> list() {
-		return challenges.findAll().stream().map(ChallengeResponse::from).toList();
+		return challengeService.listChallenges().stream().map(ChallengeResponse::from).toList();
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ChallengeResponse> get(@PathVariable Long id) {
-		return challenges.findById(id)
+		return challengeService.findById(id)
 				.map(ChallengeResponse::from)
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
@@ -45,37 +41,24 @@ public class ChallengeController {
 
 	@PostMapping
 	public ResponseEntity<ChallengeResponse> create(@Valid @RequestBody ChallengeRequest req) {
-		return users.findById(req.ownerUserId())
-				.map(owner -> {
-					Challenge ch =
-							new Challenge(owner, req.title(), req.description(), req.startDate(), req.endDate());
-					return ResponseEntity.status(HttpStatus.CREATED)
-							.body(ChallengeResponse.from(challenges.save(ch)));
-				})
+		return challengeService.create(req)
+				.map(ch -> ResponseEntity.status(HttpStatus.CREATED).body(ChallengeResponse.from(ch)))
 				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<ChallengeResponse> replace(@PathVariable Long id, @Valid @RequestBody ChallengeRequest req) {
-		return users.findById(req.ownerUserId())
-				.flatMap(owner -> challenges.findById(id).map(ch -> {
-					ch.setOwner(owner);
-					ch.setTitle(req.title());
-					ch.setDescription(req.description());
-					ch.setStartDate(req.startDate());
-					ch.setEndDate(req.endDate());
-					return challenges.save(ch);
-				}))
-				.map(saved -> ResponseEntity.ok(ChallengeResponse.from(saved)))
+		return challengeService.replace(id, req)
+				.map(ChallengeResponse::from)
+				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
-		if (!challenges.existsById(id)) {
+		if (!challengeService.delete(id)) {
 			return ResponseEntity.notFound().build();
 		}
-		challenges.deleteById(id);
 		return ResponseEntity.noContent().build();
 	}
 }

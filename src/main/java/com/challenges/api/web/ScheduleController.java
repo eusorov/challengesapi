@@ -1,5 +1,6 @@
 package com.challenges.api.web;
 
+import com.challenges.api.service.ScheduleService;
 import com.challenges.api.web.dto.ScheduleCreateRequest;
 import com.challenges.api.web.dto.ScheduleResponse;
 import com.challenges.api.web.dto.ScheduleUpdateRequest;

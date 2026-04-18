@@ -1,7 +1,6 @@
 package com.challenges.api.web;
 
-import com.challenges.api.model.User;
-import com.challenges.api.repo.UserRepository;
+import com.challenges.api.service.UserService;
 import com.challenges.api.web.dto.UserRequest;
 import com.challenges.api.web.dto.UserResponse;
 import jakarta.validation.Valid;
@@ -21,20 +20,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/api/users", version = "1")
 public class UserController {
 
-	private final UserRepository users;
+	private final UserService userService;
 
-	public UserController(UserRepository users) {
-		this.users = users;
+	public UserController(UserService userService) {
+		this.userService = userService;
 	}
 
 	@GetMapping
 	public List<UserResponse> list() {
-		return users.findAll().stream().map(UserResponse::from).toList();
+		return userService.listUsers().stream().map(UserResponse::from).toList();
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<UserResponse> get(@PathVariable Long id) {
-		return users.findById(id)
+		return userService.findById(id)
 				.map(UserResponse::from)
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
@@ -42,27 +41,22 @@ public class UserController {
 
 	@PostMapping
 	public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest req) {
-		User u = users.save(new User(req.email()));
-		return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.from(u));
+		return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.from(userService.create(req.email())));
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<UserResponse> replace(@PathVariable Long id, @Valid @RequestBody UserRequest req) {
-		return users.findById(id)
-				.map(u -> {
-					u.setEmail(req.email());
-					return UserResponse.from(users.save(u));
-				})
+		return userService.replace(id, req.email())
+				.map(UserResponse::from)
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
-		if (!users.existsById(id)) {
+		if (!userService.delete(id)) {
 			return ResponseEntity.notFound().build();
 		}
-		users.deleteById(id);
 		return ResponseEntity.noContent().build();
 	}
 }
