@@ -15,12 +15,13 @@ This file is project memory for humans and AI agents working in this repository.
 | **Participant** | A **user** in a **challenge**: either for the **whole challenge** (`subTask` unset) or **scoped to a subtask** (`subTask` set). Same user can have both kinds of rows. Distinct from **`Challenge` owner**. **Invite** models invitations; roles beyond membership can be modeled later. |
 | **Invite** | One user (**inviter**) invites another (**invitee**) to a **challenge**, optionally scoped to a **subtask** (`subTask` unset = whole challenge). Status (pending / accepted / …) is stored on the invite; accepting may create a **Participant** in a later API/service layer. |
 | **Check-in** | A calendar-dated record that a user completed progress for a **challenge** on a given day, or optionally for a specific **subtask** of that challenge on that day. |
+| **Comment** | A **user**-authored note on a **challenge** (challenge-wide) or on a specific **subtask** (`subTask` set). Exposed as **`GET`/`POST /api/challenges/{challengeId}/comments`** (optional **`?subTaskId=`** filter) and **`GET`/`PUT`/`DELETE /api/comments/{id}`** with **`API-Version: 1`**. Editing and deleting by id are not restricted by auth in this phase. |
 | **Cadence / schedule** | How often check-ins are expected: **every day**, **specific weekdays** (e.g. Mon / Wed / Fri), or **one specific calendar date**. A **challenge** can have a schedule, and **each subtask** can have its **own** schedule. Do **not** assume “only daily” unless the model encodes that. |
 
 ---
 
 ## Product rules for agents
-- When adding APIs, persistence, or models, **reuse this vocabulary** in naming (`Challenge`, `CheckIn`, `Participant`, `Schedule`, `Invite`, or project-standard equivalents). Avoid overloading terms (e.g. do not use “check-in” for unrelated events).
+- When adding APIs, persistence, or models, **reuse this vocabulary** in naming (`Challenge`, `CheckIn`, `Participant`, `Schedule`, `Invite`, `Comment`, or project-standard equivalents). Avoid overloading terms (e.g. do not use “check-in” for unrelated events).
 - Prefer small, focused changes that preserve existing contracts and semantics.
 
 ---
