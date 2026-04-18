@@ -28,13 +28,13 @@ public class ChallengeService {
 	}
 
 	@Transactional(readOnly = true)
-	public Optional<Challenge> findById(Long id) {
+	public Optional<Challenge> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		return challenges.findByIdWithOwner(id);
 	}
 
 	@Transactional
-	public Optional<Challenge> create(ChallengeRequest req) {
+	public Optional<Challenge> create(@NonNull ChallengeRequest req) {
 		Assert.notNull(req, "request must not be null");
 		return users.findById(req.ownerUserId()).map(owner -> challenges.save(new Challenge(owner,
 						req.title(),
@@ -44,7 +44,7 @@ public class ChallengeService {
 	}
 
 	@Transactional
-	public Optional<Challenge> replace(Long id, ChallengeRequest req) {
+	public Optional<Challenge> replace(@NonNull Long id, @NonNull ChallengeRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
 		return users.findById(req.ownerUserId()).flatMap(owner -> challenges.findByIdWithOwner(id).map(ch -> {
@@ -58,7 +58,7 @@ public class ChallengeService {
 	}
 
 	@Transactional
-	public boolean delete(Long id) {
+	public boolean delete(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		if (!challenges.existsById(id)) {
 			return false;

@@ -38,7 +38,7 @@ public class CommentService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<Comment> listForChallenge(Long challengeId, @Nullable Long subTaskIdFilter) {
+	public @NonNull List<Comment> listForChallenge(@NonNull Long challengeId, @Nullable Long subTaskIdFilter) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		if (subTaskIdFilter == null) {
 			return comments.findByChallengeIdWithAssociations(challengeId);
@@ -51,7 +51,7 @@ public class CommentService {
 	}
 
 	@Transactional
-	public Optional<Comment> create(Long challengeId, CommentRequest req) {
+	public Optional<Comment> create(@NonNull Long challengeId, @NonNull CommentRequest req) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		Assert.notNull(req, "req must not be null");
 		Optional<User> author = users.findById(req.userId());
@@ -71,13 +71,13 @@ public class CommentService {
 	}
 
 	@Transactional(readOnly = true)
-	public Optional<Comment> findById(Long id) {
+	public Optional<Comment> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		return comments.findByIdWithAssociations(id);
 	}
 
 	@Transactional
-	public Optional<Comment> update(Long id, CommentUpdateRequest req) {
+	public Optional<Comment> update(@NonNull Long id, @NonNull CommentUpdateRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "req must not be null");
 		return comments.findByIdWithAssociations(id).map(c -> {
@@ -87,7 +87,7 @@ public class CommentService {
 	}
 
 	@Transactional
-	public boolean delete(Long id) {
+	public boolean delete(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		if (!comments.existsById(id)) {
 			return false;

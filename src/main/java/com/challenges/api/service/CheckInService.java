@@ -35,19 +35,19 @@ public class CheckInService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<CheckIn> listForChallenge(Long challengeId) {
+	public @NonNull List<CheckIn> listForChallenge(@NonNull Long challengeId) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		return checkIns.findByChallenge_IdOrderByCheckDateDesc(challengeId);
 	}
 
 	@Transactional(readOnly = true)
-	public Optional<CheckIn> findById(Long id) {
+	public Optional<CheckIn> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		return checkIns.findByIdWithAssociations(id);
 	}
 
 	@Transactional
-	public Optional<CheckIn> create(CheckInRequest req) {
+	public Optional<CheckIn> create(@NonNull CheckInRequest req) {
 		Assert.notNull(req, "request must not be null");
 		var user = users.findById(req.userId());
 		var challenge = challenges.findById(req.challengeId());
@@ -69,7 +69,7 @@ public class CheckInService {
 	}
 
 	@Transactional
-	public Optional<CheckIn> replace(Long id, CheckInUpdateRequest req) {
+	public Optional<CheckIn> replace(@NonNull Long id, @NonNull CheckInUpdateRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
 		return checkIns.findByIdWithAssociations(id).map(ci -> {
@@ -89,7 +89,7 @@ public class CheckInService {
 	}
 
 	@Transactional
-	public boolean delete(Long id) {
+	public boolean delete(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		if (!checkIns.existsById(id)) {
 			return false;

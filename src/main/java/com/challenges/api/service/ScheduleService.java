@@ -40,7 +40,8 @@ public class ScheduleService {
 	}
 
 	@Transactional
-	public Optional<Schedule> createForChallenge(Long challengeId, ScheduleKind kind, List<DayOfWeek> weekDays) {
+	public Optional<Schedule> createForChallenge(
+			@NonNull Long challengeId, @NonNull ScheduleKind kind, @NonNull List<DayOfWeek> weekDays) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
@@ -49,7 +50,8 @@ public class ScheduleService {
 	}
 
 	@Transactional
-	public Optional<Schedule> createForSubTask(Long subTaskId, ScheduleKind kind, List<DayOfWeek> weekDays) {
+	public Optional<Schedule> createForSubTask(
+			@NonNull Long subTaskId, @NonNull ScheduleKind kind, @NonNull List<DayOfWeek> weekDays) {
 		Assert.notNull(subTaskId, "subTaskId must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
@@ -80,13 +82,14 @@ public class ScheduleService {
 	}
 
 	@Transactional(readOnly = true)
-	public Optional<Schedule> findById(Long id) {
+	public Optional<Schedule> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		return Objects.requireNonNull(schedules.findByIdWithAssociations(id));
 	}
 
 	@Transactional
-	public Optional<Schedule> update(Long id, ScheduleKind kind, List<DayOfWeek> weekDays) {
+	public Optional<Schedule> update(
+			@NonNull Long id, @NonNull ScheduleKind kind, @NonNull List<DayOfWeek> weekDays) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
@@ -99,7 +102,7 @@ public class ScheduleService {
 	}
 
 	@Transactional
-	public boolean delete(Long id) {
+	public boolean delete(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		return schedules.findByIdWithAssociations(id).map(s -> {
 			if (s.getChallenge() != null) {

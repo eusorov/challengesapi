@@ -18,7 +18,7 @@ public class ParticipantService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<Participant> listForChallenge(Long challengeId) {
+	public @NonNull List<Participant> listForChallenge(@NonNull Long challengeId) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		return participants.findByChallenge_Id(challengeId);
 	}

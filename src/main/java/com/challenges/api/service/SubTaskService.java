@@ -24,25 +24,25 @@ public class SubTaskService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<SubTask> listForChallenge(Long challengeId) {
+	public @NonNull List<SubTask> listForChallenge(@NonNull Long challengeId) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		return subTasks.findByChallenge_IdOrderBySortIndexAsc(challengeId);
 	}
 
 	@Transactional(readOnly = true)
-	public Optional<SubTask> findById(Long id) {
+	public Optional<SubTask> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		return subTasks.findByIdWithAssociations(id);
 	}
 
 	@Transactional
-	public Optional<SubTask> create(SubTaskRequest req) {
+	public Optional<SubTask> create(@NonNull SubTaskRequest req) {
 		Assert.notNull(req, "request must not be null");
 		return challenges.findById(req.challengeId()).map(ch -> subTasks.save(new SubTask(ch, req.title(), req.sortIndex())));
 	}
 
 	@Transactional
-	public Optional<SubTask> replace(Long id, SubTaskUpdateRequest req) {
+	public Optional<SubTask> replace(@NonNull Long id, @NonNull SubTaskUpdateRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
 		return subTasks.findByIdWithAssociations(id).map(st -> {
@@ -53,7 +53,7 @@ public class SubTaskService {
 	}
 
 	@Transactional
-	public boolean delete(Long id) {
+	public boolean delete(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		if (!subTasks.existsById(id)) {
 			return false;

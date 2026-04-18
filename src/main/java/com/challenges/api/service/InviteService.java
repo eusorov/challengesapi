@@ -52,13 +52,13 @@ public class InviteService {
 	}
 
 	@Transactional(readOnly = true)
-	public Optional<Invite> findById(Long id) {
+	public Optional<Invite> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		return invites.findByIdWithAssociations(id);
 	}
 
 	@Transactional
-	public Optional<Invite> create(InviteRequest req) {
+	public Optional<Invite> create(@NonNull InviteRequest req) {
 		Assert.notNull(req, "request must not be null");
 		var inviter = users.findById(req.inviterUserId());
 		var invitee = users.findById(req.inviteeUserId());
@@ -90,7 +90,7 @@ public class InviteService {
 	}
 
 	@Transactional
-	public Optional<Invite> update(Long id, InviteUpdateRequest req) {
+	public Optional<Invite> update(@NonNull Long id, @NonNull InviteUpdateRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
 		return invites.findByIdWithAssociations(id).map(inv -> {
@@ -125,7 +125,7 @@ public class InviteService {
 	}
 
 	@Transactional
-	public boolean delete(Long id) {
+	public boolean delete(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		if (!invites.existsById(id)) {
 			return false;

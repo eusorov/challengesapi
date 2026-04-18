@@ -24,19 +24,19 @@ public class UserService {
 	}
 
 	@Transactional(readOnly = true)
-	public Optional<User> findById(Long id) {
+	public Optional<User> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		return users.findById(id);
 	}
 
 	@Transactional
-	public @NonNull User create(String email) {
+	public @NonNull User create(@NonNull String email) {
 		Assert.notNull(email, "email must not be null");
 		return users.save(new User(email));
 	}
 
 	@Transactional
-	public Optional<User> replace(Long id, String email) {
+	public Optional<User> replace(@NonNull Long id, @NonNull String email) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(email, "email must not be null");
 		return users.findById(id).map(u -> {
@@ -46,7 +46,7 @@ public class UserService {
 	}
 
 	@Transactional
-	public boolean delete(Long id) {
+	public boolean delete(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
 		if (!users.existsById(id)) {
 			return false;

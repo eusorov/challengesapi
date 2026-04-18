@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Standardize **absent values** as **`Optional`** (not `null`) for single-result service APIs, **`List`** that is **never `null`** (empty list ok), add **package-level** **`@NullMarked`** (JSpecify) plus **member-level** **`org.jspecify.annotations.NonNull`** / **`@Nullable`** on returns and parameters (not `org.springframework.lang.NonNull` / `@Nullable`), ensure **constructor injection everywhere** (including tests), and **fail fast** with **`org.springframework.util.Assert.notNull`** on entry (note: Spring’s API is **`Assert.notNull`**, not `Assert.NonNull`). Where JDK or Spring Data types are not annotated for nullness, **bridge** to the declared contract with **`java.util.Objects.requireNonNull(...)`** (see conventions).
+**Goal:** Standardize **absent values** as **`Optional`** (not `null`) for single-result service APIs, **`List`** that is **never `null`** (empty list ok), add **package-level** **`@NullMarked`** (JSpecify) plus **member-level** **`org.jspecify.annotations.NonNull`** / **`@Nullable`** on **returns, parameters, and record components** (not `org.springframework.lang.NonNull` / `@Nullable`). Use **`@NonNull`** explicitly on **function parameters** wherever the contract requires a value (ids, request DTOs, non-optional inputs), **except** on **`@PathVariable`** — those are **required by default**; do **not** stack JSpecify **`@NonNull`** or Jakarta **`@NotNull`** on them. Use **`@Nullable`** only for optional filters or absent JSON fields. Ensure **constructor injection everywhere** (including tests), and **fail fast** with **`org.springframework.util.Assert.notNull`** on entry (note: Spring’s API is **`Assert.notNull`**, not `Assert.NonNull`). Where JDK or Spring Data types are not annotated for nullness, **bridge** to the declared contract with **`java.util.Objects.requireNonNull(...)`** (see conventions).
 
-**Architecture:** Apply **`@NullMarked`** at **package** level (`package-info.java`) for **`com.challenges.api.service`**, **`com.challenges.api.web`**, and **`com.challenges.api.web.dto`**, and **`com.challenges.api.repo`** — import **`org.jspecify.annotations.NullMarked`** only in those files. (Spring **`@NonNullApi`** is **deprecated** since Framework **7.0**; **`@NullMarked`** is the JSpecify replacement.) Use **`org.jspecify.annotations.NonNull`** and **`org.jspecify.annotations.Nullable`** on **methods, parameters, record components, and fields** where explicit nullness helps the IDE. Override with **`@Nullable`** on parameters that intentionally allow absent filters (e.g. **`challengeId`/`subTaskId`** query filters). Annotate **DTO record** components that are optional in JSON with **`@Nullable`**. Keep **entity** classes largely unchanged in the first pass (optional follow-up: **`model` package** annotations). **Repositories** remain Spring Data interfaces; default **`@NullMarked`** applies to declared custom methods and return types.
+**Architecture:** Apply **`@NullMarked`** at **package** level (`package-info.java`) for **`com.challenges.api.service`**, **`com.challenges.api.web`**, and **`com.challenges.api.web.dto`**, and **`com.challenges.api.repo`** — import **`org.jspecify.annotations.NullMarked`** only in those files. (Spring **`@NonNullApi`** is **deprecated** since Framework **7.0**; **`@NullMarked`** is the JSpecify replacement.) Use **`org.jspecify.annotations.NonNull`** and **`org.jspecify.annotations.Nullable`** on **methods, parameters, record components, and fields** where explicit nullness helps the IDE. Under **`@NullMarked`**, unannotated parameters are already treated as non-null by analysis; **explicit JSpecify `@NonNull` on parameters** helps for **service** methods and **controller** parameters that are not covered by another “required” signal. **Do not** add redundant **`@NonNull`** or Jakarta **`@NotNull`** on parameters that already have **`@PathVariable`**: **`@PathVariable`** defaults to **`required = true`**, so the binding is required and **`@NullMarked`** already treats the parameter as non-null — duplicating only adds noise. Override with **`@Nullable`** on parameters that intentionally allow absent filters (e.g. **`challengeId`/`subTaskId`** query filters). Annotate **DTO record** components that are optional in JSON with **`@Nullable`**. Keep **entity** classes largely unchanged in the first pass (optional follow-up: **`model` package** annotations). **Repositories** remain Spring Data interfaces; default **`@NullMarked`** applies to declared custom methods and return types.
 
 **Tech Stack:** Java **25**, Spring Boot **4.0.5**, **`org.jspecify.annotations.NullMarked`** (package defaults), **`org.jspecify`** **`NonNull` / `Nullable`**, **`java.util.Objects.requireNonNull`**, **`Optional`**, JUnit **5**, Gradle **`./gradlew test`**.
 
@@ -19,6 +19,8 @@
 | List / stream of rows | **`List<T>`** — **never `null`**, may be **empty** |
 | Boolean success | **`boolean`** (e.g. delete) |
 | Optional filter argument | **`@Nullable Long`** (or `Optional` wrapper — **prefer `@Nullable`** for existing APIs) |
+| Required id, request DTO, or other non-optional input | **`@NonNull`** on the **parameter** (e.g. **`@NonNull Long challengeId`**, **`@NonNull CommentRequest req`**) — pair with **`Assert.notNull`** in services for runtime checks |
+| Required **`@PathVariable`** (fixed URI segment) | **`@PathVariable Long challengeId`** only — **no** extra JSpecify **`@NonNull`** or Jakarta **`@NotNull`** (path variables are **required by default**; **`@NullMarked`** is enough) |
 | Validation | **`Assert.notNull(name, "name must not be null");`** at the **start** of public service methods |
 | JDK / Spring Data vs JSpecify contract | **`Objects.requireNonNull(expr)`** on **`return`** when **`expr`** is a **`List`**, **`Optional`**, or entity from **`save` / `findById` / `map`** and the analyzer reports *unchecked conversion to `@NonNull …`* — runtime behavior unchanged if values are never null |
 
@@ -34,8 +36,8 @@
 | [`src/main/java/com/challenges/api/web/package-info.java`](../../src/main/java/com/challenges/api/web/package-info.java) | **`@NullMarked`** for controllers + advice |
 | [`src/main/java/com/challenges/api/web/dto/package-info.java`](../../src/main/java/com/challenges/api/web/dto/package-info.java) | **`@NullMarked`**; optional fields **`@Nullable`** on records |
 | [`src/main/java/com/challenges/api/repo/package-info.java`](../../src/main/java/com/challenges/api/repo/package-info.java) | **`@NullMarked`** for repositories |
-| All `*Service.java` | **`@Nullable` where needed** (JSpecify), **`Assert.notNull`** gaps, explicit **`@NonNull`** on returns where useful, **`Objects.requireNonNull`** on returns from JDK/repositories where the IDE warns |
-| All `*Controller.java` + [`GlobalExceptionHandler.java`](../../src/main/java/com/challenges/api/web/GlobalExceptionHandler.java) | Same defaults under **`web`** package |
+| All `*Service.java` | **`@Nullable` where needed** (JSpecify), **`@NonNull`** on **required parameters** (ids, DTOs), **`Assert.notNull`** gaps, explicit **`@NonNull`** on returns where useful, **`Objects.requireNonNull`** on returns from JDK/repositories where the IDE warns |
+| All `*Controller.java` + [`GlobalExceptionHandler.java`](../../src/main/java/com/challenges/api/web/GlobalExceptionHandler.java) | Same defaults under **`web`** package; **`@Nullable`** on optional **`@RequestParam(required = false)`**; **`@PathVariable`** without duplicate **`@NonNull`** |
 | DTO records with optional IDs | **`@Nullable Long`** on `subTaskId`, `expiresAt`, etc. |
 | All `*IT.java` / `*Test.java` under `src/test/java` | **Constructor injection** instead of field **`@Autowired`** |
 
@@ -45,7 +47,7 @@
 
 - **`UserService.create`** returns **`User`** (always persisted) — **keep** non-null **`User`**; annotate **`@NonNull`** return.
 - **`InviteService.list(Long challengeIdFilter)`** — filter **`@Nullable`**; return **`@NonNull List<Invite>`**.
-- **`CommentService.listForChallenge(Long challengeId, Long subTaskIdFilter)`** — second arg **`@Nullable`**.
+- **`CommentService.listForChallenge(Long challengeId, Long subTaskIdFilter)`** — **`challengeId`** **`@NonNull`**; second arg **`@Nullable`**.
 - **`ScheduleService.parseWeekDays(List<String> raw)`** — parameter **`@Nullable`** (JSpecify); return **`@NonNull List<DayOfWeek>`**; use **`Objects.requireNonNull(Collections.emptyList())`** / **`Objects.requireNonNull(stream…toList())`** so Eclipse null analysis accepts **`@NonNull List<DayOfWeek>`** (JDK collectors are not annotated).
 - **`ScheduleService.update(..., List<DayOfWeek> weekDays)`** — today calls **`s.replaceWeekDays(weekDays)`**; add **`Assert.notNull(weekDays, "weekDays must not be null");`** (controller always sends a list; defense in depth).
 - **`ScheduleService.createForChallenge` / `createForSubTask`** — add **`Assert.notNull(weekDays, "weekDays must not be null");`** OR document that **`null`** means empty — **YAGNI: use `Assert.notNull`** for API clarity.
@@ -109,7 +111,14 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 ```
 
-(Use **`@NonNull`** only where it clarifies return types, e.g. **`@NonNull List<Invite>`**.)
+Use **`@NonNull`** on:
+- **Return types** where useful (e.g. **`@NonNull List<Invite>`**, **`@NonNull User`**).
+- **Parameters** that are always required: resource ids (**`Long id`**, **`challengeId`**), request records (**`CommentRequest req`**), and any argument that is not an optional filter. Example:
+
+```java
+public Optional<Comment> create(@NonNull Long challengeId, @NonNull CommentRequest req)
+public boolean delete(@NonNull Long id)
+```
 
 **Optional — `ScheduleService` bridging:** After **`@NullMarked`**, repository and stream results may still trigger *unchecked conversion* warnings. Where appropriate:
 
@@ -130,10 +139,10 @@ public @NonNull List<Invite> list(@Nullable Long challengeIdFilter) {
 
 ```java
 @Transactional(readOnly = true)
-public @NonNull List<Comment> listForChallenge(Long challengeId, @Nullable Long subTaskIdFilter) {
+public @NonNull List<Comment> listForChallenge(@NonNull Long challengeId, @Nullable Long subTaskIdFilter) {
 ```
 
-(body unchanged; **`Assert.notNull(challengeId, ...)`** already present)
+(body unchanged; **`Assert.notNull(challengeId, ...)`** already present). Apply the same **parameter `@NonNull`** pattern to other service methods with required ids or DTOs (**`create`**, **`update`**, **`findById`**, **`delete`**, etc.).
 
 - [x] **Step 4:** **`ScheduleService`**: annotate **`parseWeekDays`**:
 
@@ -199,6 +208,8 @@ public record InviteRequest(
 - [x] **Step 1:** On **`@RequestParam(required = false) Long subTaskId`** in **`CommentController.list`**, add **`@Nullable Long subTaskId`** (import **`org.jspecify.annotations.Nullable`**).
 
 - [x] **Step 2:** Add **`@NonNull`** (**`org.jspecify.annotations.NonNull`**) on **`List<...>`** return types in controllers where you want IDE clarity (optional; package default already implies non-null references). If the IDE warns on **`stream().…toList()`**, wrap with **`Objects.requireNonNull(...)`** on the return expression.
+
+- [x] **Step 2b:** **Do not** add JSpecify **`@NonNull`** or Jakarta **`@NotNull`** on **`@PathVariable`** parameters — **`@PathVariable`** is **required by default** (`required = true`), so a separate nullness annotation is redundant; package **`@NullMarked`** already treats the parameter as non-null. Use **`@PathVariable Long challengeId`** (or **`@PathVariable("id") Long id`**), not **`@PathVariable @NonNull Long …`**. Do **not** add **`@NonNull`** on **`@RequestParam(required = false)`** — use **`@Nullable`** there.
 
 - [x] **Step 3:** `./gradlew compileJava` → **SUCCESS**
 
@@ -288,6 +299,7 @@ Expected: **BUILD SUCCESSFUL**
 |-------------|------|
 | **`Optional`** for missing single results | Already standard in services; plan adds **annotations** + **`Schedule`** **`weekDays`** validation — **no** new `null` returns |
 | **`@NullMarked` (package) + JSpecify `@Nullable` / `@NonNull`** | **1–4** |
+| **`@NonNull` on required parameters** | **Task 2** (services); **Task 4** for **`@RequestBody`** / non-path params — **not** on **`@PathVariable`** (redundant with Spring default + **`@NullMarked`**) |
 | **`Objects.requireNonNull` bridging** | Documented in **Task 2** / **Task 4**; **`ScheduleService`** is the main example |
 | **Constructor injection** | **Production OK**; **5** for **tests** |
 | **Early validation (`Assert.notNull`)** | **2** (**weekDays**, **req** gaps) |
