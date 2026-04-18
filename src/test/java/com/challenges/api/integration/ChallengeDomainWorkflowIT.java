@@ -20,9 +20,10 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * End-to-end API workflow: users → challenge → subtasks → schedules → invite → check-ins.
- * Accepting an invite ({@code InviteStatus.ACCEPTED}) creates a {@link com.challenges.api.model.Participant}
- * so {@code GET /participants} reflects membership without test-only seeding.
+ * End-to-end API workflow: owner sets up a challenge (subtasks, schedules), invites another user,
+ * that user <strong>accepts the challenge</strong> ({@code PUT /api/invites/{id}} with
+ * {@code InviteStatus.ACCEPTED}), which creates a {@link com.challenges.api.model.Participant} — then both
+ * users record check-ins.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,13 +40,13 @@ class ChallengeDomainWorkflowIT {
 	private ObjectMapper objectMapper;
 
 	@Test
-	void userCreatesChallengeWithSubtasksSchedules_invitesParticipant_checkIns() throws Exception {
+	void ownerSetsUpChallenge_inviteeAcceptsChallenge_becomesParticipant_thenCheckIns() throws Exception {
 		long ownerId = postUser("workflow-owner@example.test");
-		long inviteeId = postUser("workflow-invitee@example.test");
+		long inviteeUserId = postUser("workflow-invitee@example.test");
 
+		// --- Owner: challenge, subtasks, schedules ---
 		long challengeId = postChallenge(ownerId, "Summer habit", LocalDate.of(2026, 7, 1));
-
-		long subDailyId = postSubTask(challengeId, "Morning block", 0);
+		postSubTask(challengeId, "Morning block", 0);
 		long subWeeklyId = postSubTask(challengeId, "Evening review", 1);
 
 		long chScheduleId = postScheduleChallenge(challengeId);
@@ -66,24 +67,31 @@ class ChallengeDomainWorkflowIT {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(2));
 
-		long inviteId = postInvite(ownerId, inviteeId, challengeId, null);
-		mockMvc.perform(
-						put("/api/invites/" + inviteId).header(HV, V1).contentType(APPLICATION_JSON).content(
-								"{\"status\":\"ACCEPTED\"}"))
+		// --- Invite (PENDING): owner asks invitee to join the challenge ---
+		long inviteId = postInvite(ownerId, inviteeUserId, challengeId, null);
+		mockMvc.perform(get("/api/invites/" + inviteId).header(HV, V1))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value("ACCEPTED"));
+				.andExpect(jsonPath("$.status").value("PENDING"))
+				.andExpect(jsonPath("$.inviteeUserId").value((int) inviteeUserId));
+
+		// --- Invitee accepts the challenge → becomes a Participant (challenge-wide scope) ---
+		acceptInvite(inviteId);
 
 		mockMvc.perform(get("/api/invites?challengeId=" + challengeId).header(HV, V1))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].inviteeUserId").value((int) inviteeId));
+				.andExpect(jsonPath("$[0].inviteeUserId").value((int) inviteeUserId))
+				.andExpect(jsonPath("$[0].status").value("ACCEPTED"));
 
 		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants").header(HV, V1))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].userId").value((int) inviteeId))
-				.andExpect(jsonPath("$[0].challengeId").value((int) challengeId));
+				.andExpect(jsonPath("$.length()").value(1))
+				.andExpect(jsonPath("$[0].userId").value((int) inviteeUserId))
+				.andExpect(jsonPath("$[0].challengeId").value((int) challengeId))
+				.andExpect(jsonPath("$[0].subTaskId").isEmpty());
 
+		// --- Both users log check-ins ---
 		postCheckIn(ownerId, challengeId, LocalDate.of(2026, 7, 10), null);
-		postCheckIn(inviteeId, challengeId, LocalDate.of(2026, 7, 11), subWeeklyId);
+		postCheckIn(inviteeUserId, challengeId, LocalDate.of(2026, 7, 11), subWeeklyId);
 
 		mockMvc.perform(get("/api/challenges/" + challengeId + "/check-ins").header(HV, V1))
 				.andExpect(status().isOk())
@@ -165,6 +173,15 @@ class ChallengeDomainWorkflowIT {
 						.andExpect(jsonPath("$.status").value("PENDING"))
 						.andReturn();
 		return objectMapper.readTree(res.getResponse().getContentAsString()).get("id").asLong();
+	}
+
+	/** Invitee accepts the challenge: {@link com.challenges.api.model.InviteStatus#ACCEPTED}. */
+	private void acceptInvite(long inviteId) throws Exception {
+		mockMvc.perform(
+						put("/api/invites/" + inviteId).header(HV, V1).contentType(APPLICATION_JSON).content(
+								"{\"status\":\"ACCEPTED\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("ACCEPTED"));
 	}
 
 	private void postCheckIn(long userId, long challengeId, LocalDate checkDate, Long subTaskId)
