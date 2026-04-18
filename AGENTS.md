@@ -10,16 +10,17 @@ This file is project memory for humans and AI agents working in this repository.
 
 | Term | Meaning |
 |------|--------|
-| **Challenge** | A goal or habit defined by a user, with metadata and rules as implemented in code. Typically has a creator and one or more participants. |
-| **SubTask** | A challenge can have a subtask but not mandatory defined by a user, with metadata and rules as implemented in code.|
-| **Participant** | Other users who can access the challenge (visibility and permissions depend on implementation: invites, links, memberships, etc.). Do not assume a single sharing mechanism unless the codebase fixes one. |
-| **Check-in** | A timestamped or calendar-dated record that the user completed (or reported) progress for a challenge on a given day or instant. |
-| **Cadence / schedule** | How often check-ins are expected: **every day**, or **specific days per week** (e.g. Mon / Wed / Fri). Do **not** assume “only daily” or “only weekdays” unless the model or API explicitly encodes that. |
+| **Challenge** | A goal or habit defined by a user, with a required **start date**, an **optional end date** (inclusive window when set; omit end for open-ended), metadata, and rules. Has an **owner** and participants. |
+| **SubTask** | Optional steps under a challenge. A challenge can have zero or more subtasks; check-ins can target the **challenge** or a specific **subtask** (see **Check-in**). |
+| **Participant** | A **user** in a **challenge**: either for the **whole challenge** (`subTask` unset) or **scoped to a subtask** (`subTask` set). Same user can have both kinds of rows. Distinct from **`Challenge` owner**. **Invite** models invitations; roles beyond membership can be modeled later. |
+| **Invite** | One user (**inviter**) invites another (**invitee**) to a **challenge**, optionally scoped to a **subtask** (`subTask` unset = whole challenge). Status (pending / accepted / …) is stored on the invite; accepting may create a **Participant** in a later API/service layer. |
+| **Check-in** | A calendar-dated record that a user completed progress for a **challenge** on a given day, or optionally for a specific **subtask** of that challenge on that day. |
+| **Cadence / schedule** | How often check-ins are expected: **every day**, **specific weekdays** (e.g. Mon / Wed / Fri), or **one specific calendar date**. A **challenge** can have a schedule, and **each subtask** can have its **own** schedule. Do **not** assume “only daily” unless the model encodes that. |
 
 ---
 
 ## Product rules for agents
-- When adding APIs, persistence, or models, **reuse this vocabulary** in naming (`Challenge`, `CheckIn`, `Participant`, `Schedule`, or project-standard equivalents). Avoid overloading terms (e.g. do not use “check-in” for unrelated events).
+- When adding APIs, persistence, or models, **reuse this vocabulary** in naming (`Challenge`, `CheckIn`, `Participant`, `Schedule`, `Invite`, or project-standard equivalents). Avoid overloading terms (e.g. do not use “check-in” for unrelated events).
 - Prefer small, focused changes that preserve existing contracts and semantics.
 
 ---
