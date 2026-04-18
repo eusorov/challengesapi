@@ -48,6 +48,7 @@ This repository is intended to host the **challenges API** — a Java Spring Boo
 - **Base path:** JSON resources live under **`/api/...`** (see controller `@RequestMapping` paths).
 - **Versioning:** send header **`API-Version: 1`** on HTTP requests; controllers are mapped at **`version = "1"`**.
 - **Layering:** **`@RestController`** classes in **`com.challenges.api.web`** delegate to **`@Service`** types in **`com.challenges.api.service`**; **repositories** are only used from services.
+- **Invites → participants:** When an invite is **`ACCEPTED`** (**`InviteStatus.ACCEPTED`**), the API creates a **`Participant`** row for the invitee (challenge-wide or subtask-scoped to match the invite).
 - **Authentication:** **none** in this phase—callers pass **user ids** and related ids in request bodies as each endpoint documents.
 
 **Scope:** Only the REST API in this repository—**React** UI and server-rendered templates are not built here.
