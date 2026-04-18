@@ -6,6 +6,8 @@ import com.challenges.api.web.dto.CommentResponse;
 import com.challenges.api.web.dto.CommentUpdateRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,8 +31,8 @@ public class CommentController {
 	}
 
 	@GetMapping("/challenges/{challengeId}/comments")
-	public List<CommentResponse> list(
-			@PathVariable Long challengeId, @RequestParam(required = false) Long subTaskId) {
+	public @NonNull List<CommentResponse> list(
+			@PathVariable Long challengeId, @RequestParam(required = false) @Nullable Long subTaskId) {
 		return commentService.listForChallenge(challengeId, subTaskId).stream()
 				.map(CommentResponse::from)
 				.toList();

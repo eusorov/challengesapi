@@ -5,6 +5,7 @@ import com.challenges.api.web.dto.ChallengeRequest;
 import com.challenges.api.web.dto.ChallengeResponse;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.lang.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,7 +28,7 @@ public class ChallengeController {
 	}
 
 	@GetMapping
-	public List<ChallengeResponse> list() {
+	public @NonNull List<ChallengeResponse> list() {
 		return challengeService.listChallenges().stream().map(ChallengeResponse::from).toList();
 	}
 

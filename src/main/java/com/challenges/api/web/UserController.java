@@ -5,6 +5,7 @@ import com.challenges.api.web.dto.UserRequest;
 import com.challenges.api.web.dto.UserResponse;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.lang.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,7 +28,7 @@ public class UserController {
 	}
 
 	@GetMapping
-	public List<UserResponse> list() {
+	public @NonNull List<UserResponse> list() {
 		return userService.listUsers().stream().map(UserResponse::from).toList();
 	}
 

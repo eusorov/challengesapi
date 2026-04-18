@@ -10,6 +10,8 @@ import com.challenges.api.repo.SubTaskRepository;
 import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -27,7 +29,7 @@ public class ScheduleService {
 		this.subTasks = subTasks;
 	}
 
-	public static List<DayOfWeek> parseWeekDays(List<String> raw) {
+	public static @NonNull List<DayOfWeek> parseWeekDays(@Nullable List<String> raw) {
 		if (raw == null || raw.isEmpty()) {
 			return List.of();
 		}
@@ -38,6 +40,7 @@ public class ScheduleService {
 	public Optional<Schedule> createForChallenge(Long challengeId, ScheduleKind kind, List<DayOfWeek> weekDays) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		Assert.notNull(kind, "kind must not be null");
+		Assert.notNull(weekDays, "weekDays must not be null");
 		return challenges.findById(challengeId).map(ch -> replaceChallengeSchedule(ch, kind, weekDays));
 	}
 
@@ -45,6 +48,7 @@ public class ScheduleService {
 	public Optional<Schedule> createForSubTask(Long subTaskId, ScheduleKind kind, List<DayOfWeek> weekDays) {
 		Assert.notNull(subTaskId, "subTaskId must not be null");
 		Assert.notNull(kind, "kind must not be null");
+		Assert.notNull(weekDays, "weekDays must not be null");
 		return subTasks.findById(subTaskId).map(st -> replaceSubTaskSchedule(st, kind, weekDays));
 	}
 
@@ -80,6 +84,7 @@ public class ScheduleService {
 	public Optional<Schedule> update(Long id, ScheduleKind kind, List<DayOfWeek> weekDays) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(kind, "kind must not be null");
+		Assert.notNull(weekDays, "weekDays must not be null");
 		return schedules.findByIdWithAssociations(id).map(s -> {
 			s.setKind(kind);
 			s.replaceWeekDays(weekDays);

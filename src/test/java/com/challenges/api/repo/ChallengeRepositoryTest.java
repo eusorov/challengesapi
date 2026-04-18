@@ -13,11 +13,14 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 @DataJpaTest
 class ChallengeRepositoryTest {
 
-	@Autowired
-	private TestEntityManager entityManager;
+	private final TestEntityManager entityManager;
+	private final ChallengeRepository challengeRepository;
 
 	@Autowired
-	private ChallengeRepository challengeRepository;
+	ChallengeRepositoryTest(TestEntityManager entityManager, ChallengeRepository challengeRepository) {
+		this.entityManager = entityManager;
+		this.challengeRepository = challengeRepository;
+	}
 
 	@Test
 	void persistsBoundedChallengeWithStartAndEnd() {

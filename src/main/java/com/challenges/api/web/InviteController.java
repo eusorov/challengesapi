@@ -6,6 +6,8 @@ import com.challenges.api.web.dto.InviteResponse;
 import com.challenges.api.web.dto.InviteUpdateRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,7 +31,7 @@ public class InviteController {
 	}
 
 	@GetMapping
-	public List<InviteResponse> list(@RequestParam(required = false) Long challengeId) {
+	public @NonNull List<InviteResponse> list(@RequestParam(required = false) @Nullable Long challengeId) {
 		return inviteService.list(challengeId).stream().map(InviteResponse::from).toList();
 	}
 

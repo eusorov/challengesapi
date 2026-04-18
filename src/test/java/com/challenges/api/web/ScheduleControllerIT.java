@@ -29,17 +29,19 @@ class ScheduleControllerIT {
 	private static final String HV = "API-Version";
 	private static final String V1 = "1";
 
-	@Autowired
-	private MockMvc mockMvc;
+	private final MockMvc mockMvc;
+	private final UserRepository users;
+	private final ChallengeRepository challenges;
+	private final ObjectMapper objectMapper;
 
 	@Autowired
-	private UserRepository users;
-
-	@Autowired
-	private ChallengeRepository challenges;
-
-	@Autowired
-	private ObjectMapper objectMapper;
+	ScheduleControllerIT(
+			MockMvc mockMvc, UserRepository users, ChallengeRepository challenges, ObjectMapper objectMapper) {
+		this.mockMvc = mockMvc;
+		this.users = users;
+		this.challenges = challenges;
+		this.objectMapper = objectMapper;
+	}
 
 	private Challenge challenge;
 

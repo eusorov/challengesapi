@@ -4,6 +4,7 @@ import com.challenges.api.model.User;
 import com.challenges.api.repo.UserRepository;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -18,7 +19,7 @@ public class UserService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<User> listUsers() {
+	public @NonNull List<User> listUsers() {
 		return users.findAll();
 	}
 
@@ -29,7 +30,7 @@ public class UserService {
 	}
 
 	@Transactional
-	public User create(String email) {
+	public @NonNull User create(String email) {
 		Assert.notNull(email, "email must not be null");
 		return users.save(new User(email));
 	}

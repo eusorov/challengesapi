@@ -27,17 +27,22 @@ class ParticipantControllerIT {
 	private static final String HV = "API-Version";
 	private static final String V1 = "1";
 
-	@Autowired
-	private MockMvc mockMvc;
+	private final MockMvc mockMvc;
+	private final UserRepository users;
+	private final ChallengeRepository challenges;
+	private final ParticipantRepository participants;
 
 	@Autowired
-	private UserRepository users;
-
-	@Autowired
-	private ChallengeRepository challenges;
-
-	@Autowired
-	private ParticipantRepository participants;
+	ParticipantControllerIT(
+			MockMvc mockMvc,
+			UserRepository users,
+			ChallengeRepository challenges,
+			ParticipantRepository participants) {
+		this.mockMvc = mockMvc;
+		this.users = users;
+		this.challenges = challenges;
+		this.participants = participants;
+	}
 
 	private Challenge challenge;
 	private User participantUser;

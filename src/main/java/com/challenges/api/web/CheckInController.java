@@ -6,6 +6,7 @@ import com.challenges.api.web.dto.CheckInResponse;
 import com.challenges.api.web.dto.CheckInUpdateRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.lang.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,7 +29,7 @@ public class CheckInController {
 	}
 
 	@GetMapping("/challenges/{challengeId}/check-ins")
-	public List<CheckInResponse> listForChallenge(@PathVariable Long challengeId) {
+	public @NonNull List<CheckInResponse> listForChallenge(@PathVariable Long challengeId) {
 		return checkInService.listForChallenge(challengeId).stream().map(CheckInResponse::from).toList();
 	}
 

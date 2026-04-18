@@ -18,11 +18,14 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 @DataJpaTest
 class ScheduleRepositoryTest {
 
-	@Autowired
-	private TestEntityManager entityManager;
+	private final TestEntityManager entityManager;
+	private final ScheduleRepository scheduleRepository;
 
 	@Autowired
-	private ScheduleRepository scheduleRepository;
+	ScheduleRepositoryTest(TestEntityManager entityManager, ScheduleRepository scheduleRepository) {
+		this.entityManager = entityManager;
+		this.scheduleRepository = scheduleRepository;
+	}
 
 	@Test
 	void persistsChallengeScheduleAndSubtaskSchedule() {

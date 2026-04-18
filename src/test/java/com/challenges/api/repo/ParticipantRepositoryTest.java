@@ -16,11 +16,14 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 @DataJpaTest
 class ParticipantRepositoryTest {
 
-	@Autowired
-	private TestEntityManager entityManager;
+	private final TestEntityManager entityManager;
+	private final ParticipantRepository participantRepository;
 
 	@Autowired
-	private ParticipantRepository participantRepository;
+	ParticipantRepositoryTest(TestEntityManager entityManager, ParticipantRepository participantRepository) {
+		this.entityManager = entityManager;
+		this.participantRepository = participantRepository;
+	}
 
 	@Test
 	void findsWideVsSubtaskScopedParticipants() {

@@ -12,6 +12,8 @@ import com.challenges.api.web.dto.CommentRequest;
 import com.challenges.api.web.dto.CommentUpdateRequest;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -36,7 +38,7 @@ public class CommentService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<Comment> listForChallenge(Long challengeId, Long subTaskIdFilter) {
+	public @NonNull List<Comment> listForChallenge(Long challengeId, @Nullable Long subTaskIdFilter) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		if (subTaskIdFilter == null) {
 			return comments.findByChallengeIdWithAssociations(challengeId);

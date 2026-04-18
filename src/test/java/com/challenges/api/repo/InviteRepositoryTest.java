@@ -17,11 +17,14 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 @DataJpaTest
 class InviteRepositoryTest {
 
-	@Autowired
-	private TestEntityManager entityManager;
+	private final TestEntityManager entityManager;
+	private final InviteRepository inviteRepository;
 
 	@Autowired
-	private InviteRepository inviteRepository;
+	InviteRepositoryTest(TestEntityManager entityManager, InviteRepository inviteRepository) {
+		this.entityManager = entityManager;
+		this.inviteRepository = inviteRepository;
+	}
 
 	@Test
 	void savesChallengeWideInvite() {

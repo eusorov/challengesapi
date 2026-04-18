@@ -10,6 +10,7 @@ import com.challenges.api.web.dto.CheckInRequest;
 import com.challenges.api.web.dto.CheckInUpdateRequest;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -34,7 +35,7 @@ public class CheckInService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<CheckIn> listForChallenge(Long challengeId) {
+	public @NonNull List<CheckIn> listForChallenge(Long challengeId) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		return checkIns.findByChallenge_IdOrderByCheckDateDesc(challengeId);
 	}

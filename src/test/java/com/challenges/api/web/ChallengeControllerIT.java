@@ -26,14 +26,16 @@ class ChallengeControllerIT {
 	private static final String HV = "API-Version";
 	private static final String V1 = "1";
 
-	@Autowired
-	private MockMvc mockMvc;
+	private final MockMvc mockMvc;
+	private final UserRepository users;
+	private final ObjectMapper objectMapper;
 
 	@Autowired
-	private UserRepository users;
-
-	@Autowired
-	private ObjectMapper objectMapper;
+	ChallengeControllerIT(MockMvc mockMvc, UserRepository users, ObjectMapper objectMapper) {
+		this.mockMvc = mockMvc;
+		this.users = users;
+		this.objectMapper = objectMapper;
+	}
 
 	private User owner1;
 

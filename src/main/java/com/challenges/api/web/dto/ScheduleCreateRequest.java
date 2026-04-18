@@ -4,12 +4,13 @@ import com.challenges.api.model.ScheduleKind;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import org.springframework.lang.Nullable;
 
 public record ScheduleCreateRequest(
-		Long challengeId,
-		Long subTaskId,
+		@Nullable Long challengeId,
+		@Nullable Long subTaskId,
 		@NotNull ScheduleKind kind,
-		List<String> weekDays) {
+		@Nullable List<String> weekDays) {
 
 	@AssertTrue(message = "Exactly one of challengeId or subTaskId must be set")
 	public boolean isExactlyOneOwner() {

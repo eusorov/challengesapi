@@ -15,6 +15,8 @@ import com.challenges.api.web.dto.InviteRequest;
 import com.challenges.api.web.dto.InviteUpdateRequest;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -42,7 +44,7 @@ public class InviteService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<Invite> list(Long challengeIdFilter) {
+	public @NonNull List<Invite> list(@Nullable Long challengeIdFilter) {
 		if (challengeIdFilter != null) {
 			return invites.findByChallenge_Id(challengeIdFilter);
 		}

@@ -10,8 +10,12 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 @DataJpaTest
 class UserRepositoryTest {
 
+	private final UserRepository userRepository;
+
 	@Autowired
-	private UserRepository userRepository;
+	UserRepositoryTest(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
 
 	@Test
 	void savesAndFindsUserById() {

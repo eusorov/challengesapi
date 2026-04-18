@@ -33,11 +33,14 @@ class ChallengeDomainWorkflowIT {
 	private static final String HV = "API-Version";
 	private static final String V1 = "1";
 
-	@Autowired
-	private MockMvc mockMvc;
+	private final MockMvc mockMvc;
+	private final ObjectMapper objectMapper;
 
 	@Autowired
-	private ObjectMapper objectMapper;
+	ChallengeDomainWorkflowIT(MockMvc mockMvc, ObjectMapper objectMapper) {
+		this.mockMvc = mockMvc;
+		this.objectMapper = objectMapper;
+	}
 
 	@Test
 	void ownerSetsUpChallenge_inviteeAcceptsChallenge_becomesParticipant_thenCheckIns() throws Exception {

@@ -7,6 +7,7 @@ import com.challenges.api.web.dto.SubTaskRequest;
 import com.challenges.api.web.dto.SubTaskUpdateRequest;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -23,7 +24,7 @@ public class SubTaskService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<SubTask> listForChallenge(Long challengeId) {
+	public @NonNull List<SubTask> listForChallenge(Long challengeId) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		return subTasks.findByChallenge_IdOrderBySortIndexAsc(challengeId);
 	}

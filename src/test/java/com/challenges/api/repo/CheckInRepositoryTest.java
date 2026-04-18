@@ -15,11 +15,14 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 @DataJpaTest
 class CheckInRepositoryTest {
 
-	@Autowired
-	private TestEntityManager entityManager;
+	private final TestEntityManager entityManager;
+	private final CheckInRepository checkInRepository;
 
 	@Autowired
-	private CheckInRepository checkInRepository;
+	CheckInRepositoryTest(TestEntityManager entityManager, CheckInRepository checkInRepository) {
+		this.entityManager = entityManager;
+		this.checkInRepository = checkInRepository;
+	}
 
 	@Test
 	void persistsChallengeLevelAndSubtaskLevelCheckIns() {

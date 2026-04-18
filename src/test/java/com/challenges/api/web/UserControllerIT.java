@@ -21,8 +21,12 @@ class UserControllerIT {
 	private static final String HV = "API-Version";
 	private static final String V1 = "1";
 
+	private final MockMvc mockMvc;
+
 	@Autowired
-	private MockMvc mockMvc;
+	UserControllerIT(MockMvc mockMvc) {
+		this.mockMvc = mockMvc;
+	}
 
 	@Test
 	void postThenListUsers() throws Exception {

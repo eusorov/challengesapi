@@ -30,20 +30,25 @@ class DomainBulkFixtureIT {
 	private static final List<DayOfWeek> MON_TUE_FRI =
 			List.of(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.FRIDAY);
 
-	@Autowired
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
+	private final ChallengeRepository challengeRepository;
+	private final SubTaskRepository subTaskRepository;
+	private final ParticipantRepository participantRepository;
+	private final ScheduleRepository scheduleRepository;
 
 	@Autowired
-	private ChallengeRepository challengeRepository;
-
-	@Autowired
-	private SubTaskRepository subTaskRepository;
-
-	@Autowired
-	private ParticipantRepository participantRepository;
-
-	@Autowired
-	private ScheduleRepository scheduleRepository;
+	DomainBulkFixtureIT(
+			UserRepository userRepository,
+			ChallengeRepository challengeRepository,
+			SubTaskRepository subTaskRepository,
+			ParticipantRepository participantRepository,
+			ScheduleRepository scheduleRepository) {
+		this.userRepository = userRepository;
+		this.challengeRepository = challengeRepository;
+		this.subTaskRepository = subTaskRepository;
+		this.participantRepository = participantRepository;
+		this.scheduleRepository = scheduleRepository;
+	}
 
 	@Test
 	void bulkFixture_countsAndSchedules() {

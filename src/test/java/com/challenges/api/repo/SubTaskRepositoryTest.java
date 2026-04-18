@@ -14,11 +14,14 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 @DataJpaTest
 class SubTaskRepositoryTest {
 
-	@Autowired
-	private TestEntityManager entityManager;
+	private final TestEntityManager entityManager;
+	private final SubTaskRepository subTaskRepository;
 
 	@Autowired
-	private SubTaskRepository subTaskRepository;
+	SubTaskRepositoryTest(TestEntityManager entityManager, SubTaskRepository subTaskRepository) {
+		this.entityManager = entityManager;
+		this.subTaskRepository = subTaskRepository;
+	}
 
 	@Test
 	void persistsSubTaskLinkedToChallenge() {

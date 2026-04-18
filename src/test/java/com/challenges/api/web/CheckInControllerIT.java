@@ -31,20 +31,25 @@ class CheckInControllerIT {
 	private static final String HV = "API-Version";
 	private static final String V1 = "1";
 
-	@Autowired
-	private MockMvc mockMvc;
+	private final MockMvc mockMvc;
+	private final UserRepository users;
+	private final ChallengeRepository challenges;
+	private final SubTaskRepository subTasks;
+	private final ObjectMapper objectMapper;
 
 	@Autowired
-	private UserRepository users;
-
-	@Autowired
-	private ChallengeRepository challenges;
-
-	@Autowired
-	private SubTaskRepository subTasks;
-
-	@Autowired
-	private ObjectMapper objectMapper;
+	CheckInControllerIT(
+			MockMvc mockMvc,
+			UserRepository users,
+			ChallengeRepository challenges,
+			SubTaskRepository subTasks,
+			ObjectMapper objectMapper) {
+		this.mockMvc = mockMvc;
+		this.users = users;
+		this.challenges = challenges;
+		this.subTasks = subTasks;
+		this.objectMapper = objectMapper;
+	}
 
 	private User user;
 	private Challenge challenge;

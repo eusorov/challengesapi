@@ -6,6 +6,7 @@ import com.challenges.api.repo.UserRepository;
 import com.challenges.api.web.dto.ChallengeRequest;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -22,7 +23,7 @@ public class ChallengeService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<Challenge> listChallenges() {
+	public @NonNull List<Challenge> listChallenges() {
 		return challenges.findAllWithOwner();
 	}
 

@@ -6,6 +6,7 @@ import com.challenges.api.web.dto.SubTaskResponse;
 import com.challenges.api.web.dto.SubTaskUpdateRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.lang.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,7 +29,7 @@ public class SubTaskController {
 	}
 
 	@GetMapping("/challenges/{challengeId}/subtasks")
-	public List<SubTaskResponse> listForChallenge(@PathVariable Long challengeId) {
+	public @NonNull List<SubTaskResponse> listForChallenge(@PathVariable Long challengeId) {
 		return subTaskService.listForChallenge(challengeId).stream().map(SubTaskResponse::from).toList();
 	}
 
