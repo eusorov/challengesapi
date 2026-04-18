@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Standardize **absent values** as **`Optional`** (not `null`) for single-result service APIs, **`List`** that is **never `null`** (empty list ok), add **`org.springframework.lang`** **`@NonNullApi` / `@NonNull` / `@Nullable`**, ensure **constructor injection everywhere** (including tests), and **fail fast** with **`org.springframework.util.Assert.notNull`** on entry (note: Spring’s API is **`Assert.notNull`**, not `Assert.NonNull`).
+**Goal:** Standardize **absent values** as **`Optional`** (not `null`) for single-result service APIs, **`List`** that is **never `null`** (empty list ok), add **package-level** **`@NullMarked`** (JSpecify) plus **member-level** **`org.jspecify.annotations.NonNull`** / **`@Nullable`** on returns and parameters (not `org.springframework.lang.NonNull` / `@Nullable`), ensure **constructor injection everywhere** (including tests), and **fail fast** with **`org.springframework.util.Assert.notNull`** on entry (note: Spring’s API is **`Assert.notNull`**, not `Assert.NonNull`). Where JDK or Spring Data types are not annotated for nullness, **bridge** to the declared contract with **`java.util.Objects.requireNonNull(...)`** (see conventions).
 
-**Architecture:** Apply **`@NonNullApi`** at **package** level (`package-info.java`) for **`com.challenges.api.service`**, **`com.challenges.api.web`**, and **`com.challenges.api.web.dto`**, and **`com.challenges.api.repo`**. Override with **`@Nullable`** on parameters that intentionally allow absent filters (e.g. **`challengeId`/`subTaskId`** query filters). Annotate **DTO record** components that are optional in JSON with **`@Nullable`**. Keep **entity** classes largely unchanged in the first pass (optional follow-up: **`model` package** annotations). **Repositories** remain Spring Data interfaces; default **`@NonNullApi`** applies to declared custom methods and return types.
+**Architecture:** Apply **`@NullMarked`** at **package** level (`package-info.java`) for **`com.challenges.api.service`**, **`com.challenges.api.web`**, and **`com.challenges.api.web.dto`**, and **`com.challenges.api.repo`** — import **`org.jspecify.annotations.NullMarked`** only in those files. (Spring **`@NonNullApi`** is **deprecated** since Framework **7.0**; **`@NullMarked`** is the JSpecify replacement.) Use **`org.jspecify.annotations.NonNull`** and **`org.jspecify.annotations.Nullable`** on **methods, parameters, record components, and fields** where explicit nullness helps the IDE. Override with **`@Nullable`** on parameters that intentionally allow absent filters (e.g. **`challengeId`/`subTaskId`** query filters). Annotate **DTO record** components that are optional in JSON with **`@Nullable`**. Keep **entity** classes largely unchanged in the first pass (optional follow-up: **`model` package** annotations). **Repositories** remain Spring Data interfaces; default **`@NullMarked`** applies to declared custom methods and return types.
 
-**Tech Stack:** Java **25**, Spring Boot **4.0.5**, `spring-core` **`org.springframework.lang`**, **`Optional`**, JUnit **5**, Gradle **`./gradlew test`**.
+**Tech Stack:** Java **25**, Spring Boot **4.0.5**, **`org.jspecify.annotations.NullMarked`** (package defaults), **`org.jspecify`** **`NonNull` / `Nullable`**, **`java.util.Objects.requireNonNull`**, **`Optional`**, JUnit **5**, Gradle **`./gradlew test`**.
 
 ---
 
@@ -20,6 +20,7 @@
 | Boolean success | **`boolean`** (e.g. delete) |
 | Optional filter argument | **`@Nullable Long`** (or `Optional` wrapper — **prefer `@Nullable`** for existing APIs) |
 | Validation | **`Assert.notNull(name, "name must not be null");`** at the **start** of public service methods |
+| JDK / Spring Data vs JSpecify contract | **`Objects.requireNonNull(expr)`** on **`return`** when **`expr`** is a **`List`**, **`Optional`**, or entity from **`save` / `findById` / `map`** and the analyzer reports *unchecked conversion to `@NonNull …`* — runtime behavior unchanged if values are never null |
 
 **Do not** change REST JSON contracts (same status codes and bodies).
 
@@ -29,11 +30,11 @@
 
 | Path | Role |
 |------|------|
-| [`src/main/java/com/challenges/api/service/package-info.java`](../../src/main/java/com/challenges/api/service/package-info.java) | **`@NonNullApi`** for services |
-| [`src/main/java/com/challenges/api/web/package-info.java`](../../src/main/java/com/challenges/api/web/package-info.java) | **`@NonNullApi`** for controllers + advice |
-| [`src/main/java/com/challenges/api/web/dto/package-info.java`](../../src/main/java/com/challenges/api/web/dto/package-info.java) | **`@NonNullApi`**; optional fields **`@Nullable`** on records |
-| [`src/main/java/com/challenges/api/repo/package-info.java`](../../src/main/java/com/challenges/api/repo/package-info.java) | **`@NonNullApi`** for repositories |
-| All `*Service.java` | **`@Nullable` where needed**, **`Assert.notNull`** gaps, explicit **`@NonNull`** on returns where useful |
+| [`src/main/java/com/challenges/api/service/package-info.java`](../../src/main/java/com/challenges/api/service/package-info.java) | **`@NullMarked`** for services |
+| [`src/main/java/com/challenges/api/web/package-info.java`](../../src/main/java/com/challenges/api/web/package-info.java) | **`@NullMarked`** for controllers + advice |
+| [`src/main/java/com/challenges/api/web/dto/package-info.java`](../../src/main/java/com/challenges/api/web/dto/package-info.java) | **`@NullMarked`**; optional fields **`@Nullable`** on records |
+| [`src/main/java/com/challenges/api/repo/package-info.java`](../../src/main/java/com/challenges/api/repo/package-info.java) | **`@NullMarked`** for repositories |
+| All `*Service.java` | **`@Nullable` where needed** (JSpecify), **`Assert.notNull`** gaps, explicit **`@NonNull`** on returns where useful, **`Objects.requireNonNull`** on returns from JDK/repositories where the IDE warns |
 | All `*Controller.java` + [`GlobalExceptionHandler.java`](../../src/main/java/com/challenges/api/web/GlobalExceptionHandler.java) | Same defaults under **`web`** package |
 | DTO records with optional IDs | **`@Nullable Long`** on `subTaskId`, `expiresAt`, etc. |
 | All `*IT.java` / `*Test.java` under `src/test/java` | **Constructor injection** instead of field **`@Autowired`** |
@@ -45,7 +46,7 @@
 - **`UserService.create`** returns **`User`** (always persisted) — **keep** non-null **`User`**; annotate **`@NonNull`** return.
 - **`InviteService.list(Long challengeIdFilter)`** — filter **`@Nullable`**; return **`@NonNull List<Invite>`**.
 - **`CommentService.listForChallenge(Long challengeId, Long subTaskIdFilter)`** — second arg **`@Nullable`**.
-- **`ScheduleService.parseWeekDays(List<String> raw)`** — parameter **`@Nullable`**; return **`@NonNull List<DayOfWeek>`** (already **`List.of()`** when null/empty).
+- **`ScheduleService.parseWeekDays(List<String> raw)`** — parameter **`@Nullable`** (JSpecify); return **`@NonNull List<DayOfWeek>`**; use **`Objects.requireNonNull(Collections.emptyList())`** / **`Objects.requireNonNull(stream…toList())`** so Eclipse null analysis accepts **`@NonNull List<DayOfWeek>`** (JDK collectors are not annotated).
 - **`ScheduleService.update(..., List<DayOfWeek> weekDays)`** — today calls **`s.replaceWeekDays(weekDays)`**; add **`Assert.notNull(weekDays, "weekDays must not be null");`** (controller always sends a list; defense in depth).
 - **`ScheduleService.createForChallenge` / `createForSubTask`** — add **`Assert.notNull(weekDays, "weekDays must not be null");`** OR document that **`null`** means empty — **YAGNI: use `Assert.notNull`** for API clarity.
 
@@ -67,15 +68,15 @@ Expected: **no matches** on fields (only if any constructor uses `@Autowired` �
 - Create: [`src/main/java/com/challenges/api/web/dto/package-info.java`](../../src/main/java/com/challenges/api/web/dto/package-info.java)
 - Create: [`src/main/java/com/challenges/api/repo/package-info.java`](../../src/main/java/com/challenges/api/repo/package-info.java)
 
-- [ ] **Step 1:** Add four **`package-info.java`** files with identical structure; only **`package`** line differs.
+- [x] **Step 1:** Add four **`package-info.java`** files with identical structure; only **`package`** line differs.
 
 [`src/main/java/com/challenges/api/service/package-info.java`](../../src/main/java/com/challenges/api/service/package-info.java):
 
 ```java
-@NonNullApi
+@NullMarked
 package com.challenges.api.service;
 
-import org.springframework.lang.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 ```
 
 Repeat for:
@@ -84,9 +85,9 @@ Repeat for:
 - `package com.challenges.api.web.dto;`
 - `package com.challenges.api.repo;`
 
-- [ ] **Step 2:** `./gradlew compileJava --no-daemon` → **SUCCESS**
+- [x] **Step 2:** `./gradlew compileJava --no-daemon` → **SUCCESS**
 
-- [ ] **Step 3:** Commit **`chore: add NonNullApi package defaults`**
+- [x] **Step 3:** Commit **`chore: add NullMarked package defaults`**
 
 ---
 
@@ -101,23 +102,31 @@ Repeat for:
 - [`src/main/java/com/challenges/api/service/SubTaskService.java`](../../src/main/java/com/challenges/api/service/SubTaskService.java)
 - [`src/main/java/com/challenges/api/service/UserService.java`](../../src/main/java/com/challenges/api/service/UserService.java)
 
-- [ ] **Step 1:** Add import:
+- [x] **Step 1:** Add imports for member-level nullness (JSpecify, not Spring):
 
 ```java
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 ```
 
-(Use **`NonNull`** only where it clarifies return types, e.g. **`@NonNull List<Invite>`**.)
+(Use **`@NonNull`** only where it clarifies return types, e.g. **`@NonNull List<Invite>`**.)
 
-- [ ] **Step 2:** **`InviteService`**: change signature to:
+**Optional — `ScheduleService` bridging:** After **`@NullMarked`**, repository and stream results may still trigger *unchecked conversion* warnings. Where appropriate:
+
+- **`parseWeekDays`:** `return Objects.requireNonNull(Collections.emptyList());` and `return Objects.requireNonNull(raw.stream()…toList());` (add **`import java.util.Collections`** if needed).
+- **`createForChallenge` / `createForSubTask`:** e.g. `return Objects.requireNonNull(repo.findById(id).map(e -> replace…(Objects.requireNonNull(e), …)));`
+- **`findById` / `update`:** wrap **`findByIdWithAssociations`** / **`map`** / **`schedules.save`** results with **`Objects.requireNonNull(...)`** as needed for a clean Problems view.
+
+Keep **`Assert.notNull`** for **API** preconditions; use **`Objects.requireNonNull`** for **annotation / IDE** bridging of trusted framework return values.
+
+- [x] **Step 2:** **`InviteService`**: change signature to:
 
 ```java
 @Transactional(readOnly = true)
 public @NonNull List<Invite> list(@Nullable Long challengeIdFilter) {
 ```
 
-- [ ] **Step 3:** **`CommentService`**: change **`listForChallenge`** to:
+- [x] **Step 3:** **`CommentService`**: change **`listForChallenge`** to:
 
 ```java
 @Transactional(readOnly = true)
@@ -126,7 +135,7 @@ public @NonNull List<Comment> listForChallenge(Long challengeId, @Nullable Long 
 
 (body unchanged; **`Assert.notNull(challengeId, ...)`** already present)
 
-- [ ] **Step 4:** **`ScheduleService`**: annotate **`parseWeekDays`**:
+- [x] **Step 4:** **`ScheduleService`**: annotate **`parseWeekDays`**:
 
 ```java
 public static @NonNull List<DayOfWeek> parseWeekDays(@Nullable List<String> raw) {
@@ -140,17 +149,17 @@ Assert.notNull(weekDays, "weekDays must not be null");
 
 (Place **`Assert.notNull(weekDays, ...)`** immediately after **`kind`** / **`id`** asserts in each method.)
 
-- [ ] **Step 5:** **`ChallengeService.replace`** — if **`req`** is not asserted, add **`Assert.notNull(req, "request must not be null");`** at method entry. **`SubTaskService.create`/`replace`** — same for **`req`** where missing.
+- [x] **Step 5:** **`ChallengeService.replace`** — if **`req`** is not asserted, add **`Assert.notNull(req, "request must not be null");`** at method entry. **`SubTaskService.create`/`replace`** — same for **`req`** where missing.
 
-- [ ] **Step 6:** **`./gradlew compileJava --no-daemon`** → **SUCCESS**
+- [x] **Step 6:** **`./gradlew compileJava --no-daemon`** → **SUCCESS**
 
-- [ ] **Step 7:** Commit **`refactor(services): Nullable filters and assert weekDays`**
+- [x] **Step 7:** Commit **`refactor(services): Nullable filters and assert weekDays`**
 
 ---
 
 ### Task 3: DTO records — `@Nullable` optional fields
 
-**Files:** (edit each record; add import `org.springframework.lang.Nullable`)
+**Files:** (edit each record; add import `org.jspecify.annotations.Nullable`)
 
 - [`InviteRequest.java`](../../src/main/java/com/challenges/api/web/dto/InviteRequest.java) — **`subTaskId`**, **`status`**, **`expiresAt`**
 - [`CommentRequest.java`](../../src/main/java/com/challenges/api/web/dto/CommentRequest.java) — **`subTaskId`**
@@ -160,22 +169,22 @@ Assert.notNull(weekDays, "weekDays must not be null");
 Example for **`InviteRequest`**:
 
 ```java
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public record InviteRequest(
 		@NotNull Long inviterUserId,
 		@NotNull Long inviteeUserId,
 		@NotNull Long challengeId,
 		@Nullable Long subTaskId,
-		InviteStatus status,
+		@Nullable InviteStatus status,
 		@Nullable Instant expiresAt) {}
 ```
 
-- [ ] **Step 1:** Apply **`@Nullable`** to optional components (do **not** mark **`@NotNull`** on primitives/strings already covered by **`@NotBlank`/`@NotNull`** from Jakarta unless you add **both** — prefer minimal diff: only **`@Nullable`** on optional reference types).
+- [x] **Step 1:** Apply **`@Nullable`** to optional components (do **not** mark **`@NotNull`** on primitives/strings already covered by **`@NotBlank`/`@NotNull`** from Jakarta unless you add **both** — prefer minimal diff: only **`@Nullable`** on optional reference types).
 
-- [ ] **Step 2:** `./gradlew compileJava --no-daemon` → **SUCCESS**
+- [x] **Step 2:** `./gradlew compileJava --no-daemon` → **SUCCESS**
 
-- [ ] **Step 3:** Commit **`refactor(dto): mark optional fields Nullable`**
+- [x] **Step 3:** Commit **`refactor(dto): mark optional fields Nullable`**
 
 ---
 
@@ -187,13 +196,13 @@ public record InviteRequest(
 - [`CheckInController.java`](../../src/main/java/com/challenges/api/web/CheckInController.java)
 - Remaining controllers as needed
 
-- [ ] **Step 1:** On **`@RequestParam(required = false) Long subTaskId`** in **`CommentController.list`**, add **`@Nullable Long subTaskId`**.
+- [x] **Step 1:** On **`@RequestParam(required = false) Long subTaskId`** in **`CommentController.list`**, add **`@Nullable Long subTaskId`** (import **`org.jspecify.annotations.Nullable`**).
 
-- [ ] **Step 2:** Add **`@NonNull`** on **`List<...>`** return types in controllers where you want IDE clarity (optional; package default already implies non-null references).
+- [x] **Step 2:** Add **`@NonNull`** (**`org.jspecify.annotations.NonNull`**) on **`List<...>`** return types in controllers where you want IDE clarity (optional; package default already implies non-null references). If the IDE warns on **`stream().…toList()`**, wrap with **`Objects.requireNonNull(...)`** on the return expression.
 
-- [ ] **Step 3:** `./gradlew compileJava` → **SUCCESS**
+- [x] **Step 3:** `./gradlew compileJava` → **SUCCESS**
 
-- [ ] **Step 4:** Commit **`refactor(web): Nullable request params where optional`**
+- [x] **Step 4:** Commit **`refactor(web): Nullable request params where optional`**
 
 ---
 
@@ -204,7 +213,7 @@ public record InviteRequest(
 Known files (from grep):  
 `CommentControllerIT`, `ChallengeDomainWorkflowIT`, `InviteControllerIT`, `ParticipantControllerIT`, `CheckInControllerIT`, `ScheduleControllerIT`, `SubTaskControllerIT`, `ChallengeControllerIT`, `UserControllerIT`, `InviteRepositoryTest`, `CheckInRepositoryTest`, `ScheduleRepositoryTest`, `ParticipantRepositoryTest`, `SubTaskRepositoryTest`, `ChallengeRepositoryTest`, `UserRepositoryTest`, `DomainBulkFixtureIT`.
 
-- [ ] **Step 1:** For each test class, replace:
+- [x] **Step 1:** For each test class, replace:
 
 ```java
 @Autowired
@@ -231,11 +240,11 @@ class UserControllerIT {
 }
 ```
 
-- [ ] **Step 2:** Remove unused **`import org.springframework.beans.factory.annotation.Autowired;`** from each updated file.
+- [x] **Step 2:** Remove unused **`import org.springframework.beans.factory.annotation.Autowired;`** from each updated file.
 
-- [ ] **Step 3:** For tests with **multiple** dependencies, use one constructor listing all (e.g. **`MockMvc`**, **`ObjectMapper`**, **`UserRepository`**, …).
+- [x] **Step 3:** For tests with **multiple** dependencies, use one constructor listing all (e.g. **`MockMvc`**, **`ObjectMapper`**, **`UserRepository`**, …).
 
-- [ ] **Step 4:** Run:
+- [x] **Step 4:** Run:
 
 ```bash
 ./gradlew test --no-daemon
@@ -243,7 +252,7 @@ class UserControllerIT {
 
 Expected: **BUILD SUCCESSFUL**
 
-- [ ] **Step 5:** Commit **`refactor(test): constructor injection in IT and repository tests`**
+- [x] **Step 5:** Commit **`refactor(test): constructor injection in IT and repository tests`**
 
 ---
 
@@ -251,17 +260,17 @@ Expected: **BUILD SUCCESSFUL**
 
 **Files:** [`CommentRepository.java`](../../src/main/java/com/challenges/api/repo/CommentRepository.java), other repos with **`@Query`**
 
-- [ ] **Step 1:** No need to redeclare inherited **`findById`** from **`JpaRepository`**. Optionally add **`@NonNull`** on **`List<...>`** return types of custom query methods — only if the compiler/IDE stays clean.
+- [x] **Step 1:** No need to redeclare inherited **`findById`** from **`JpaRepository`**. Optionally add **`org.jspecify.annotations.NonNull`** on **`List<...>`** return types of custom query methods — only if the compiler/IDE stays clean. Use **`Objects.requireNonNull`** on returns only if the analyzer still complains about Spring Data signatures.
 
-- [ ] **Step 2:** `./gradlew compileJava` → **SUCCESS**
+- [x] **Step 2:** `./gradlew compileJava` → **SUCCESS**
 
-- [ ] **Step 3:** Commit only if changes exist: **`chore(repo): clarify NonNull list returns`**
+- [x] **Step 3:** Commit only if changes exist: **`chore(repo): clarify NonNull list returns`**
 
 ---
 
 ### Task 7: Full verification
 
-- [ ] **Step 1:**
+- [x] **Step 1:**
 
 ```bash
 ./gradlew test --no-daemon
@@ -269,7 +278,7 @@ Expected: **BUILD SUCCESSFUL**
 
 Expected: **BUILD SUCCESSFUL**
 
-- [ ] **Step 2:** Commit only if formatting or remaining fixes.
+- [x] **Step 2:** Commit only if formatting or remaining fixes.
 
 ---
 
@@ -278,7 +287,8 @@ Expected: **BUILD SUCCESSFUL**
 | Requirement | Task |
 |-------------|------|
 | **`Optional`** for missing single results | Already standard in services; plan adds **annotations** + **`Schedule`** **`weekDays`** validation — **no** new `null` returns |
-| **`@NonNullApi` / `@Nullable` / `@NonNull`** | **1–4** |
+| **`@NullMarked` (package) + JSpecify `@Nullable` / `@NonNull`** | **1–4** |
+| **`Objects.requireNonNull` bridging** | Documented in **Task 2** / **Task 4**; **`ScheduleService`** is the main example |
 | **Constructor injection** | **Production OK**; **5** for **tests** |
 | **Early validation (`Assert.notNull`)** | **2** (**weekDays**, **req** gaps) |
 
@@ -290,9 +300,9 @@ Expected: **BUILD SUCCESSFUL**
 
 ## Execution handoff
 
-**Plan path:** [`docs/superpowers/plans/2026-04-18-nullability-optional-constructors.md`](2026-04-18-nullability-optional-constructors.md)
+**Plan path:** [`docs/superpowers/plans/2026-04-18-07-nullability-optional-constructors.md`](2026-04-18-07-nullability-optional-constructors.md)
 
-**Plan complete and saved to `docs/superpowers/plans/2026-04-18-nullability-optional-constructors.md`. Two execution options:**
+**Plan complete and saved to `docs/superpowers/plans/2026-04-18-07-nullability-optional-constructors.md`. Two execution options:**
 
 **1. Subagent-Driven (recommended)** — Fresh subagent per task; use **superpowers:subagent-driven-development**.
 

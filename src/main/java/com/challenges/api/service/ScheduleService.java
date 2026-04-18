@@ -8,10 +8,12 @@ import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.ScheduleRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import java.time.DayOfWeek;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -31,9 +33,10 @@ public class ScheduleService {
 
 	public static @NonNull List<DayOfWeek> parseWeekDays(@Nullable List<String> raw) {
 		if (raw == null || raw.isEmpty()) {
-			return List.of();
+			return Objects.requireNonNull(Collections.emptyList());
 		}
-		return raw.stream().map(String::trim).map(String::toUpperCase).map(DayOfWeek::valueOf).toList();
+		return Objects.requireNonNull(
+				raw.stream().map(String::trim).map(String::toUpperCase).map(DayOfWeek::valueOf).toList());
 	}
 
 	@Transactional
@@ -41,7 +44,8 @@ public class ScheduleService {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
-		return challenges.findById(challengeId).map(ch -> replaceChallengeSchedule(ch, kind, weekDays));
+		return Objects.requireNonNull(challenges.findById(challengeId)
+				.map(ch -> replaceChallengeSchedule(Objects.requireNonNull(ch), kind, weekDays)));
 	}
 
 	@Transactional
@@ -49,7 +53,8 @@ public class ScheduleService {
 		Assert.notNull(subTaskId, "subTaskId must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
-		return subTasks.findById(subTaskId).map(st -> replaceSubTaskSchedule(st, kind, weekDays));
+		return Objects.requireNonNull(subTasks.findById(subTaskId)
+				.map(st -> replaceSubTaskSchedule(Objects.requireNonNull(st), kind, weekDays)));
 	}
 
 	private Schedule replaceChallengeSchedule(Challenge ch, ScheduleKind kind, List<DayOfWeek> weekDays) {
@@ -60,7 +65,7 @@ public class ScheduleService {
 		}
 		Schedule s = Schedule.forChallenge(ch, kind, weekDays);
 		ch.bindSchedule(s);
-		return schedules.save(s);
+		return Objects.requireNonNull(schedules.save(s));
 	}
 
 	private Schedule replaceSubTaskSchedule(SubTask st, ScheduleKind kind, List<DayOfWeek> weekDays) {
@@ -71,13 +76,13 @@ public class ScheduleService {
 		}
 		Schedule s = Schedule.forSubTask(st, kind, weekDays);
 		st.bindSchedule(s);
-		return schedules.save(s);
+		return Objects.requireNonNull(schedules.save(s));
 	}
 
 	@Transactional(readOnly = true)
 	public Optional<Schedule> findById(Long id) {
 		Assert.notNull(id, "id must not be null");
-		return schedules.findByIdWithAssociations(id);
+		return Objects.requireNonNull(schedules.findByIdWithAssociations(id));
 	}
 
 	@Transactional
@@ -85,11 +90,12 @@ public class ScheduleService {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
-		return schedules.findByIdWithAssociations(id).map(s -> {
-			s.setKind(kind);
-			s.replaceWeekDays(weekDays);
-			return schedules.save(s);
-		});
+		return Objects.requireNonNull(schedules.findByIdWithAssociations(id).map(s -> {
+			Schedule schedule = Objects.requireNonNull(s);
+			schedule.setKind(kind);
+			schedule.replaceWeekDays(weekDays);
+			return Objects.requireNonNull(schedules.save(schedule));
+		}));
 	}
 
 	@Transactional

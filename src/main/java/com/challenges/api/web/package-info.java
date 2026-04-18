@@ -1,4 +1,4 @@
-@NonNullApi
+@NullMarked
 package com.challenges.api.web;
 
-import org.springframework.lang.NonNullApi;
+import org.jspecify.annotations.NullMarked;

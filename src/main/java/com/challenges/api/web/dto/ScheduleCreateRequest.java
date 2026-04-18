@@ -4,7 +4,7 @@ import com.challenges.api.model.ScheduleKind;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public record ScheduleCreateRequest(
 		@Nullable Long challengeId,

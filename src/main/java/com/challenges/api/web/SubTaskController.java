@@ -6,7 +6,7 @@ import com.challenges.api.web.dto.SubTaskResponse;
 import com.challenges.api.web.dto.SubTaskUpdateRequest;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
