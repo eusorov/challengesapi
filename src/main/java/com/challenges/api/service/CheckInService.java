@@ -42,7 +42,7 @@ public class CheckInService {
 	@Transactional(readOnly = true)
 	public Optional<CheckIn> findById(Long id) {
 		Assert.notNull(id, "id must not be null");
-		return checkIns.findById(id);
+		return checkIns.findByIdWithAssociations(id);
 	}
 
 	@Transactional
@@ -71,7 +71,7 @@ public class CheckInService {
 	public Optional<CheckIn> replace(Long id, CheckInUpdateRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
-		return checkIns.findById(id).map(ci -> {
+		return checkIns.findByIdWithAssociations(id).map(ci -> {
 			if (req.subTaskId() != null) {
 				SubTask st = subTasks.findById(req.subTaskId()).orElseThrow(
 						() -> new IllegalArgumentException("subTask not found"));

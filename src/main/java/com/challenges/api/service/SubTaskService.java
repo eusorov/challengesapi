@@ -31,7 +31,7 @@ public class SubTaskService {
 	@Transactional(readOnly = true)
 	public Optional<SubTask> findById(Long id) {
 		Assert.notNull(id, "id must not be null");
-		return subTasks.findById(id);
+		return subTasks.findByIdWithAssociations(id);
 	}
 
 	@Transactional
@@ -44,7 +44,7 @@ public class SubTaskService {
 	public Optional<SubTask> replace(Long id, SubTaskUpdateRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
-		return subTasks.findById(id).map(st -> {
+		return subTasks.findByIdWithAssociations(id).map(st -> {
 			st.setTitle(req.title());
 			st.setSortIndex(req.sortIndex());
 			return subTasks.save(st);

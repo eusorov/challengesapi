@@ -73,14 +73,14 @@ public class ScheduleService {
 	@Transactional(readOnly = true)
 	public Optional<Schedule> findById(Long id) {
 		Assert.notNull(id, "id must not be null");
-		return schedules.findById(id);
+		return schedules.findByIdWithAssociations(id);
 	}
 
 	@Transactional
 	public Optional<Schedule> update(Long id, ScheduleKind kind, List<DayOfWeek> weekDays) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(kind, "kind must not be null");
-		return schedules.findById(id).map(s -> {
+		return schedules.findByIdWithAssociations(id).map(s -> {
 			s.setKind(kind);
 			s.replaceWeekDays(weekDays);
 			return schedules.save(s);
@@ -90,7 +90,7 @@ public class ScheduleService {
 	@Transactional
 	public boolean delete(Long id) {
 		Assert.notNull(id, "id must not be null");
-		return schedules.findById(id).map(s -> {
+		return schedules.findByIdWithAssociations(id).map(s -> {
 			if (s.getChallenge() != null) {
 				s.getChallenge().bindSchedule(null);
 			}

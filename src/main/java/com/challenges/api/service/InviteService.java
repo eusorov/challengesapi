@@ -46,13 +46,13 @@ public class InviteService {
 		if (challengeIdFilter != null) {
 			return invites.findByChallenge_Id(challengeIdFilter);
 		}
-		return invites.findAll();
+		return invites.findAllWithAssociations();
 	}
 
 	@Transactional(readOnly = true)
 	public Optional<Invite> findById(Long id) {
 		Assert.notNull(id, "id must not be null");
-		return invites.findById(id);
+		return invites.findByIdWithAssociations(id);
 	}
 
 	@Transactional
@@ -91,7 +91,7 @@ public class InviteService {
 	public Optional<Invite> update(Long id, InviteUpdateRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
-		return invites.findById(id).map(inv -> {
+		return invites.findByIdWithAssociations(id).map(inv -> {
 			if (req.status() != null) {
 				inv.setStatus(req.status());
 			}

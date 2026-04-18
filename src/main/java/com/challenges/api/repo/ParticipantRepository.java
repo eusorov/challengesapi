@@ -3,10 +3,20 @@ package com.challenges.api.repo;
 import com.challenges.api.model.Participant;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ParticipantRepository extends JpaRepository<Participant, Long> {
 
-	List<Participant> findByChallenge_Id(Long challengeId);
+	@Query(
+			"""
+			select distinct p from Participant p
+			join fetch p.user
+			join fetch p.challenge
+			left join fetch p.subTask
+			where p.challenge.id = :challengeId
+			""")
+	List<Participant> findByChallenge_Id(@Param("challengeId") Long challengeId);
 
 	List<Participant> findByChallenge_IdAndSubTaskIsNull(Long challengeId);
 
