@@ -1,9 +1,14 @@
 package com.challenges.api.service;
 
+import com.challenges.api.model.Challenge;
 import com.challenges.api.model.Invite;
+import com.challenges.api.model.InviteStatus;
+import com.challenges.api.model.Participant;
 import com.challenges.api.model.SubTask;
+import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.InviteRepository;
+import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.web.dto.InviteRequest;
@@ -21,16 +26,19 @@ public class InviteService {
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
 	private final SubTaskRepository subTasks;
+	private final ParticipantRepository participants;
 
 	public InviteService(
 			InviteRepository invites,
 			UserRepository users,
 			ChallengeRepository challenges,
-			SubTaskRepository subTasks) {
+			SubTaskRepository subTasks,
+			ParticipantRepository participants) {
 		this.invites = invites;
 		this.users = users;
 		this.challenges = challenges;
 		this.subTasks = subTasks;
+		this.participants = participants;
 	}
 
 	@Transactional(readOnly = true)
@@ -74,7 +82,9 @@ public class InviteService {
 		if (req.expiresAt() != null) {
 			inv.setExpiresAt(req.expiresAt());
 		}
-		return Optional.of(invites.save(inv));
+		Invite saved = invites.save(inv);
+		ensureParticipantForAcceptedInvite(saved);
+		return Optional.of(saved);
 	}
 
 	@Transactional
@@ -88,8 +98,28 @@ public class InviteService {
 			if (req.expiresAt() != null) {
 				inv.setExpiresAt(req.expiresAt());
 			}
-			return invites.save(inv);
+			Invite saved = invites.save(inv);
+			ensureParticipantForAcceptedInvite(saved);
+			return saved;
 		});
+	}
+
+	private void ensureParticipantForAcceptedInvite(Invite inv) {
+		if (inv.getStatus() != InviteStatus.ACCEPTED) {
+			return;
+		}
+		User invitee = inv.getInvitee();
+		Challenge challenge = inv.getChallenge();
+		SubTask st = inv.getSubTask();
+		if (st == null) {
+			if (!participants.existsByUser_IdAndChallenge_IdAndSubTaskIsNull(invitee.getId(), challenge.getId())) {
+				participants.save(new Participant(invitee, challenge));
+			}
+		} else {
+			if (!participants.existsByUser_IdAndChallenge_IdAndSubTask_Id(invitee.getId(), challenge.getId(), st.getId())) {
+				participants.save(new Participant(invitee, challenge, st));
+			}
+		}
 	}
 
 	@Transactional
