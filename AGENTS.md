@@ -43,4 +43,10 @@ This repository is intended to host the **challenges API** — a Java Spring Boo
 | Run | `./gradlew bootRun` |
 | Test command | `./gradlew test` |
 
+### REST API (current phase)
+
+- **Base path:** JSON resources live under **`/api/...`** (see controller `@RequestMapping` paths).
+- **Versioning:** send header **`API-Version: 1`** on HTTP requests; controllers are mapped at **`version = "1"`**.
+- **Authentication:** **none** in this phase—callers pass **user ids** and related ids in request bodies as each endpoint documents.
+
 **Scope:** Only the REST API in this repository—**React** UI and server-rendered templates are not built here.
