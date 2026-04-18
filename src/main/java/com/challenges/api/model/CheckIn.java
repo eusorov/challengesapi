@@ -64,4 +64,20 @@ public class CheckIn {
 	public SubTask getSubTask() {
 		return subTask;
 	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public void setChallenge(Challenge challenge) {
+		this.challenge = challenge;
+	}
+
+	public void setCheckDate(LocalDate checkDate) {
+		this.checkDate = java.util.Objects.requireNonNull(checkDate);
+	}
+
+	public void setSubTask(SubTask subTask) {
+		this.subTask = subTask;
+	}
 }

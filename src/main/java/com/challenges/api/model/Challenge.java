@@ -102,4 +102,24 @@ public class Challenge {
 	public void bindSchedule(Schedule s) {
 		this.schedule = s;
 	}
+
+	public void setOwner(User owner) {
+		this.owner = java.util.Objects.requireNonNull(owner);
+	}
+
+	public void setTitle(String title) {
+		this.title = java.util.Objects.requireNonNull(title);
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public void setStartDate(LocalDate startDate) {
+		this.startDate = java.util.Objects.requireNonNull(startDate);
+	}
+
+	public void setEndDate(LocalDate endDate) {
+		this.endDate = endDate;
+	}
 }

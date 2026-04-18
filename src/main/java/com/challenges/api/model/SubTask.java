@@ -65,4 +65,12 @@ public class SubTask {
 	public void bindSchedule(Schedule s) {
 		this.schedule = s;
 	}
+
+	public void setTitle(String title) {
+		this.title = java.util.Objects.requireNonNull(title);
+	}
+
+	public void setSortIndex(int sortIndex) {
+		this.sortIndex = sortIndex;
+	}
 }

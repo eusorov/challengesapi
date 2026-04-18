@@ -40,4 +40,8 @@ public class User {
 	public Instant getCreatedAt() {
 		return createdAt;
 	}
+
+	public void setEmail(String email) {
+		this.email = java.util.Objects.requireNonNull(email);
+	}
 }

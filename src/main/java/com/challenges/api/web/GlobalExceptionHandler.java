@@ -1,0 +1,49 @@
+package com.challenges.api.web;
+
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ProblemDetail> validation(MethodArgumentNotValidException ex) {
+		String msg = ex.getBindingResult().getFieldErrors().stream()
+				.map(f -> f.getField() + ": " + f.getDefaultMessage())
+				.findFirst()
+				.orElse("Validation error");
+		return problem(HttpStatus.BAD_REQUEST, msg);
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ProblemDetail> notReadable(HttpMessageNotReadableException ex) {
+		return problem(HttpStatus.BAD_REQUEST, "Malformed JSON or incompatible body: " + ex.getMessage());
+	}
+
+	@ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+	public ResponseEntity<ProblemDetail> badRequest(RuntimeException ex) {
+		return problem(HttpStatus.BAD_REQUEST, ex.getMessage());
+	}
+
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<ProblemDetail> conflict(DataIntegrityViolationException ex) {
+		return problem(
+				HttpStatus.CONFLICT, "Data integrity violation: " + ex.getMostSpecificCause().getMessage());
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ProblemDetail> fallback(Exception ex) {
+		return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Internal error");
+	}
+
+	private static ResponseEntity<ProblemDetail> problem(HttpStatus status, String detail) {
+		ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, detail);
+		return ResponseEntity.status(status).body(pd);
+	}
+}

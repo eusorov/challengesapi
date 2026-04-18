@@ -103,4 +103,15 @@ public class Schedule {
 	public List<DayOfWeek> getWeekDays() {
 		return weekDays;
 	}
+
+	public void setKind(ScheduleKind kind) {
+		this.kind = java.util.Objects.requireNonNull(kind);
+	}
+
+	public void replaceWeekDays(List<DayOfWeek> days) {
+		this.weekDays.clear();
+		if (days != null) {
+			this.weekDays.addAll(days);
+		}
+	}
 }
