@@ -10,11 +10,11 @@ This file is project memory for humans and AI agents working in this repository.
 
 | Term | Meaning |
 |------|--------|
-| **Challenge** | A goal or habit defined by a user, with metadata and rules as implemented in code. Typically has a creator and one or more participants. |
-| **SubTask** | A challenge can have a subtask but not mandatory defined by a user, with metadata and rules as implemented in code.|
-| **Participant** | Other users who can access the challenge (visibility and permissions depend on implementation: invites, links, memberships, etc.). Do not assume a single sharing mechanism unless the codebase fixes one. |
-| **Check-in** | A timestamped or calendar-dated record that the user completed (or reported) progress for a challenge on a given day or instant. |
-| **Cadence / schedule** | How often check-ins are expected: **every day**, or **specific days per week** (e.g. Mon / Wed / Fri). Do **not** assume “only daily” or “only weekdays” unless the model or API explicitly encodes that. |
+| **Challenge** | User-defined goal/habit with required **start date**, optional **end date** (open-ended if unset), **owner**, participants. |
+| **SubTask** | Optional steps under a challenge; check-ins can target the challenge or a subtask. |
+| **Participant** | **User** in a **challenge**, optionally tied to a **subtask** (whole-challenge vs subtask-scoped membership). |
+| **Check-in** | Progress for a **challenge** on a given day, or for a **subtask** of that challenge on that day. |
+| **Cadence / schedule** | Daily, weekly weekdays, or **a single fixed calendar date**. Per **challenge** and/or per **subtask** (separate schedules). |
 
 ---
 
