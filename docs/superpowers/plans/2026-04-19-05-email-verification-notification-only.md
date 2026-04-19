@@ -48,7 +48,7 @@
 - Create: `src/main/java/com/authspring/api/security/EmailVerificationHashes.java`
 - Create: `src/test/java/com/authspring/api/security/EmailVerificationHashesTest.java`
 
-- [ ] **Step 1: Add utility class**
+- [x] **Step 1: Add utility class**
 
 ```java
 package com.authspring.api.security;
@@ -78,7 +78,7 @@ public final class EmailVerificationHashes {
 }
 ```
 
-- [ ] **Step 2: Add tests**
+- [x] **Step 2: Add tests**
 
 ```java
 package com.authspring.api.security;
@@ -113,12 +113,12 @@ class EmailVerificationHashesTest {
 }
 ```
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `./gradlew test --tests 'com.authspring.api.security.EmailVerificationHashesTest' --no-daemon`  
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/main/java/com/authspring/api/security/EmailVerificationHashes.java \
@@ -135,7 +135,7 @@ git commit -m "feat(auth): EmailVerificationHashes for verify URL path"
 - Create: `src/main/java/com/authspring/api/config/VerificationMailProperties.java`
 - Modify: `src/main/java/com/challenges/api/ChallengesApiApplication.java`
 
-- [ ] **Step 1: `VerificationProperties`**
+- [x] **Step 1: `VerificationProperties`**
 
 ```java
 package com.authspring.api.config;
@@ -146,7 +146,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record VerificationProperties(String signingKey, String publicBaseUrl, int expireMinutes) {}
 ```
 
-- [ ] **Step 2: `VerificationMailProperties`**
+- [x] **Step 2: `VerificationMailProperties`**
 
 ```java
 package com.authspring.api.config;
@@ -173,7 +173,7 @@ public record VerificationMailProperties(
 }
 ```
 
-- [ ] **Step 3: Enable properties on the application class**
+- [x] **Step 3: Enable properties on the application class**
 
 ```java
 @SpringBootApplication(scanBasePackages = {"com.challenges.api", "com.authspring.api"})
@@ -185,12 +185,12 @@ public record VerificationMailProperties(
 public class ChallengesApiApplication {
 ```
 
-- [ ] **Step 4: Run context test**
+- [x] **Step 4: Run context test**
 
 Run: `./gradlew test --tests 'com.challenges.api.ChallengesApiApplicationTests' --no-daemon`  
 Expected: BUILD SUCCESSFUL (Postgres + Flyway available)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/main/java/com/authspring/api/config/VerificationProperties.java \
@@ -206,7 +206,7 @@ git commit -m "feat(auth): bind verification and verification mail properties"
 **Files:**
 - Create: `src/main/java/com/authspring/api/security/LaravelSignedUrlSigner.java`
 
-- [ ] **Step 1: Copy implementation (package `com.authspring.api`)**
+- [x] **Step 1: Copy implementation (package `com.authspring.api`)**
 
 ```java
 package com.authspring.api.security;
@@ -255,12 +255,12 @@ public class LaravelSignedUrlSigner {
 }
 ```
 
-- [ ] **Step 2: Compile**
+- [x] **Step 2: Compile**
 
 Run: `./gradlew compileJava --no-daemon`  
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/main/java/com/authspring/api/security/LaravelSignedUrlSigner.java
@@ -274,7 +274,7 @@ git commit -m "feat(auth): LaravelSignedUrlSigner for verification email links"
 **Files:**
 - Create: `src/main/java/com/authspring/api/service/EmailVerificationMailSender.java`
 
-- [ ] **Step 1: Add sender (import `com.challenges.api.model.User`)**
+- [x] **Step 1: Add sender (import `com.challenges.api.model.User`)**
 
 ```java
 package com.authspring.api.service;
@@ -333,12 +333,12 @@ public class EmailVerificationMailSender {
 }
 ```
 
-- [ ] **Step 2: Compile**
+- [x] **Step 2: Compile**
 
 Run: `./gradlew compileJava --no-daemon`  
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/main/java/com/authspring/api/service/EmailVerificationMailSender.java
@@ -353,7 +353,7 @@ git commit -m "feat(auth): send verification email with templated body"
 - Create: `src/main/java/com/authspring/api/service/EmailVerificationNotificationOutcome.java`
 - Create: `src/main/java/com/authspring/api/service/EmailVerificationNotificationService.java`
 
-- [ ] **Step 1: Outcome sealed interface**
+- [x] **Step 1: Outcome sealed interface**
 
 ```java
 package com.authspring.api.service;
@@ -365,7 +365,7 @@ public sealed interface EmailVerificationNotificationOutcome {
 }
 ```
 
-- [ ] **Step 2: Service**
+- [x] **Step 2: Service**
 
 ```java
 package com.authspring.api.service;
@@ -415,7 +415,7 @@ public class EmailVerificationNotificationService {
 }
 ```
 
-- [ ] **Step 3: Unit test (mocked mail + signer + repo)**
+- [x] **Step 3: Unit test (mocked mail + signer + repo)**
 
 Create `src/test/java/com/authspring/api/service/EmailVerificationNotificationServiceTest.java`:
 
@@ -505,12 +505,12 @@ class EmailVerificationNotificationServiceTest {
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `./gradlew test --tests 'com.authspring.api.service.EmailVerificationNotificationServiceTest' --no-daemon`  
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/main/java/com/authspring/api/service/EmailVerificationNotificationOutcome.java \
@@ -526,7 +526,7 @@ git commit -m "feat(auth): EmailVerificationNotificationService"
 **Files:**
 - Create: `src/main/java/com/authspring/api/web/EmailVerificationNotificationController.java`
 
-- [ ] **Step 1: Add controller**
+- [x] **Step 1: Add controller**
 
 ```java
 package com.authspring.api.web;
@@ -575,16 +575,16 @@ public class EmailVerificationNotificationController {
 }
 ```
 
-- [ ] **Step 2: Security check**
+- [x] **Step 2: Security check**
 
 Confirm **`SecurityConfig`** does **not** permit anonymous **`POST /api/email/verification-notification`** (default: **`/api/**` authenticated** is correct). No change needed if current rules match.
 
-- [ ] **Step 3: Compile**
+- [x] **Step 3: Compile**
 
 Run: `./gradlew compileJava --no-daemon`  
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/main/java/com/authspring/api/web/EmailVerificationNotificationController.java
@@ -598,7 +598,7 @@ git commit -m "feat(auth): POST /api/email/verification-notification"
 **Files:**
 - Create: `src/test/java/com/authspring/api/AuthEmailVerificationNotificationIT.java`
 
-- [ ] **Step 1: Add IT**
+- [x] **Step 1: Add IT**
 
 ```java
 package com.authspring.api;
@@ -733,7 +733,7 @@ class AuthEmailVerificationNotificationIT {
 }
 ```
 
-- [ ] **Step 2: Optional — `application-test.yml`**
+- [x] **Step 2: Optional — `application-test.yml`**
 
 If **`VerificationMailProperties`** fails to bind (missing **`app.mail.verification`** in merged config), append under **`app:`** in **`src/test/resources/application-test.yml`**:
 
@@ -755,12 +755,12 @@ If **`VerificationMailProperties`** fails to bind (missing **`app.mail.verificat
       from-name: Team
 ```
 
-- [ ] **Step 3: Run full suite**
+- [x] **Step 3: Run full suite**
 
 Run: `./gradlew test --no-daemon`  
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/test/java/com/authspring/api/AuthEmailVerificationNotificationIT.java
