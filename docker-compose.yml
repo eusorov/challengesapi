@@ -16,6 +16,7 @@ services:
       - MAIL_PORT=${MAIL_PORT:-1025}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - FRONTEND_CORS=https://challenges.usomi.de
       - VIRTUAL_HOST=challenges.api.usomi.de,challenges.api.local
       - VIRTUAL_PORT=8080
       - LETSENCRYPT_HOST=challenges.api.usomi.de
