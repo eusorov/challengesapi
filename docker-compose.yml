@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: challenges-postgres
+    # POSTGRES_DB / USER / PASSWORD apply only on first start with an empty data volume.
+    # Override POSTGRES_DB from the host: export POSTGRES_DB=mydb  (or set in a .env file beside this compose file).
+    # If you change it, point Spring at the same DB name (e.g. spring.datasource.url).
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-challenges}
+      POSTGRES_USER: ${POSTGRES_USER:-challenges}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-challenges}
+    ports:
+      - "5432:5432"
+    volumes:
+      - challenges-pgdata:/var/lib/postgresql/data
+      # First boot only: extra DB for ./gradlew test (profile test → application-test.yml).
+      - ./docker/postgres/init-challengestest.sql:/docker-entrypoint-initdb.d/02-challengestest.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-challenges} -d $${POSTGRES_DB:-challenges}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# If challengestest is missing (volume created before init script was added), run once:
+#   docker exec challenges-postgres psql -U challenges -d challenges -c "CREATE DATABASE challengestest;"
+volumes:
+  challenges-pgdata:
