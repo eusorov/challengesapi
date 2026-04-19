@@ -51,7 +51,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			path = request.getRequestURI();
 		}
 		if (("POST".equalsIgnoreCase(request.getMethod()))
-				&& ("/api/login".equals(path) || "/api/register".equals(path))) {
+				&& ("/api/login".equals(path)
+						|| "/api/register".equals(path)
+						|| "/api/reset-password".equals(path))) {
 			filterChain.doFilter(request, response);
 			return;
 		}
