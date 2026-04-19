@@ -25,6 +25,12 @@ jwt:
   expiration-ms: 3600000
   password-reset-expiration-ms: 3600000
 
+aws:
+  s3:
+    bucket: test-bucket
+    region: eu-west-1
+    public-base-url: https://example.com/bucket
+
 resilience4j:
   ratelimiter:
     instances:

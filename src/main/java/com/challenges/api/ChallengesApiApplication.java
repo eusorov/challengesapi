@@ -1,5 +1,6 @@
 package com.challenges.api;
 
+import com.challenges.api.config.AwsS3Properties;
 import com.authspring.api.config.FrontendProperties;
 import com.authspring.api.config.JwtProperties;
 import com.authspring.api.config.PasswordResetMailProperties;
@@ -11,6 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @SpringBootApplication(scanBasePackages = {"com.challenges.api", "com.authspring.api"})
 @EnableConfigurationProperties({
+	AwsS3Properties.class,
 	JwtProperties.class,
 	VerificationProperties.class,
 	VerificationMailProperties.class,
