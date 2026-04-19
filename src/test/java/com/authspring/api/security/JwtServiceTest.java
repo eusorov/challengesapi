@@ -57,4 +57,22 @@ class JwtServiceTest {
 		assertThat(claims.getSubject()).isEqualTo("42");
 		assertThat(claims.get("email", String.class)).isEqualTo("x@y.z");
 	}
+
+	@Test
+	void createPasswordResetFlowToken_includesPurposeClaim() {
+		long resetMs = 120_000L;
+		JwtService svc = new JwtService(new JwtProperties(SECRET_32, 86_400_000L, resetMs));
+		User user = mock(User.class);
+		when(user.getId()).thenReturn(3L);
+		when(user.getEmail()).thenReturn("r@example.com");
+
+		String jwt = svc.createPasswordResetFlowToken(user);
+
+		SecretKey key = Keys.hmacShaKeyFor(SECRET_32.getBytes(StandardCharsets.UTF_8));
+		Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(jwt).getPayload();
+
+		assertThat(claims.getSubject()).isEqualTo("3");
+		assertThat(claims.get("email", String.class)).isEqualTo("r@example.com");
+		assertThat(claims.get("purpose", String.class)).isEqualTo("password_reset");
+	}
 }

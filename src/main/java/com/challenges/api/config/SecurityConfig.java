@@ -36,7 +36,13 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/email/verify/**").permitAll()
-				.requestMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/reset-password").permitAll()
+				.requestMatchers(
+						HttpMethod.POST,
+						"/api/login",
+						"/api/register",
+						"/api/reset-password",
+						"/api/forgot-password")
+				.permitAll()
 				.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 				.requestMatchers("/api/**").authenticated()
 				.anyRequest().permitAll());

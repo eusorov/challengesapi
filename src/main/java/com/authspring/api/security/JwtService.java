@@ -40,6 +40,20 @@ public final class JwtService {
 				.compact();
 	}
 
+	public String createPasswordResetFlowToken(User user) {
+		Instant now = Instant.now();
+		Instant exp = now.plusMillis(properties.passwordResetExpirationMs());
+		return Jwts.builder()
+				.id(UUID.randomUUID().toString())
+				.subject(user.getId().toString())
+				.claim("email", user.getEmail())
+				.claim("purpose", "password_reset")
+				.issuedAt(Date.from(now))
+				.expiration(Date.from(exp))
+				.signWith(signingKey)
+				.compact();
+	}
+
 	public Claims parseAndValidate(String token) {
 		return Jwts.parser()
 				.verifyWith(signingKey)
