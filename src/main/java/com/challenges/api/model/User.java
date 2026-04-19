@@ -9,6 +9,8 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -28,16 +30,25 @@ public class User {
 	@Column(nullable = false, unique = true, length = 255)
 	private String email;
 
+	@Column(name = "email_verified_at")
+	private LocalDateTime emailVerifiedAt;
+
+	@Column(name = "date_closed")
+	private LocalDate dateClosed;
+
 	@Column(nullable = false, length = 255)
 	private String password;
 
 	@Column(nullable = false, length = 50)
 	private String role;
 
-	@Column(nullable = false, updatable = false)
+	@Column(name = "remember_token", length = 100)
+	private String rememberToken;
+
+	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
-	@Column(nullable = false)
+	@Column(name = "updated_at", nullable = false)
 	private Instant updatedAt;
 
 	protected User() {
@@ -81,12 +92,36 @@ public class User {
 		return email;
 	}
 
+	public LocalDateTime getEmailVerifiedAt() {
+		return emailVerifiedAt;
+	}
+
+	public void setEmailVerifiedAt(LocalDateTime emailVerifiedAt) {
+		this.emailVerifiedAt = emailVerifiedAt;
+	}
+
+	public LocalDate getDateClosed() {
+		return dateClosed;
+	}
+
+	public void setDateClosed(LocalDate dateClosed) {
+		this.dateClosed = dateClosed;
+	}
+
 	public String getPassword() {
 		return password;
 	}
 
 	public String getRole() {
 		return role;
+	}
+
+	public String getRememberToken() {
+		return rememberToken;
+	}
+
+	public void setRememberToken(String rememberToken) {
+		this.rememberToken = rememberToken;
 	}
 
 	public Instant getCreatedAt() {
