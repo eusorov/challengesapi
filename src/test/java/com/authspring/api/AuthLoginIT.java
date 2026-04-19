@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.challenges.api.ChallengesApiApplication;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.UserRepository;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest(classes = ChallengesApiApplication.class)
@@ -75,5 +77,27 @@ class AuthLoginIT {
 						.content("{\"email\":\"ada@example.com\",\"password\":\"wrong\"}"))
 				.andExpect(status().isUnprocessableContent())
 				.andExpect(jsonPath("$.errors.email[0]").value("The provided credentials are incorrect."));
+	}
+
+	@Test
+	void logoutWithBearerReturnsMessage() throws Exception {
+		MvcResult login = mockMvc.perform(post("/api/login")
+						.header(API_VERSION, "1")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"email\":\"ada@example.com\",\"password\":\"secret\"}"))
+				.andExpect(status().isOk())
+				.andReturn();
+		String token = JsonPath.read(login.getResponse().getContentAsString(), "$.token");
+
+		mockMvc.perform(post("/api/logout")
+						.header(API_VERSION, "1")
+						.header("Authorization", "Bearer " + token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.message").value("Logged out"));
+	}
+
+	@Test
+	void logoutWithoutTokenReturns401() throws Exception {
+		mockMvc.perform(post("/api/logout").header(API_VERSION, "1")).andExpect(status().isUnauthorized());
 	}
 }

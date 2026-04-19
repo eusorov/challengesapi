@@ -9,14 +9,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import static com.challenges.api.model.User.DEFAULT_ROLE;
 
 @Service
 public class UserService {
 
 	private final UserRepository users;
 	private final PasswordEncoder passwordEncoder;
-
-	private static final String DEFAULT_ROLE = "ROLE_USER";
 
 	public UserService(UserRepository users, PasswordEncoder passwordEncoder) {
 		this.users = users;

@@ -1,15 +1,19 @@
 package com.authspring.api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.authspring.api.config.JwtProperties;
 import com.challenges.api.model.PersonalAccessToken;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.PersonalAccessTokenRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -51,5 +55,21 @@ class PersonalAccessTokenServiceTest {
 		assertThat(saved.getCreatedAt()).isNotNull();
 		assertThat(saved.getUpdatedAt()).isEqualTo(saved.getCreatedAt());
 		assertThat(saved.getExpiresAt()).isEqualTo(saved.getCreatedAt().plusMillis(expirationMs));
+	}
+
+	@Test
+	void revokeByJwtFromRequest_deletesWhenBearerPresent() {
+		HttpServletRequest req = mock(HttpServletRequest.class);
+		when(req.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer abc.def.sig");
+		service.revokeByJwtFromRequest(req);
+		verify(repository).deleteByToken(anyString());
+	}
+
+	@Test
+	void revokeByJwtFromRequest_noOpWhenHeaderMissing() {
+		HttpServletRequest req = mock(HttpServletRequest.class);
+		when(req.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(null);
+		service.revokeByJwtFromRequest(req);
+		verifyNoInteractions(repository);
 	}
 }

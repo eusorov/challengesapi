@@ -45,4 +45,16 @@ class JwtServiceTest {
 		assertThat(claims.getExpiration().toInstant())
 				.isBeforeOrEqualTo(Instant.now().plusMillis(expirationMs + 5_000L));
 	}
+
+	@Test
+	void parseAndValidate_roundTripsCreateToken() {
+		JwtService svc = new JwtService(new JwtProperties(SECRET_32, 60_000L, 3600_000L));
+		User user = mock(User.class);
+		when(user.getId()).thenReturn(42L);
+		when(user.getEmail()).thenReturn("x@y.z");
+		String jwt = svc.createToken(user);
+		Claims claims = svc.parseAndValidate(jwt);
+		assertThat(claims.getSubject()).isEqualTo("42");
+		assertThat(claims.get("email", String.class)).isEqualTo("x@y.z");
+	}
 }

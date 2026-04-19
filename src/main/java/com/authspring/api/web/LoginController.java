@@ -1,8 +1,11 @@
 package com.authspring.api.web;
 
+import com.authspring.api.security.RequiresAuth;
+import com.authspring.api.service.PersonalAccessTokenService;
 import com.authspring.api.service.SessionService;
 import com.authspring.api.web.dto.LoginRequest;
 import com.authspring.api.web.dto.LoginResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginController {
 
 	private final SessionService sessionService;
+	private final PersonalAccessTokenService personalAccessTokenService;
 
-	public LoginController(SessionService sessionService) {
+	public LoginController(SessionService sessionService, PersonalAccessTokenService personalAccessTokenService) {
 		this.sessionService = sessionService;
+		this.personalAccessTokenService = personalAccessTokenService;
 	}
 
 	@PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -53,5 +58,12 @@ public class LoginController {
 		pd.setProperty("message", "The given data was invalid.");
 		pd.setProperty("errors", Map.of("email", List.of("The provided credentials are incorrect.")));
 		return pd;
+	}
+
+	@RequiresAuth
+	@PostMapping("/logout")
+	public Map<String, String> destroy(HttpServletRequest request) {
+		personalAccessTokenService.revokeByJwtFromRequest(request);
+		return Map.of("message", "Logged out");
 	}
 }

@@ -2,6 +2,7 @@ package com.authspring.api.security;
 
 import com.authspring.api.config.JwtProperties;
 import com.challenges.api.model.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
@@ -37,5 +38,13 @@ public final class JwtService {
 				.expiration(Date.from(exp))
 				.signWith(signingKey)
 				.compact();
+	}
+
+	public Claims parseAndValidate(String token) {
+		return Jwts.parser()
+				.verifyWith(signingKey)
+				.build()
+				.parseSignedClaims(token)
+				.getPayload();
 	}
 }

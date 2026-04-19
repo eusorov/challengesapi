@@ -15,6 +15,8 @@ import java.time.LocalDate;
 @Table(name = "users")
 public class User {
 
+	public static final String DEFAULT_ROLE = "ROLE_USER";
+
 	/** BCrypt hash of "password" — for tests and API-created users until auth sets real passwords. */
 	public static final String TEST_PASSWORD_HASH =
 			"$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
@@ -62,7 +64,7 @@ public class User {
 
 	/** Minimal user for tests: name "User", role "user", known password hash. */
 	public static User forTest(String email) {
-		return new User("User", email, TEST_PASSWORD_HASH, "user");
+		return new User("User", email, TEST_PASSWORD_HASH, DEFAULT_ROLE);
 	}
 
 	@PrePersist
