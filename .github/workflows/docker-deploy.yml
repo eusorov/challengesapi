@@ -49,11 +49,12 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            ocker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.DOCKER_TOKEN }}
+            docker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.DOCKER_TOKEN }}
             docker image prune -a
             docker pull ${{ inputs.IMAGE_FULL_NAME }}
             
             export IMAGE_FULL_NAME="${{ inputs.IMAGE_FULL_NAME }}"
+            cd ${{ env.REMOTE_DIR }}
             
             docker compose -f docker-compose.yml -f docker-compose.deploy.yml down || true
             docker compose -f docker-compose.yml -f docker-compose.deploy.yml pull
