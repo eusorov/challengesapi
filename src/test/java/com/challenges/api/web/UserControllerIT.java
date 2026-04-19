@@ -6,10 +6,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.challenges.api.support.JwtLoginSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,13 +39,21 @@ class UserControllerIT {
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.email").value("x@y.z"));
 
-		mockMvc.perform(get("/api/users").header(HV, V1))
+		String auth = JwtLoginSupport.bearerAuthorization(mockMvc, "x@y.z", "password123");
+		mockMvc.perform(get("/api/users").header(HV, V1).header(HttpHeaders.AUTHORIZATION, auth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].email").value("x@y.z"));
 	}
 
 	@Test
 	void getUnknownUserReturns404() throws Exception {
-		mockMvc.perform(get("/api/users/999999").header(HV, V1)).andExpect(status().isNotFound());
+		mockMvc.perform(post("/api/users")
+						.header(HV, V1)
+						.contentType(APPLICATION_JSON)
+						.content("{\"email\":\"probe@y.z\",\"password\":\"password123\"}"))
+				.andExpect(status().isCreated());
+		String auth = JwtLoginSupport.bearerAuthorization(mockMvc, "probe@y.z", "password123");
+		mockMvc.perform(get("/api/users/999999").header(HV, V1).header(HttpHeaders.AUTHORIZATION, auth))
+				.andExpect(status().isNotFound());
 	}
 }

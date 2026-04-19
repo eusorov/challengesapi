@@ -12,6 +12,7 @@ import com.challenges.api.model.Challenge;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.UserRepository;
+import com.challenges.api.support.JwtLoginSupport;
 import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,22 +37,30 @@ class SubTaskControllerIT {
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
 	private final ObjectMapper objectMapper;
+	private final PasswordEncoder passwordEncoder;
 
 	@Autowired
 	SubTaskControllerIT(
-			MockMvc mockMvc, UserRepository users, ChallengeRepository challenges, ObjectMapper objectMapper) {
+			MockMvc mockMvc,
+			UserRepository users,
+			ChallengeRepository challenges,
+			ObjectMapper objectMapper,
+			PasswordEncoder passwordEncoder) {
 		this.mockMvc = mockMvc;
 		this.users = users;
 		this.challenges = challenges;
 		this.objectMapper = objectMapper;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	private Challenge challenge;
+	private String bearerAuth;
 
 	@BeforeEach
-	void setup() {
-		User u = users.save(User.forTest("st-owner@test"));
+	void setup() throws Exception {
+		User u = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "st-owner@test"));
 		challenge = challenges.save(new Challenge(u, "nested", null, LocalDate.of(2026, 2, 1), null));
+		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "st-owner@test", "password");
 	}
 
 	@Test
@@ -59,7 +70,7 @@ class SubTaskControllerIT {
 
 		String created =
 				mockMvc.perform(
-								post("/api/subtasks").header(HV, V1).contentType(APPLICATION_JSON).content(postBody))
+								post("/api/subtasks").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(postBody))
 						.andExpect(status().isCreated())
 						.andExpect(jsonPath("$.title").value("Step A"))
 						.andReturn()
@@ -68,21 +79,21 @@ class SubTaskControllerIT {
 
 		long subTaskId = objectMapper.readTree(created).get("id").asLong();
 
-		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/subtasks").header(HV, V1))
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/subtasks").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].id").value(subTaskId))
 				.andExpect(jsonPath("$[0].title").value("Step A"));
 
-		mockMvc.perform(get("/api/subtasks/" + subTaskId).header(HV, V1))
+		mockMvc.perform(get("/api/subtasks/" + subTaskId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.sortIndex").value(0));
 
 		String putBody = "{\"title\":\"Step B\",\"sortIndex\":1}";
 		mockMvc.perform(
-						put("/api/subtasks/" + subTaskId).header(HV, V1).contentType(APPLICATION_JSON).content(putBody))
+						put("/api/subtasks/" + subTaskId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(putBody))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.title").value("Step B"));
 
-		mockMvc.perform(delete("/api/subtasks/" + subTaskId).header(HV, V1)).andExpect(status().isNoContent());
+		mockMvc.perform(delete("/api/subtasks/" + subTaskId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)).andExpect(status().isNoContent());
 	}
 }

@@ -4,6 +4,7 @@ import com.authspring.api.security.JwtAuthenticationFilter;
 import com.authspring.api.security.ProblemJsonAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,7 +32,13 @@ public class SecurityConfig {
 			throws Exception {
 		http.csrf(csrf -> csrf.disable());
 		http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+		http.authorizeHttpRequests(auth -> auth
+				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+				.requestMatchers("/actuator/**").permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/login", "/api/register").permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+				.requestMatchers("/api/**").authenticated()
+				.anyRequest().permitAll());
 		http.exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint));
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();

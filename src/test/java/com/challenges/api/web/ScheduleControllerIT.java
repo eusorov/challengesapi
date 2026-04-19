@@ -11,6 +11,7 @@ import com.challenges.api.model.Challenge;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.UserRepository;
+import com.challenges.api.support.JwtLoginSupport;
 import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,22 +36,30 @@ class ScheduleControllerIT {
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
 	private final ObjectMapper objectMapper;
+	private final PasswordEncoder passwordEncoder;
 
 	@Autowired
 	ScheduleControllerIT(
-			MockMvc mockMvc, UserRepository users, ChallengeRepository challenges, ObjectMapper objectMapper) {
+			MockMvc mockMvc,
+			UserRepository users,
+			ChallengeRepository challenges,
+			ObjectMapper objectMapper,
+			PasswordEncoder passwordEncoder) {
 		this.mockMvc = mockMvc;
 		this.users = users;
 		this.challenges = challenges;
 		this.objectMapper = objectMapper;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	private Challenge challenge;
+	private String bearerAuth;
 
 	@BeforeEach
-	void setup() {
-		User u = users.save(User.forTest("sch-owner@test"));
+	void setup() throws Exception {
+		User u = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "sch-owner@test"));
 		challenge = challenges.save(new Challenge(u, "scheduled", null, LocalDate.of(2026, 3, 1), null));
+		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "sch-owner@test", "password");
 	}
 
 	@Test
@@ -57,7 +68,7 @@ class ScheduleControllerIT {
 				"{\"challengeId\":%d,\"kind\":\"DAILY\",\"weekDays\":[]}", challenge.getId());
 
 		String created =
-				mockMvc.perform(post("/api/schedules").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+				mockMvc.perform(post("/api/schedules").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(body))
 						.andExpect(status().isCreated())
 						.andExpect(jsonPath("$.kind").value("DAILY"))
 						.andExpect(jsonPath("$.challengeId").value(challenge.getId().intValue()))
@@ -67,11 +78,11 @@ class ScheduleControllerIT {
 
 		long scheduleId = objectMapper.readTree(created).get("id").asLong();
 
-		mockMvc.perform(get("/api/schedules/" + scheduleId).header(HV, V1))
+		mockMvc.perform(get("/api/schedules/" + scheduleId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.weekDays").isArray());
 
-		mockMvc.perform(delete("/api/schedules/" + scheduleId).header(HV, V1))
+		mockMvc.perform(delete("/api/schedules/" + scheduleId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isNoContent());
 	}
 }

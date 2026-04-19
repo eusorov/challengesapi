@@ -9,6 +9,7 @@ public class ApiVersionWebConfiguration implements WebMvcConfigurer {
 
 	@Override
 	public void configureApiVersioning(ApiVersionConfigurer configurer) {
-		configurer.useRequestHeader("API-Version");
+		// Header still preferred; when absent (e.g. curl), default matches @RequestMapping(version = "1").
+		configurer.useRequestHeader("API-Version").setDefaultVersion("1");
 	}
 }

@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -41,6 +42,21 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ProblemDetail> conflict(DataIntegrityViolationException ex) {
 		return problem(
 				HttpStatus.CONFLICT, "Data integrity violation: " + ex.getMostSpecificCause().getMessage());
+	}
+
+	@ExceptionHandler(ResponseStatusException.class)
+	public ResponseEntity<ProblemDetail> responseStatus(ResponseStatusException ex, HttpServletRequest request) {
+		HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+		if (status == null) {
+			status = HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+		String detail = ex.getReason();
+		if (detail == null || detail.isBlank()) {
+			detail = status.getReasonPhrase();
+		}
+		ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, detail);
+		pd.setInstance(URI.create(request.getRequestURI()));
+		return ResponseEntity.status(status).body(pd);
 	}
 
 	@ExceptionHandler(AccessDeniedException.class)

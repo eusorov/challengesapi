@@ -10,12 +10,15 @@ import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.UserRepository;
+import com.challenges.api.support.JwtLoginSupport;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,33 +34,40 @@ class ParticipantControllerIT {
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
 	private final ParticipantRepository participants;
+	private final PasswordEncoder passwordEncoder;
 
 	@Autowired
 	ParticipantControllerIT(
 			MockMvc mockMvc,
 			UserRepository users,
 			ChallengeRepository challenges,
-			ParticipantRepository participants) {
+			ParticipantRepository participants,
+			PasswordEncoder passwordEncoder) {
 		this.mockMvc = mockMvc;
 		this.users = users;
 		this.challenges = challenges;
 		this.participants = participants;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	private Challenge challenge;
 	private User participantUser;
+	private String bearerAuth;
 
 	@BeforeEach
-	void setup() {
-		participantUser = users.save(User.forTest("part-user@test"));
+	void setup() throws Exception {
+		participantUser = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "part-user@test"));
 		challenge =
 				challenges.save(new Challenge(participantUser, "part-ch", null, LocalDate.of(2026, 6, 1), null));
 		participants.save(new Participant(participantUser, challenge));
+		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "part-user@test", "password");
 	}
 
 	@Test
 	void listParticipantsForChallenge() throws Exception {
-		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/participants").header(HV, V1))
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/participants")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].challengeId").value(challenge.getId().intValue()))
 				.andExpect(jsonPath("$[0].userId").value(participantUser.getId().intValue()));

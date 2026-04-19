@@ -8,11 +8,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.challenges.api.support.JwtLoginSupport;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,8 @@ class ChallengeDomainWorkflowIT {
 	private final MockMvc mockMvc;
 	private final ObjectMapper objectMapper;
 
+	private String bearerAuth;
+
 	@Autowired
 	ChallengeDomainWorkflowIT(MockMvc mockMvc, ObjectMapper objectMapper) {
 		this.mockMvc = mockMvc;
@@ -46,6 +50,7 @@ class ChallengeDomainWorkflowIT {
 	void ownerSetsUpChallenge_inviteeAcceptsChallenge_becomesParticipant_thenCheckIns() throws Exception {
 		long ownerId = postUser("workflow-owner@example.test");
 		long inviteeUserId = postUser("workflow-invitee@example.test");
+		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "workflow-owner@example.test", "password123");
 
 		// --- Owner: challenge, subtasks, schedules ---
 		long challengeId = postChallenge(ownerId, "Summer habit", LocalDate.of(2026, 7, 1));
@@ -55,24 +60,32 @@ class ChallengeDomainWorkflowIT {
 		long chScheduleId = postScheduleChallenge(challengeId);
 		long stScheduleId = postScheduleSubTask(subWeeklyId);
 
-		mockMvc.perform(get("/api/schedules/" + chScheduleId).header(HV, V1))
+		mockMvc.perform(get("/api/schedules/" + chScheduleId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.kind").value("DAILY"))
 				.andExpect(jsonPath("$.challengeId").value((int) challengeId));
 
-		mockMvc.perform(get("/api/schedules/" + stScheduleId).header(HV, V1))
+		mockMvc.perform(get("/api/schedules/" + stScheduleId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.kind").value("WEEKLY_ON_SELECTED_DAYS"))
 				.andExpect(jsonPath("$.subTaskId").value((int) subWeeklyId))
 				.andExpect(jsonPath("$.weekDays").isArray());
 
-		mockMvc.perform(get("/api/challenges/" + challengeId + "/subtasks").header(HV, V1))
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/subtasks")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(2));
 
 		// --- Invite (PENDING): owner asks invitee to join the challenge ---
 		long inviteId = postInvite(ownerId, inviteeUserId, challengeId, null);
-		mockMvc.perform(get("/api/invites/" + inviteId).header(HV, V1))
+		mockMvc.perform(get("/api/invites/" + inviteId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("PENDING"))
 				.andExpect(jsonPath("$.inviteeUserId").value((int) inviteeUserId));
@@ -80,12 +93,16 @@ class ChallengeDomainWorkflowIT {
 		// --- Invitee accepts the challenge → becomes a Participant (challenge-wide scope) ---
 		acceptInvite(inviteId);
 
-		mockMvc.perform(get("/api/invites?challengeId=" + challengeId).header(HV, V1))
+		mockMvc.perform(get("/api/invites?challengeId=" + challengeId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].inviteeUserId").value((int) inviteeUserId))
 				.andExpect(jsonPath("$[0].status").value("ACCEPTED"));
 
-		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants").header(HV, V1))
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(1))
 				.andExpect(jsonPath("$[0].userId").value((int) inviteeUserId))
@@ -96,7 +113,9 @@ class ChallengeDomainWorkflowIT {
 		postCheckIn(ownerId, challengeId, LocalDate.of(2026, 7, 10), null);
 		postCheckIn(inviteeUserId, challengeId, LocalDate.of(2026, 7, 11), subWeeklyId);
 
-		mockMvc.perform(get("/api/challenges/" + challengeId + "/check-ins").header(HV, V1))
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/check-ins")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(2))
 				.andExpect(jsonPath("$[0].checkDate").value("2026-07-11"))
@@ -121,7 +140,11 @@ class ChallengeDomainWorkflowIT {
 						+ "startDate\":\"%s\",\"endDate\":null}",
 				ownerUserId, title, startDate);
 		MvcResult res =
-				mockMvc.perform(post("/api/challenges").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
 						.andExpect(status().isCreated())
 						.andExpect(jsonPath("$.ownerUserId").value((int) ownerUserId))
 						.andReturn();
@@ -133,7 +156,11 @@ class ChallengeDomainWorkflowIT {
 				"{\"challengeId\":%d,\"title\":\"%s\",\"sortIndex\":%d}",
 				challengeId, title, sortIndex);
 		MvcResult res =
-				mockMvc.perform(post("/api/subtasks").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+				mockMvc.perform(post("/api/subtasks")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
 						.andExpect(status().isCreated())
 						.andReturn();
 		return objectMapper.readTree(res.getResponse().getContentAsString()).get("id").asLong();
@@ -143,7 +170,11 @@ class ChallengeDomainWorkflowIT {
 		String body = String.format(
 				"{\"challengeId\":%d,\"kind\":\"DAILY\",\"weekDays\":[]}", challengeId);
 		MvcResult res =
-				mockMvc.perform(post("/api/schedules").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+				mockMvc.perform(post("/api/schedules")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
 						.andExpect(status().isCreated())
 						.andReturn();
 		return objectMapper.readTree(res.getResponse().getContentAsString()).get("id").asLong();
@@ -155,7 +186,11 @@ class ChallengeDomainWorkflowIT {
 						"{\"subTaskId\":%d,\"kind\":\"WEEKLY_ON_SELECTED_DAYS\",\"weekDays\":[\"MONDAY\",\"FRIDAY\"]}",
 						subTaskId);
 		MvcResult res =
-				mockMvc.perform(post("/api/schedules").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+				mockMvc.perform(post("/api/schedules")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
 						.andExpect(status().isCreated())
 						.andReturn();
 		JsonNode node = objectMapper.readTree(res.getResponse().getContentAsString());
@@ -171,7 +206,11 @@ class ChallengeDomainWorkflowIT {
 				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,\"subTaskId\":%s}",
 				inviterId, inviteeId, challengeId, sub);
 		MvcResult res =
-				mockMvc.perform(post("/api/invites").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+				mockMvc.perform(post("/api/invites")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
 						.andExpect(status().isCreated())
 						.andExpect(jsonPath("$.status").value("PENDING"))
 						.andReturn();
@@ -181,8 +220,11 @@ class ChallengeDomainWorkflowIT {
 	/** Invitee accepts the challenge: {@link com.challenges.api.model.InviteStatus#ACCEPTED}. */
 	private void acceptInvite(long inviteId) throws Exception {
 		mockMvc.perform(
-						put("/api/invites/" + inviteId).header(HV, V1).contentType(APPLICATION_JSON).content(
-								"{\"status\":\"ACCEPTED\"}"))
+						put("/api/invites/" + inviteId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content("{\"status\":\"ACCEPTED\"}"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("ACCEPTED"));
 	}
@@ -193,7 +235,11 @@ class ChallengeDomainWorkflowIT {
 		String body = String.format(
 				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"%s\",\"subTaskId\":%s}",
 				userId, challengeId, checkDate, st);
-		mockMvc.perform(post("/api/check-ins").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+		mockMvc.perform(post("/api/check-ins")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(body))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.userId").value((int) userId))
 				.andExpect(jsonPath("$.challengeId").value((int) challengeId));

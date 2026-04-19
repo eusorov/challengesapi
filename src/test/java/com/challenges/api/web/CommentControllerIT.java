@@ -16,12 +16,15 @@ import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
+import com.challenges.api.support.JwtLoginSupport;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
@@ -39,6 +42,7 @@ class CommentControllerIT {
 	private final ChallengeRepository challenges;
 	private final SubTaskRepository subTasks;
 	private final ObjectMapper objectMapper;
+	private final PasswordEncoder passwordEncoder;
 
 	@Autowired
 	CommentControllerIT(
@@ -46,24 +50,28 @@ class CommentControllerIT {
 			UserRepository users,
 			ChallengeRepository challenges,
 			SubTaskRepository subTasks,
-			ObjectMapper objectMapper) {
+			ObjectMapper objectMapper,
+			PasswordEncoder passwordEncoder) {
 		this.mockMvc = mockMvc;
 		this.users = users;
 		this.challenges = challenges;
 		this.subTasks = subTasks;
 		this.objectMapper = objectMapper;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	private User owner;
 	private User commenter;
 	private Challenge challenge;
+	private String bearerAuth;
 
 	@BeforeEach
-	void setup() {
-		owner = users.save(User.forTest("owner-comments@test"));
-		commenter = users.save(User.forTest("commenter@test"));
+	void setup() throws Exception {
+		owner = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "owner-comments@test"));
+		commenter = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "commenter@test"));
 		challenge =
 				challenges.save(new Challenge(owner, "ch-comments", null, LocalDate.of(2026, 4, 1), null));
+		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "owner-comments@test", "password");
 	}
 
 	@Test
@@ -74,7 +82,7 @@ class CommentControllerIT {
 		String created =
 				mockMvc.perform(
 								post("/api/challenges/" + challenge.getId() + "/comments")
-										.header(HV, V1)
+										.header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)
 										.contentType(APPLICATION_JSON)
 										.content(postBody))
 						.andExpect(status().isCreated())
@@ -86,7 +94,7 @@ class CommentControllerIT {
 
 		long commentId = objectMapper.readTree(created).get("id").asLong();
 
-		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/comments").header(HV, V1))
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/comments").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].id").value(commentId))
 				.andExpect(jsonPath("$[0].subTaskId").value(nullValue()))
@@ -101,7 +109,7 @@ class CommentControllerIT {
 				String.format("{\"userId\":%d,\"body\":\"wide\",\"subTaskId\":null}", commenter.getId());
 		mockMvc.perform(
 						post("/api/challenges/" + challenge.getId() + "/comments")
-								.header(HV, V1)
+								.header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)
 								.contentType(APPLICATION_JSON)
 								.content(wide))
 				.andExpect(status().isCreated());
@@ -112,7 +120,7 @@ class CommentControllerIT {
 						commenter.getId(), sub.getId());
 		mockMvc.perform(
 						post("/api/challenges/" + challenge.getId() + "/comments")
-								.header(HV, V1)
+								.header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)
 								.contentType(APPLICATION_JSON)
 								.content(scoped))
 				.andExpect(status().isCreated())
@@ -120,12 +128,12 @@ class CommentControllerIT {
 
 		mockMvc.perform(
 						get("/api/challenges/" + challenge.getId() + "/comments?subTaskId=" + sub.getId())
-								.header(HV, V1))
+								.header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$", hasSize(1)))
 				.andExpect(jsonPath("$[0].body").value("on sub"));
 
-		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/comments").header(HV, V1))
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/comments").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$", hasSize(2)));
 	}
@@ -137,7 +145,7 @@ class CommentControllerIT {
 		String created =
 				mockMvc.perform(
 								post("/api/challenges/" + challenge.getId() + "/comments")
-										.header(HV, V1)
+										.header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)
 										.contentType(APPLICATION_JSON)
 										.content(postBody))
 						.andExpect(status().isCreated())
@@ -149,20 +157,20 @@ class CommentControllerIT {
 
 		mockMvc.perform(
 						put("/api/comments/" + commentId)
-								.header(HV, V1)
+								.header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)
 								.contentType(APPLICATION_JSON)
 								.content("{\"body\":\"updated\"}"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("updated"));
 
-		mockMvc.perform(get("/api/comments/" + commentId).header(HV, V1))
+		mockMvc.perform(get("/api/comments/" + commentId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("updated"));
 
-		mockMvc.perform(delete("/api/comments/" + commentId).header(HV, V1))
+		mockMvc.perform(delete("/api/comments/" + commentId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isNoContent());
 
-		mockMvc.perform(get("/api/comments/" + commentId).header(HV, V1)).andExpect(status().isNotFound());
+		mockMvc.perform(get("/api/comments/" + commentId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)).andExpect(status().isNotFound());
 	}
 
 	@Test
@@ -170,7 +178,7 @@ class CommentControllerIT {
 		String body = "{\"userId\":999999,\"body\":\"x\",\"subTaskId\":null}";
 		mockMvc.perform(
 						post("/api/challenges/" + challenge.getId() + "/comments")
-								.header(HV, V1)
+								.header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)
 								.contentType(APPLICATION_JSON)
 								.content(body))
 				.andExpect(status().isNotFound());
