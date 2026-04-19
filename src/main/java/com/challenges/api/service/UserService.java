@@ -5,6 +5,9 @@ import com.challenges.api.repo.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +26,13 @@ public class UserService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<User> listUsers() {
-		return users.findAll();
+	public @NonNull Page<User> listUsers(@NonNull Pageable pageable) {
+		Assert.notNull(pageable, "pageable must not be null");
+		Page<Long> idPage = users.findIdsOrderByIdAsc(pageable);
+		if (idPage.isEmpty()) {
+			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
+		}
+		return new PageImpl<>(users.findAllByIdInOrderByIdAsc(idPage.getContent()), pageable, idPage.getTotalElements());
 	}
 
 	@Transactional(readOnly = true)

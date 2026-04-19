@@ -90,7 +90,7 @@ class CheckInControllerIT {
 
 		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/check-ins").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].id").value(checkInId));
+				.andExpect(jsonPath("$.content[0].id").value(checkInId));
 
 		String badPut = String.format(
 				"{\"checkDate\":\"2026-05-11\",\"subTaskId\":%d}", otherSubTask.getId());

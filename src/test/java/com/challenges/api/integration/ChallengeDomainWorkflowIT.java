@@ -97,17 +97,17 @@ class ChallengeDomainWorkflowIT {
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].inviteeUserId").value((int) inviteeUserId))
-				.andExpect(jsonPath("$[0].status").value("ACCEPTED"));
+				.andExpect(jsonPath("$.content[0].inviteeUserId").value((int) inviteeUserId))
+				.andExpect(jsonPath("$.content[0].status").value("ACCEPTED"));
 
 		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants")
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.length()").value(1))
-				.andExpect(jsonPath("$[0].userId").value((int) inviteeUserId))
-				.andExpect(jsonPath("$[0].challengeId").value((int) challengeId))
-				.andExpect(jsonPath("$[0].subTaskId").isEmpty());
+				.andExpect(jsonPath("$.content.length()").value(1))
+				.andExpect(jsonPath("$.content[0].userId").value((int) inviteeUserId))
+				.andExpect(jsonPath("$.content[0].challengeId").value((int) challengeId))
+				.andExpect(jsonPath("$.content[0].subTaskId").isEmpty());
 
 		// --- Both users log check-ins ---
 		postCheckIn(ownerId, challengeId, LocalDate.of(2026, 7, 10), null);
@@ -117,11 +117,11 @@ class ChallengeDomainWorkflowIT {
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.length()").value(2))
-				.andExpect(jsonPath("$[0].checkDate").value("2026-07-11"))
-				.andExpect(jsonPath("$[0].subTaskId").value((int) subWeeklyId))
-				.andExpect(jsonPath("$[1].checkDate").value("2026-07-10"))
-				.andExpect(jsonPath("$[1].subTaskId").isEmpty());
+				.andExpect(jsonPath("$.content.length()").value(2))
+				.andExpect(jsonPath("$.content[0].checkDate").value("2026-07-11"))
+				.andExpect(jsonPath("$.content[0].subTaskId").value((int) subWeeklyId))
+				.andExpect(jsonPath("$.content[1].checkDate").value("2026-07-10"))
+				.andExpect(jsonPath("$.content[1].subTaskId").isEmpty());
 	}
 
 	private long postUser(String email) throws Exception {

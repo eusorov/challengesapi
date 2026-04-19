@@ -5,9 +5,11 @@ import com.challenges.api.web.dto.InviteRequest;
 import com.challenges.api.web.dto.InviteResponse;
 import com.challenges.api.web.dto.InviteUpdateRequest;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,8 +33,10 @@ public class InviteController {
 	}
 
 	@GetMapping({ "", "/" })
-	public @NonNull List<InviteResponse> list(@RequestParam(required = false) @Nullable Long challengeId) {
-		return inviteService.list(challengeId).stream().map(InviteResponse::from).toList();
+	public @NonNull Page<InviteResponse> list(
+			@RequestParam(required = false) @Nullable Long challengeId,
+			@PageableDefault(size = 20) Pageable pageable) {
+		return inviteService.list(challengeId, pageable).map(InviteResponse::from);
 	}
 
 	@GetMapping({ "/{id}", "/{id}/" })

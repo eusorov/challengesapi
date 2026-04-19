@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.data.domain.PageRequest;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -40,7 +41,8 @@ class ParticipantRepositoryTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		List<Participant> byChallenge = participantRepository.findByChallenge_Id(ch.getId());
+		var idPage = participantRepository.findIdsForChallengeOrderByIdAsc(ch.getId(), PageRequest.of(0, 50));
+		List<Participant> byChallenge = participantRepository.findByIdInWithAssociations(idPage.getContent());
 		assertThat(byChallenge).extracting(Participant::getId).containsExactlyInAnyOrder(wide.getId(), scoped.getId());
 
 		List<Participant> wideOnly = participantRepository.findByChallenge_IdAndSubTaskIsNull(ch.getId());

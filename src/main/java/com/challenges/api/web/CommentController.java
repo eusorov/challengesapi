@@ -5,9 +5,11 @@ import com.challenges.api.web.dto.CommentRequest;
 import com.challenges.api.web.dto.CommentResponse;
 import com.challenges.api.web.dto.CommentUpdateRequest;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,11 +33,11 @@ public class CommentController {
 	}
 
 	@GetMapping({ "/challenges/{challengeId}/comments", "/challenges/{challengeId}/comments/" })
-	public @NonNull List<CommentResponse> list(
-			@PathVariable Long challengeId, @RequestParam(required = false) @Nullable Long subTaskId) {
-		return commentService.listForChallenge(challengeId, subTaskId).stream()
-				.map(CommentResponse::from)
-				.toList();
+	public @NonNull Page<CommentResponse> list(
+			@PathVariable Long challengeId,
+			@RequestParam(required = false) @Nullable Long subTaskId,
+			@PageableDefault(size = 20) Pageable pageable) {
+		return commentService.listForChallenge(challengeId, subTaskId, pageable).map(CommentResponse::from);
 	}
 
 	@PostMapping({ "/challenges/{challengeId}/comments", "/challenges/{challengeId}/comments/" })

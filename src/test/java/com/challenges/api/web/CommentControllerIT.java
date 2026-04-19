@@ -96,9 +96,9 @@ class CommentControllerIT {
 
 		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/comments").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].id").value(commentId))
-				.andExpect(jsonPath("$[0].subTaskId").value(nullValue()))
-				.andExpect(jsonPath("$[0].body").value("hello challenge"));
+				.andExpect(jsonPath("$.content[0].id").value(commentId))
+				.andExpect(jsonPath("$.content[0].subTaskId").value(nullValue()))
+				.andExpect(jsonPath("$.content[0].body").value("hello challenge"));
 	}
 
 	@Test
@@ -130,12 +130,12 @@ class CommentControllerIT {
 						get("/api/challenges/" + challenge.getId() + "/comments?subTaskId=" + sub.getId())
 								.header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(1)))
-				.andExpect(jsonPath("$[0].body").value("on sub"));
+				.andExpect(jsonPath("$.content", hasSize(1)))
+				.andExpect(jsonPath("$.content[0].body").value("on sub"));
 
 		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/comments").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(2)));
+				.andExpect(jsonPath("$.content", hasSize(2)));
 	}
 
 	@Test

@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -44,11 +47,17 @@ public class InviteService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<Invite> list(@Nullable Long challengeIdFilter) {
-		if (challengeIdFilter != null) {
-			return invites.findByChallenge_Id(challengeIdFilter);
+	public @NonNull Page<Invite> list(@Nullable Long challengeIdFilter, @NonNull Pageable pageable) {
+		Assert.notNull(pageable, "pageable must not be null");
+		Page<Long> idPage =
+				challengeIdFilter != null
+						? invites.findIdsForChallengeOrderByIdAsc(challengeIdFilter, pageable)
+						: invites.findIdsOrderByIdAsc(pageable);
+		if (idPage.isEmpty()) {
+			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
 		}
-		return invites.findAllWithAssociations();
+		return new PageImpl<>(
+				invites.findByIdInWithAssociations(idPage.getContent()), pageable, idPage.getTotalElements());
 	}
 
 	@Transactional(readOnly = true)

@@ -91,7 +91,7 @@ class InviteControllerIT {
 		mockMvc.perform(
 						get("/api/invites?challengeId=" + challenge.getId()).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].id").value(inviteId));
+				.andExpect(jsonPath("$.content[0].id").value(inviteId));
 
 		String patch = "{\"status\":\"ACCEPTED\",\"expiresAt\":null}";
 		mockMvc.perform(
@@ -101,8 +101,8 @@ class InviteControllerIT {
 
 		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/participants").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].userId").value(invitee.getId().intValue()))
-				.andExpect(jsonPath("$[0].challengeId").value(challenge.getId().intValue()));
+				.andExpect(jsonPath("$.content[0].userId").value(invitee.getId().intValue()))
+				.andExpect(jsonPath("$.content[0].challengeId").value(challenge.getId().intValue()));
 	}
 
 	@Test
@@ -129,7 +129,7 @@ class InviteControllerIT {
 
 		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/participants").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].userId").value(invitee.getId().intValue()))
-				.andExpect(jsonPath("$[0].subTaskId").value(sub.getId().intValue()));
+				.andExpect(jsonPath("$.content[0].userId").value(invitee.getId().intValue()))
+				.andExpect(jsonPath("$.content[0].subTaskId").value(sub.getId().intValue()));
 	}
 }

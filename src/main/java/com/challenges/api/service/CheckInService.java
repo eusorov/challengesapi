@@ -11,6 +11,9 @@ import com.challenges.api.web.dto.CheckInUpdateRequest;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -35,9 +38,15 @@ public class CheckInService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<CheckIn> listForChallenge(@NonNull Long challengeId) {
+	public @NonNull Page<CheckIn> listForChallenge(@NonNull Long challengeId, @NonNull Pageable pageable) {
 		Assert.notNull(challengeId, "challengeId must not be null");
-		return checkIns.findByChallenge_IdOrderByCheckDateDesc(challengeId);
+		Assert.notNull(pageable, "pageable must not be null");
+		Page<Long> idPage = checkIns.findIdsForChallengeOrderByCheckDateDesc(challengeId, pageable);
+		if (idPage.isEmpty()) {
+			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
+		}
+		return new PageImpl<>(
+				checkIns.findByIdInWithAssociations(idPage.getContent()), pageable, idPage.getTotalElements());
 	}
 
 	@Transactional(readOnly = true)

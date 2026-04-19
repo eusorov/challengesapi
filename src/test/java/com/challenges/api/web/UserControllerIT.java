@@ -42,7 +42,7 @@ class UserControllerIT {
 		String auth = JwtLoginSupport.bearerAuthorization(mockMvc, "x@y.z", "password123");
 		mockMvc.perform(get("/api/users").header(HV, V1).header(HttpHeaders.AUTHORIZATION, auth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].email").value("x@y.z"));
+				.andExpect(jsonPath("$.content[0].email").value("x@y.z"));
 	}
 
 	@Test

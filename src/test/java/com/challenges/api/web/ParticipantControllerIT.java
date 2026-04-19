@@ -69,7 +69,7 @@ class ParticipantControllerIT {
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].challengeId").value(challenge.getId().intValue()))
-				.andExpect(jsonPath("$[0].userId").value(participantUser.getId().intValue()));
+				.andExpect(jsonPath("$.content[0].challengeId").value(challenge.getId().intValue()))
+				.andExpect(jsonPath("$.content[0].userId").value(participantUser.getId().intValue()));
 	}
 }

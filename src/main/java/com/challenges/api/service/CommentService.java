@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -38,16 +41,31 @@ public class CommentService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<Comment> listForChallenge(@NonNull Long challengeId, @Nullable Long subTaskIdFilter) {
+	public @NonNull Page<Comment> listForChallenge(
+			@NonNull Long challengeId, @Nullable Long subTaskIdFilter, @NonNull Pageable pageable) {
 		Assert.notNull(challengeId, "challengeId must not be null");
+		Assert.notNull(pageable, "pageable must not be null");
 		if (subTaskIdFilter == null) {
-			return comments.findByChallengeIdWithAssociations(challengeId);
+			Page<Long> idPage = comments.findIdsForChallengeOrderByCreatedAtDesc(challengeId, pageable);
+			if (idPage.isEmpty()) {
+				return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
+			}
+			return new PageImpl<>(
+					comments.findByIdInWithAssociations(idPage.getContent()), pageable, idPage.getTotalElements());
 		}
 		Optional<SubTask> st = subTasks.findById(subTaskIdFilter);
 		if (st.isEmpty() || !st.get().getChallenge().getId().equals(challengeId)) {
-			return List.of();
+			return new PageImpl<>(List.of(), pageable, 0);
 		}
-		return comments.findByChallengeIdAndSubTaskIdWithAssociations(challengeId, subTaskIdFilter);
+		Page<Long> idPage =
+				comments.findIdsForChallengeAndSubTaskOrderByCreatedAtDesc(challengeId, subTaskIdFilter, pageable);
+		if (idPage.isEmpty()) {
+			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
+		}
+		return new PageImpl<>(
+				comments.findByIdInWithAssociationsSubTaskRequired(idPage.getContent()),
+				pageable,
+				idPage.getTotalElements());
 	}
 
 	@Transactional

@@ -5,8 +5,10 @@ import com.challenges.api.web.dto.CheckInRequest;
 import com.challenges.api.web.dto.CheckInResponse;
 import com.challenges.api.web.dto.CheckInUpdateRequest;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,8 +31,9 @@ public class CheckInController {
 	}
 
 	@GetMapping({ "/challenges/{challengeId}/check-ins", "/challenges/{challengeId}/check-ins/" })
-	public @NonNull List<CheckInResponse> listForChallenge(@PathVariable Long challengeId) {
-		return checkInService.listForChallenge(challengeId).stream().map(CheckInResponse::from).toList();
+	public @NonNull Page<CheckInResponse> listForChallenge(
+			@PathVariable Long challengeId, @PageableDefault(size = 20) Pageable pageable) {
+		return checkInService.listForChallenge(challengeId, pageable).map(CheckInResponse::from);
 	}
 
 	@GetMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
