@@ -3,6 +3,7 @@ package com.challenges.api.web.dto;
 import com.challenges.api.model.Challenge;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 public record ChallengeResponse(
 		Long id,
@@ -13,7 +14,9 @@ public record ChallengeResponse(
 		LocalDate endDate,
 		Instant createdAt,
 		String imageObjectKey,
-		String imageUrl) {
+		String imageUrl,
+		/** Subtasks for this challenge (empty when none). Loaded with list/get via repository fetch-join. */
+		List<SubTaskResponse> subtasks) {
 
 	public static ChallengeResponse from(Challenge c) {
 		return from(c, null);
@@ -25,6 +28,8 @@ public record ChallengeResponse(
 		if (key != null && imagePublicBaseUrl != null && !imagePublicBaseUrl.isBlank()) {
 			url = imagePublicBaseUrl.replaceAll("/$", "") + "/" + key;
 		}
+		List<SubTaskResponse> subtasks =
+				c.getSubtasks().stream().map(SubTaskResponse::from).toList();
 		return new ChallengeResponse(
 				c.getId(),
 				c.getOwner().getId(),
@@ -34,6 +39,7 @@ public record ChallengeResponse(
 				c.getEndDate(),
 				c.getCreatedAt(),
 				key,
-				url);
+				url,
+				subtasks);
 	}
 }

@@ -9,10 +9,14 @@ import org.springframework.data.repository.query.Param;
 
 public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 
-	/** Join-fetch owner so listing challenges does not N+1 when mapping {@link com.challenges.api.web.dto.ChallengeResponse}. */
-	@Query("select distinct c from Challenge c join fetch c.owner order by c.id asc")
-	List<Challenge> findAllWithOwner();
+	/**
+	 * Join-fetch owner and subtasks so listing challenges does not N+1 when mapping or traversing
+	 * {@link com.challenges.api.model.Challenge#getSubtasks()} / {@link com.challenges.api.web.dto.ChallengeResponse}.
+	 */
+	@Query(
+			"select distinct c from Challenge c join fetch c.owner left join fetch c.subtasks order by c.id asc")
+	List<Challenge> findAllWithSubtasksAndOwner();
 
-	@Query("select distinct c from Challenge c join fetch c.owner where c.id = :id")
-	Optional<Challenge> findByIdWithOwner(@Param("id") Long id);
+	@Query("select distinct c from Challenge c join fetch c.owner left join fetch c.subtasks where c.id = :id")
+	Optional<Challenge> findByIdWithSubtasksAndOwner(@Param("id") Long id);
 }

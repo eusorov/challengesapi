@@ -69,6 +69,7 @@ class ChallengeControllerIT {
 						.andExpect(status().isCreated())
 						.andExpect(jsonPath("$.ownerUserId").value(owner1.getId().intValue()))
 						.andExpect(jsonPath("$.title").value("My ch"))
+						.andExpect(jsonPath("$.subtasks").isArray())
 						.andReturn()
 						.getResponse()
 						.getContentAsString();
@@ -78,12 +79,14 @@ class ChallengeControllerIT {
 
 		mockMvc.perform(get("/api/challenges").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].ownerUserId").value(owner1.getId().intValue()));
+				.andExpect(jsonPath("$[0].ownerUserId").value(owner1.getId().intValue()))
+				.andExpect(jsonPath("$[0].subtasks").isArray());
 
 		mockMvc.perform(get("/api/challenges/" + challengeId)
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.ownerUserId").value(owner1.getId().intValue()));
+				.andExpect(jsonPath("$.ownerUserId").value(owner1.getId().intValue()))
+				.andExpect(jsonPath("$.subtasks").isArray());
 	}
 }

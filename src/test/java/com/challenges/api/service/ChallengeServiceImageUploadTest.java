@@ -59,7 +59,7 @@ class ChallengeServiceImageUploadTest {
 		when(ch.getTitle()).thenReturn("Summer Challenge");
 		when(ch.getId()).thenReturn(42L);
 
-		when(challenges.findByIdWithOwner(42L)).thenReturn(Optional.of(ch));
+		when(challenges.findByIdWithSubtasksAndOwner(42L)).thenReturn(Optional.of(ch));
 		when(challenges.save(ch)).thenReturn(ch);
 
 		MultipartFile file = mock(MultipartFile.class);
@@ -83,7 +83,7 @@ class ChallengeServiceImageUploadTest {
 		Challenge ch = mock(Challenge.class);
 		when(ch.getOwner()).thenReturn(owner);
 
-		when(challenges.findByIdWithOwner(42L)).thenReturn(Optional.of(ch));
+		when(challenges.findByIdWithSubtasksAndOwner(42L)).thenReturn(Optional.of(ch));
 
 		assertThatThrownBy(() -> service.uploadImage(42L, mock(MultipartFile.class), 99L))
 				.isInstanceOf(AccessDeniedException.class);

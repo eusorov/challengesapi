@@ -33,13 +33,13 @@ public class ChallengeService {
 
 	@Transactional(readOnly = true)
 	public @NonNull List<Challenge> listChallenges() {
-		return challenges.findAllWithOwner();
+		return challenges.findAllWithSubtasksAndOwner();
 	}
 
 	@Transactional(readOnly = true)
 	public Optional<Challenge> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
-		return challenges.findByIdWithOwner(id);
+		return challenges.findByIdWithSubtasksAndOwner(id);
 	}
 
 	@Transactional
@@ -56,7 +56,7 @@ public class ChallengeService {
 	public Optional<Challenge> replace(@NonNull Long id, @NonNull ChallengeRequest req) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
-		return users.findById(req.ownerUserId()).flatMap(owner -> challenges.findByIdWithOwner(id).map(ch -> {
+		return users.findById(req.ownerUserId()).flatMap(owner -> challenges.findByIdWithSubtasksAndOwner(id).map(ch -> {
 			ch.setOwner(owner);
 			ch.setTitle(req.title());
 			ch.setDescription(req.description());
@@ -81,7 +81,7 @@ public class ChallengeService {
 			@NonNull Long challengeId, @NonNull MultipartFile file, long currentUserId) {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		Assert.notNull(file, "file must not be null");
-		return challenges.findByIdWithOwner(challengeId).map(ch -> {
+		return challenges.findByIdWithSubtasksAndOwner(challengeId).map(ch -> {
 			if (!ch.getOwner().getId().equals(currentUserId)) {
 				throw new AccessDeniedException("Not challenge owner");
 			}

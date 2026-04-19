@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface SubTaskRepository extends JpaRepository<SubTask, Long> {
 
+	long countByChallenge_Id(Long challengeId);
+
 	@Query(
 			"""
 			select distinct st from SubTask st

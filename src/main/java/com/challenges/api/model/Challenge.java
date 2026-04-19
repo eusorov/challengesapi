@@ -9,12 +9,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "challenges")
@@ -47,6 +51,10 @@ public class Challenge {
 
 	@OneToOne(mappedBy = "challenge", cascade = CascadeType.ALL, optional = true)
 	private Schedule schedule;
+
+	@OneToMany(mappedBy = "challenge", fetch = FetchType.LAZY)
+	@OrderBy("sortIndex ASC")
+	private List<SubTask> subtasks = new ArrayList<>();
 
 	@Column(name = "image_object_key", length = 1024)
 	private String imageObjectKey;
@@ -100,6 +108,10 @@ public class Challenge {
 
 	public Schedule getSchedule() {
 		return schedule;
+	}
+
+	public List<SubTask> getSubtasks() {
+		return subtasks;
 	}
 
 	public String getImageObjectKey() {
