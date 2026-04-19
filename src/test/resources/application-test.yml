@@ -1,5 +1,7 @@
 # Profile test: PostgreSQL database challengestest (isolated from dev DB "challenges").
 # Requires: docker compose up, and DB challengestest present (init script on first volume, or see docker-compose comment).
+# Fresh data each suite: `./gradlew test` runs Flyway clean on this DB first (build.gradle → prepareChallengesTestDatabase);
+# application startup then runs migrate as usual (no clean in-app).
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_TEST_URL:jdbc:postgresql://localhost:5432/challengestest}

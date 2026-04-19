@@ -1,8 +1,22 @@
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		// Same Flyway line as Spring Boot 4.0.5 (see ./gradlew dependencyInsight --dependency flyway-core).
+		classpath 'org.flywaydb:flyway-core:11.14.1'
+		classpath 'org.flywaydb:flyway-database-postgresql:11.14.1'
+		classpath 'org.postgresql:postgresql:42.7.10'
+	}
+}
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
+
+import org.flywaydb.core.Flyway
 
 group = 'com.challenges.api'
 version = '0.0.1-SNAPSHOT'
@@ -15,6 +29,22 @@ java {
 
 repositories {
 	mavenCentral()
+}
+
+def challengesTestDbUrl = System.getenv('SPRING_DATASOURCE_TEST_URL') ?: 'jdbc:postgresql://localhost:5432/challengestest'
+def challengesTestDbUser = System.getenv('SPRING_DATASOURCE_TEST_USERNAME') ?: 'challenges'
+def challengesTestDbPassword = System.getenv('SPRING_DATASOURCE_TEST_PASSWORD') ?: 'challenges'
+
+tasks.register('prepareChallengesTestDatabase') {
+	group = 'verification'
+	description = 'Flyway clean on the integration-test DB once per ./gradlew test (app startup still runs migrate only).'
+	doLast {
+		Flyway.configure()
+				.dataSource(challengesTestDbUrl, challengesTestDbUser, challengesTestDbPassword)
+				.cleanDisabled(false)
+				.load()
+				.clean()
+	}
 }
 
 dependencies {
@@ -46,6 +76,7 @@ dependencies {
 }
 
 tasks.named('test') {
+	dependsOn tasks.named('prepareChallengesTestDatabase')
 	useJUnitPlatform()
 	systemProperty 'spring.profiles.active', 'test'
 }
