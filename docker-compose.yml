@@ -1,8 +1,7 @@
 services:
-  api:
-    build:
-      context: .
-    container_name: challenges-api
+  app:
+    build: .
+    container_name: challengesapi
     depends_on:
       postgres:
         condition: service_healthy
