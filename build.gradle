@@ -32,13 +32,23 @@ repositories {
 	mavenCentral()
 }
 
+// Test database: PostgreSQL (default) or in-memory H2 — no Docker required for H2.
+// Usage: ./gradlew test -Pdb=h2   |   ./gradlew test -Pdb=pg   (same as default)
+// Alias: -PtestDb=h2
+def rawTestDb = findProperty('testDb') ?: findProperty('db') ?: 'h2'
+def testDb = rawTestDb.toString().toLowerCase()
+if (!(testDb in ['h2', 'pg'])) {
+	throw new GradleException("Invalid db/testDb property '${rawTestDb}'. Use 'h2' or 'pg'.")
+}
+
 def challengesTestDbUrl = System.getenv('SPRING_DATASOURCE_TEST_URL') ?: 'jdbc:postgresql://localhost:5432/challengestest'
 def challengesTestDbUser = System.getenv('SPRING_DATASOURCE_TEST_USERNAME') ?: 'challenges'
 def challengesTestDbPassword = System.getenv('SPRING_DATASOURCE_TEST_PASSWORD') ?: 'challenges'
 
 tasks.register('prepareTestDatabase') {
 	group = 'verification'
-	description = 'Flyway clean on the integration-test DB once per ./gradlew test (app startup still runs migrate only).'
+	description = 'Flyway clean on the PostgreSQL integration-test DB (skipped when -Pdb=h2).'
+	onlyIf { testDb == 'pg' }
 	doLast {
 		Flyway.configure()
 				.dataSource(challengesTestDbUrl, challengesTestDbUser, challengesTestDbPassword)
@@ -79,11 +89,16 @@ dependencies {
 	//testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	//testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.4'
 	//testImplementation 'org.testcontainers:testcontainers-postgresql:2.0.4'
+	testRuntimeOnly 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
 	dependsOn tasks.named('prepareTestDatabase')
 	useJUnitPlatform()
-	systemProperty 'spring.profiles.active', 'test'
+	if (testDb == 'h2') {
+		systemProperty 'spring.profiles.active', 'test,h2'
+	} else {
+		systemProperty 'spring.profiles.active', 'test'
+	}
 }

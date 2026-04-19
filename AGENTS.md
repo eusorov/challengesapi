@@ -47,7 +47,7 @@ This repository is intended to host the **challenges API** — a Java Spring Boo
 | Local DB | **`docker-compose.yml`** — Postgres (optional); integration tests use DB **`challengestest`** (see `application-test.yml`); **`prepareTestDatabase`** runs **Flyway clean** before `./gradlew test` |
 | Test | JUnit 5 (`spring-boot-starter-webmvc-test`, `spring-security-test`, JPA/JDBC test starters) |
 | Run | `./gradlew bootRun` |
-| Test command | `./gradlew test` |
+| Test command | `./gradlew test` (PostgreSQL **`challengestest`**; Flyway clean first). In-memory H2: `./gradlew test -Pdb=h2` (alias `-PtestDb=h2`). Explicit Postgres: `-Pdb=pg`. |
 
 ### REST API (current phase)
 

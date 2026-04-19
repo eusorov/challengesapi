@@ -38,12 +38,13 @@ Backend service for a **challenges** product: **users create challenges, invite 
 ./gradlew bootRun
 ```
 
-4. Run tests (expects DB **`challengestest`**; the **`prepareTestDatabase`** Gradle task runs **Flyway clean** on it before tests):
+4. Run tests (expects DB **`challengestest`**):
+
+Tests run default **without PostgreSQL**, in-memory **H2**. But it is possible to run agains test postgresql DB with : `./gradlew test -Pdb=pg` (alias `-PtestDb=h2`). Default **`./gradlew test`** is H2 (`-Pdb=h2`).
 
 ```bash
 ./gradlew test
 ```
-
 More detail for contributors and agents lives in **`AGENTS.md`** and **`CLAUDE.md`**.
 
 ## Demo data (optional)
