@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "password_reset_tokens")
@@ -17,16 +17,16 @@ public class PasswordResetToken {
 	@Column(nullable = false, length = 255)
 	private String token;
 
-	@Column(name = "created_at")
-	private LocalDateTime createdAt;
+	@Column(name = "created_at", nullable = false)
+	private Instant createdAt;
 
 	public PasswordResetToken() {
 	}
 
-	public PasswordResetToken(String email, String token, LocalDateTime createdAt) {
+	public PasswordResetToken(String email, String token, Instant createdAt) {
 		this.email = java.util.Objects.requireNonNull(email);
 		this.token = java.util.Objects.requireNonNull(token);
-		this.createdAt = createdAt;
+		this.createdAt = java.util.Objects.requireNonNull(createdAt);
 	}
 
 	public String getEmail() {
@@ -45,11 +45,11 @@ public class PasswordResetToken {
 		this.token = java.util.Objects.requireNonNull(token);
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public Instant getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = java.util.Objects.requireNonNull(createdAt);
 	}
 }

@@ -16,14 +16,17 @@ public class PersonalAccessToken {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "user_id", nullable = false)
-	private Long userId;
+	@Column(name = "tokenable_type", nullable = false, length = 255)
+	private String tokenableType;
 
-	@Column(nullable = false, length = 255)
+	@Column(name = "tokenable_id", nullable = false)
+	private Long tokenableId;
+
+	@Column(nullable = false, columnDefinition = "TEXT")
 	private String name;
 
-	@Column(name = "token_hash", nullable = false, unique = true, length = 255)
-	private String tokenHash;
+	@Column(nullable = false, unique = true, length = 64)
+	private String token;
 
 	@Column(columnDefinition = "TEXT")
 	private String abilities;
@@ -37,6 +40,9 @@ public class PersonalAccessToken {
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
+	@Column(name = "updated_at", nullable = false)
+	private Instant updatedAt;
+
 	public PersonalAccessToken() {
 	}
 
@@ -44,12 +50,20 @@ public class PersonalAccessToken {
 		return id;
 	}
 
-	public Long getUserId() {
-		return userId;
+	public String getTokenableType() {
+		return tokenableType;
 	}
 
-	public void setUserId(Long userId) {
-		this.userId = userId;
+	public void setTokenableType(String tokenableType) {
+		this.tokenableType = tokenableType;
+	}
+
+	public Long getTokenableId() {
+		return tokenableId;
+	}
+
+	public void setTokenableId(Long tokenableId) {
+		this.tokenableId = tokenableId;
 	}
 
 	public String getName() {
@@ -60,12 +74,12 @@ public class PersonalAccessToken {
 		this.name = name;
 	}
 
-	public String getTokenHash() {
-		return tokenHash;
+	public String getToken() {
+		return token;
 	}
 
-	public void setTokenHash(String tokenHash) {
-		this.tokenHash = tokenHash;
+	public void setToken(String token) {
+		this.token = token;
 	}
 
 	public String getAbilities() {
@@ -98,5 +112,13 @@ public class PersonalAccessToken {
 
 	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 }

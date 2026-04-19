@@ -29,12 +29,14 @@ public class PersonalAccessTokenService {
 		Instant now = Instant.now();
 		Instant expiresAt = now.plusMillis(jwtProperties.expirationMs());
 		PersonalAccessToken row = new PersonalAccessToken();
-		row.setUserId(user.getId());
+		row.setTokenableType(User.class.getName());
+		row.setTokenableId(user.getId());
 		row.setName("api");
-		row.setTokenHash(sha256Hex(jwtCompact));
+		row.setToken(sha256Hex(jwtCompact));
 		row.setAbilities("[\"*\"]");
 		row.setExpiresAt(expiresAt);
 		row.setCreatedAt(now);
+		row.setUpdatedAt(now);
 		repository.save(row);
 	}
 

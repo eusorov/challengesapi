@@ -2,7 +2,7 @@ CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    email_verified_at TIMESTAMP NULL,
+    email_verified_at TIMESTAMP WITH TIME ZONE NULL,
     date_closed DATE NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL,

@@ -10,7 +10,6 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -31,7 +30,7 @@ public class User {
 	private String email;
 
 	@Column(name = "email_verified_at")
-	private LocalDateTime emailVerifiedAt;
+	private Instant emailVerifiedAt;
 
 	@Column(name = "date_closed")
 	private LocalDate dateClosed;
@@ -92,11 +91,11 @@ public class User {
 		return email;
 	}
 
-	public LocalDateTime getEmailVerifiedAt() {
+	public Instant getEmailVerifiedAt() {
 		return emailVerifiedAt;
 	}
 
-	public void setEmailVerifiedAt(LocalDateTime emailVerifiedAt) {
+	public void setEmailVerifiedAt(Instant emailVerifiedAt) {
 		this.emailVerifiedAt = emailVerifiedAt;
 	}
 
