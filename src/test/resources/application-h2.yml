@@ -1,4 +1,4 @@
-# Activated with Spring profile "h2" together with "test" (see build.gradle: -Pdb=h2).
+# Activated when profile "h2" is active (with "test" via build.gradle: ./gradlew test -Pdb=h2).
 # In-memory H2 with PostgreSQL compatibility for Flyway migrations (BIGSERIAL, timestamptz, etc.).
 spring:
   datasource:
