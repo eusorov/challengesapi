@@ -96,7 +96,7 @@ public class ChallengeService {
 			try {
 				byte[] bytes = file.getBytes();
 				if (bytes.length == 0) {
-					throw new IllegalArgumentException("Empty file");
+					throw new IllegalArgumentException("Empty file"); 
 				}
 				PutObjectResponse response = challengeImageStorage.putObject(key, bytes, contentType);
 				// check if the response is successful

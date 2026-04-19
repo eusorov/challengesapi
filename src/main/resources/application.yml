@@ -4,9 +4,9 @@
 # Override any time: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
 aws:
   s3:
-    bucket: ${AWS_S3_BUCKET:challanges}
+    bucket: ${AWS_S3_BUCKET:challenges-726512394960-eu-central-1-an}
     region: ${AWS_REGION:eu-central-1}
-    public-base-url: ${AWS_S3_PUBLIC_BASE_URL:}
+    public-base-url: ${AWS_S3_PUBLIC_BASE_URL:https://challenges-726512394960-eu-central-1-an.s3.eu-central-1.amazonaws.com}
 
 spring:
   application:
