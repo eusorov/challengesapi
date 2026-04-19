@@ -11,14 +11,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class SessionService {
+public class LoginService {
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
 	private final PersonalAccessTokenService personalAccessTokenService;
 
-	public SessionService(
+	public LoginService(
 			UserRepository userRepository,
 			PasswordEncoder passwordEncoder,
 			JwtService jwtService,

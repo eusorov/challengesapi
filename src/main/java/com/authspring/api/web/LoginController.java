@@ -2,7 +2,7 @@ package com.authspring.api.web;
 
 import com.authspring.api.security.RequiresAuth;
 import com.authspring.api.service.PersonalAccessTokenService;
-import com.authspring.api.service.SessionService;
+import com.authspring.api.service.LoginService;
 import com.authspring.api.web.dto.LoginRequest;
 import com.authspring.api.web.dto.LoginResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,11 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/api", version = "1")
 public class LoginController {
 
-	private final SessionService sessionService;
+	private final LoginService loginService;
 	private final PersonalAccessTokenService personalAccessTokenService;
 
-	public LoginController(SessionService sessionService, PersonalAccessTokenService personalAccessTokenService) {
-		this.sessionService = sessionService;
+	public LoginController(LoginService loginService, PersonalAccessTokenService personalAccessTokenService) {
+		this.loginService = loginService;
 		this.personalAccessTokenService = personalAccessTokenService;
 	}
 
@@ -44,7 +44,7 @@ public class LoginController {
 	}
 
 	private ResponseEntity<Object> loginResult(LoginRequest request) {
-		LoginResponse response = sessionService.login(request);
+		LoginResponse response = loginService.login(request);
 		if (response == null) {
 			return ResponseEntity.status(HttpStatusCode.valueOf(422)).body(invalidLoginProblemDetail());
 		}

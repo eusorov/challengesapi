@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
-class SessionServiceTest {
+class LoginServiceTest {
 
 	@Mock
 	private UserRepository userRepository;
@@ -36,13 +36,13 @@ class SessionServiceTest {
 	private PersonalAccessTokenService personalAccessTokenService;
 
 	@InjectMocks
-	private SessionService sessionService;
+	private LoginService loginService;
 
 	@Test
 	void login_returnsNull_whenUserMissing() {
 		when(userRepository.findByEmail("a@b.c")).thenReturn(Optional.empty());
 
-		assertThat(sessionService.login(new LoginRequest("a@b.c", "x"))).isNull();
+		assertThat(loginService.login(new LoginRequest("a@b.c", "x"))).isNull();
 
 		verifyNoInteractions(passwordEncoder, jwtService, personalAccessTokenService);
 	}
@@ -54,7 +54,7 @@ class SessionServiceTest {
 		when(userRepository.findByEmail("a@b.c")).thenReturn(Optional.of(user));
 		when(passwordEncoder.matches("wrong", "hash")).thenReturn(false);
 
-		assertThat(sessionService.login(new LoginRequest("a@b.c", "wrong"))).isNull();
+		assertThat(loginService.login(new LoginRequest("a@b.c", "wrong"))).isNull();
 
 		verifyNoInteractions(jwtService, personalAccessTokenService);
 	}
@@ -74,7 +74,7 @@ class SessionServiceTest {
 		when(passwordEncoder.matches("secret", "hash")).thenReturn(true);
 		when(jwtService.createToken(user)).thenReturn("jwt-compact");
 
-		LoginResponse res = sessionService.login(new LoginRequest("a@b.c", "secret"));
+		LoginResponse res = loginService.login(new LoginRequest("a@b.c", "secret"));
 
 		assertThat(res.token()).isEqualTo("jwt-compact");
 		assertThat(res.user().id()).isEqualTo(5L);
