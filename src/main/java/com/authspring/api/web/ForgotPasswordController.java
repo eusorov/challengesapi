@@ -26,7 +26,7 @@ public class ForgotPasswordController {
 	}
 
 	@PostMapping(
-			value = "/forgot-password",
+			value = { "/forgot-password", "/forgot-password/" },
 			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ResponseEntity<Object> store(@Valid @ModelAttribute ForgotPasswordRequest request) {
 		return switch (passwordResetLinkService.send(request)) {

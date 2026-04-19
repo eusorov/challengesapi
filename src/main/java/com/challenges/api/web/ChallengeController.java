@@ -36,14 +36,14 @@ public class ChallengeController {
 		this.imagePublicBaseUrl = imagePublicBaseUrl;
 	}
 
-	@GetMapping
+	@GetMapping({ "", "/" })
 	public @NonNull List<ChallengeResponse> list() {
 		return challengeService.listChallenges().stream()
 				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl))
 				.toList();
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<ChallengeResponse> get(@PathVariable Long id) {
 		return challengeService.findById(id)
 				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl))
@@ -51,7 +51,7 @@ public class ChallengeController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PostMapping
+	@PostMapping({ "", "/" })
 	public ResponseEntity<ChallengeResponse> create(@Valid @RequestBody ChallengeRequest req) {
 		return challengeService.create(req)
 				.map(ch -> ResponseEntity.status(HttpStatus.CREATED)
@@ -59,7 +59,7 @@ public class ChallengeController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<ChallengeResponse> replace(@PathVariable Long id, @Valid @RequestBody ChallengeRequest req) {
 		return challengeService.replace(id, req)
 				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl))
@@ -67,7 +67,7 @@ public class ChallengeController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PostMapping("/{id}/image")
+	@PostMapping({ "/{id}/image", "/{id}/image/" })
 	public ResponseEntity<ChallengeResponse> uploadImage(
 			@PathVariable Long id,
 			@RequestParam("file") MultipartFile file,
@@ -78,7 +78,7 @@ public class ChallengeController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping("/{id}")
+	@DeleteMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		if (!challengeService.delete(id)) {
 			return ResponseEntity.notFound().build();

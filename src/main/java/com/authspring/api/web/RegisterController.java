@@ -26,7 +26,7 @@ public class RegisterController {
 	}
 
 	@PostMapping(
-			value = "/register",
+			value = { "/register", "/register/" },
 			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ResponseEntity<Object> store(@Valid @ModelAttribute RegisterRequest request) {
 		return switch (registerService.register(request)) {

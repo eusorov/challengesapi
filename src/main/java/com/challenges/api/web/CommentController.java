@@ -30,7 +30,7 @@ public class CommentController {
 		this.commentService = commentService;
 	}
 
-	@GetMapping("/challenges/{challengeId}/comments")
+	@GetMapping({ "/challenges/{challengeId}/comments", "/challenges/{challengeId}/comments/" })
 	public @NonNull List<CommentResponse> list(
 			@PathVariable Long challengeId, @RequestParam(required = false) @Nullable Long subTaskId) {
 		return commentService.listForChallenge(challengeId, subTaskId).stream()
@@ -38,7 +38,7 @@ public class CommentController {
 				.toList();
 	}
 
-	@PostMapping("/challenges/{challengeId}/comments")
+	@PostMapping({ "/challenges/{challengeId}/comments", "/challenges/{challengeId}/comments/" })
 	public ResponseEntity<CommentResponse> create(
 			@PathVariable Long challengeId, @Valid @RequestBody CommentRequest req) {
 		return commentService.create(challengeId, req)
@@ -46,7 +46,7 @@ public class CommentController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@GetMapping("/comments/{id}")
+	@GetMapping({ "/comments/{id}", "/comments/{id}/" })
 	public ResponseEntity<CommentResponse> get(@PathVariable Long id) {
 		return commentService.findById(id)
 				.map(CommentResponse::from)
@@ -54,7 +54,7 @@ public class CommentController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PutMapping("/comments/{id}")
+	@PutMapping({ "/comments/{id}", "/comments/{id}/" })
 	public ResponseEntity<CommentResponse> replace(
 			@PathVariable Long id, @Valid @RequestBody CommentUpdateRequest req) {
 		return commentService.update(id, req)
@@ -63,7 +63,7 @@ public class CommentController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping("/comments/{id}")
+	@DeleteMapping({ "/comments/{id}", "/comments/{id}/" })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		if (!commentService.delete(id)) {
 			return ResponseEntity.notFound().build();

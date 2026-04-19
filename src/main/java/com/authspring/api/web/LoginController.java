@@ -31,13 +31,13 @@ public class LoginController {
 		this.personalAccessTokenService = personalAccessTokenService;
 	}
 
-	@PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = { "/login", "/login/" }, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Object> loginJson(@Valid @RequestBody LoginRequest request) {
 		return loginResult(request);
 	}
 
 	@PostMapping(
-			value = "/login",
+			value = { "/login", "/login/" },
 			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ResponseEntity<Object> loginForm(@Valid @ModelAttribute LoginRequest request) {
 		return loginResult(request);
@@ -61,7 +61,7 @@ public class LoginController {
 	}
 
 	@RequiresAuth
-	@PostMapping("/logout")
+	@PostMapping({ "/logout", "/logout/" })
 	public Map<String, String> destroy(HttpServletRequest request) {
 		personalAccessTokenService.revokeByJwtFromRequest(request);
 		return Map.of("message", "Logged out");

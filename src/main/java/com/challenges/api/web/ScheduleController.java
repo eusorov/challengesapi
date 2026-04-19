@@ -28,7 +28,7 @@ public class ScheduleController {
 		this.scheduleService = scheduleService;
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<ScheduleResponse> get(@PathVariable Long id) {
 		return scheduleService.findById(id)
 				.map(ScheduleResponse::from)
@@ -36,7 +36,7 @@ public class ScheduleController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PostMapping
+	@PostMapping({ "", "/" })
 	public ResponseEntity<ScheduleResponse> create(@Valid @RequestBody ScheduleCreateRequest req) {
 		List<DayOfWeek> days = ScheduleService.parseWeekDays(req.weekDays());
 		if (req.challengeId() != null) {
@@ -53,7 +53,7 @@ public class ScheduleController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<ScheduleResponse> replace(
 			@PathVariable Long id, @Valid @RequestBody ScheduleUpdateRequest req) {
 		List<DayOfWeek> days = ScheduleService.parseWeekDays(req.weekDays());
@@ -64,7 +64,7 @@ public class ScheduleController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping("/{id}")
+	@DeleteMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		if (!scheduleService.delete(id)) {
 			return ResponseEntity.notFound().build();

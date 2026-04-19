@@ -27,12 +27,12 @@ public class UserController {
 		this.userService = userService;
 	}
 
-	@GetMapping
+	@GetMapping({ "", "/" })
 	public @NonNull List<UserResponse> list() {
 		return userService.listUsers().stream().map(UserResponse::from).toList();
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<UserResponse> get(@PathVariable Long id) {
 		return userService.findById(id)
 				.map(UserResponse::from)
@@ -40,12 +40,12 @@ public class UserController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PostMapping
+	@PostMapping({ "", "/" })
 	public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest req) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.from(userService.create(req.email(), req.password())));
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<UserResponse> replace(@PathVariable Long id, @Valid @RequestBody UserRequest req) {
 		return userService.replace(id, req.email())
 				.map(UserResponse::from)
@@ -53,7 +53,7 @@ public class UserController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping("/{id}")
+	@DeleteMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		if (!userService.delete(id)) {
 			return ResponseEntity.notFound().build();

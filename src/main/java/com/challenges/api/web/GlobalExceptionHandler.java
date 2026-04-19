@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
@@ -31,6 +32,14 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<ProblemDetail> notReadable(HttpMessageNotReadableException ex) {
 		return problem(HttpStatus.BAD_REQUEST, "Malformed JSON or incompatible body: " + ex.getMessage());
+	}
+
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	public ResponseEntity<ProblemDetail> typeMismatch(MethodArgumentTypeMismatchException ex) {
+		String name = ex.getName();
+		Object value = ex.getValue();
+		String msg = "Invalid value for '%s': '%s'".formatted(name, value);
+		return problem(HttpStatus.BAD_REQUEST, msg);
 	}
 
 	@ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})

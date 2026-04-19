@@ -25,7 +25,7 @@ public class EmailVerificationNotificationController {
 	}
 
 	@PostMapping(
-			value = "/email/verification-notification",
+			value = { "/email/verification-notification", "/email/verification-notification/" },
 			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ResponseEntity<Object> store(@AuthenticationPrincipal UserPrincipal principal) {
 		return switch (notificationService.send(principal)) {

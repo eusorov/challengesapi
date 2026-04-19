@@ -30,12 +30,12 @@ public class InviteController {
 		this.inviteService = inviteService;
 	}
 
-	@GetMapping
+	@GetMapping({ "", "/" })
 	public @NonNull List<InviteResponse> list(@RequestParam(required = false) @Nullable Long challengeId) {
 		return inviteService.list(challengeId).stream().map(InviteResponse::from).toList();
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<InviteResponse> get(@PathVariable Long id) {
 		return inviteService.findById(id)
 				.map(InviteResponse::from)
@@ -43,14 +43,14 @@ public class InviteController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PostMapping
+	@PostMapping({ "", "/" })
 	public ResponseEntity<InviteResponse> create(@Valid @RequestBody InviteRequest req) {
 		return inviteService.create(req)
 				.map(inv -> ResponseEntity.status(HttpStatus.CREATED).body(InviteResponse.from(inv)))
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<InviteResponse> update(
 			@PathVariable Long id, @Valid @RequestBody InviteUpdateRequest req) {
 		return inviteService.update(id, req)
@@ -59,7 +59,7 @@ public class InviteController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping("/{id}")
+	@DeleteMapping({ "/{id}", "/{id}/" })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		if (!inviteService.delete(id)) {
 			return ResponseEntity.notFound().build();

@@ -28,12 +28,12 @@ public class SubTaskController {
 		this.subTaskService = subTaskService;
 	}
 
-	@GetMapping("/challenges/{challengeId}/subtasks")
+	@GetMapping({ "/challenges/{challengeId}/subtasks", "/challenges/{challengeId}/subtasks/" })
 	public @NonNull List<SubTaskResponse> listForChallenge(@PathVariable Long challengeId) {
 		return subTaskService.listForChallenge(challengeId).stream().map(SubTaskResponse::from).toList();
 	}
 
-	@GetMapping("/subtasks/{id}")
+	@GetMapping({ "/subtasks/{id}", "/subtasks/{id}/" })
 	public ResponseEntity<SubTaskResponse> get(@PathVariable Long id) {
 		return subTaskService.findById(id)
 				.map(SubTaskResponse::from)
@@ -41,14 +41,14 @@ public class SubTaskController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PostMapping("/subtasks")
+	@PostMapping({ "/subtasks", "/subtasks/" })
 	public ResponseEntity<SubTaskResponse> create(@Valid @RequestBody SubTaskRequest req) {
 		return subTaskService.create(req)
 				.map(st -> ResponseEntity.status(HttpStatus.CREATED).body(SubTaskResponse.from(st)))
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PutMapping("/subtasks/{id}")
+	@PutMapping({ "/subtasks/{id}", "/subtasks/{id}/" })
 	public ResponseEntity<SubTaskResponse> replace(
 			@PathVariable Long id, @Valid @RequestBody SubTaskUpdateRequest req) {
 		return subTaskService.replace(id, req)
@@ -57,7 +57,7 @@ public class SubTaskController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping("/subtasks/{id}")
+	@DeleteMapping({ "/subtasks/{id}", "/subtasks/{id}/" })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		if (!subTaskService.delete(id)) {
 			return ResponseEntity.notFound().build();

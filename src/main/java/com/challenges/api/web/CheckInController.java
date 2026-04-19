@@ -28,12 +28,12 @@ public class CheckInController {
 		this.checkInService = checkInService;
 	}
 
-	@GetMapping("/challenges/{challengeId}/check-ins")
+	@GetMapping({ "/challenges/{challengeId}/check-ins", "/challenges/{challengeId}/check-ins/" })
 	public @NonNull List<CheckInResponse> listForChallenge(@PathVariable Long challengeId) {
 		return checkInService.listForChallenge(challengeId).stream().map(CheckInResponse::from).toList();
 	}
 
-	@GetMapping("/check-ins/{id}")
+	@GetMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
 	public ResponseEntity<CheckInResponse> get(@PathVariable Long id) {
 		return checkInService.findById(id)
 				.map(CheckInResponse::from)
@@ -41,14 +41,14 @@ public class CheckInController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PostMapping("/check-ins")
+	@PostMapping({ "/check-ins", "/check-ins/" })
 	public ResponseEntity<CheckInResponse> create(@Valid @RequestBody CheckInRequest req) {
 		return checkInService.create(req)
 				.map(c -> ResponseEntity.status(HttpStatus.CREATED).body(CheckInResponse.from(c)))
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@PutMapping("/check-ins/{id}")
+	@PutMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
 	public ResponseEntity<CheckInResponse> replace(
 			@PathVariable Long id, @Valid @RequestBody CheckInUpdateRequest req) {
 		return checkInService.replace(id, req)
@@ -57,7 +57,7 @@ public class CheckInController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping("/check-ins/{id}")
+	@DeleteMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		if (!checkInService.delete(id)) {
 			return ResponseEntity.notFound().build();

@@ -26,7 +26,7 @@ public class ResetPasswordController {
 	}
 
 	@PostMapping(
-			value = "/reset-password",
+			value = { "/reset-password", "/reset-password/" },
 			consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ResponseEntity<Object> store(@Valid @ModelAttribute ResetPasswordRequest request) {
 		return switch (passwordResetService.reset(request)) {

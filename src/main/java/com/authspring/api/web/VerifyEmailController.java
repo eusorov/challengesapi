@@ -21,7 +21,7 @@ public class VerifyEmailController {
 		this.emailVerificationService = emailVerificationService;
 	}
 
-	@GetMapping("/email/verify/{id}/{hash}")
+	@GetMapping({ "/email/verify/{id}/{hash}", "/email/verify/{id}/{hash}/" })
 	public ResponseEntity<Object> verify(
 			HttpServletRequest request, @PathVariable Long id, @PathVariable String hash) {
 		return switch (emailVerificationService.verify(request, id, hash)) {

@@ -19,7 +19,7 @@ public class ParticipantController {
 		this.participantService = participantService;
 	}
 
-	@GetMapping("/{challengeId}/participants")
+	@GetMapping({ "/{challengeId}/participants", "/{challengeId}/participants/" })
 	public @NonNull List<ParticipantResponse> listForChallenge(@PathVariable Long challengeId) {
 		return participantService.listForChallenge(challengeId).stream()
 				.map(ParticipantResponse::from)

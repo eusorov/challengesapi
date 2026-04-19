@@ -21,7 +21,7 @@ public class CurrentUserController {
 	}
 
 	@RequiresAuth
-	@GetMapping("/user")
+	@GetMapping({ "/user", "/user/" })
 	public ResponseEntity<AuthUserResponse> currentUser(@AuthenticationPrincipal UserPrincipal principal) {
 		return userRepository
 				.findById(principal.getId())
