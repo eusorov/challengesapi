@@ -79,8 +79,8 @@ class ChallengeControllerIT {
 
 		mockMvc.perform(get("/api/challenges").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[0].ownerUserId").value(owner1.getId().intValue()))
-				.andExpect(jsonPath("$[0].subtasks").isArray());
+				.andExpect(jsonPath("$.content[0].ownerUserId").value(owner1.getId().intValue()))
+				.andExpect(jsonPath("$.content[0].subtasks").isArray());
 
 		mockMvc.perform(get("/api/challenges/" + challengeId)
 						.header(HV, V1)

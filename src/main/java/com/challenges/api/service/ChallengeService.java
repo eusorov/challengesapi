@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +35,14 @@ public class ChallengeService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull List<Challenge> listChallenges() {
-		return challenges.findAllWithSubtasksAndOwner();
+	public @NonNull Page<Challenge> listChallenges(@NonNull Pageable pageable) {
+		Assert.notNull(pageable, "pageable must not be null");
+		Page<Long> idPage = challenges.findIdsOrderByIdAsc(pageable);
+		if (idPage.isEmpty()) {
+			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
+		}
+		List<Challenge> loaded = challenges.findAllWithSubtasksAndOwnerByIdIn(idPage.getContent());
+		return new PageImpl<>(loaded, pageable, idPage.getTotalElements());
 	}
 
 	@Transactional(readOnly = true)
