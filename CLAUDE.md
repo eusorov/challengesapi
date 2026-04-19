@@ -36,4 +36,8 @@ This repository hosts the **challenges API**: **JSON REST** via **Spring Web MVC
 | Framework | Spring Boot **4.0.5** |
 | Build | **Gradle** 9.4.1 (wrapper) |
 | HTTP | **Spring Web MVC** (`spring-boot-starter-webmvc`), JSON REST. **React** client out of scope here. |
+| Persistence | **PostgreSQL**, **JPA**, **Flyway** |
+| Security / auth | **Spring Security** + **JWT**; **`com.authspring.api`** (same deployable as **`com.challenges.api`**) |
+| API docs | **springdoc-openapi** (Swagger UI) |
+| Local / test DB | **`docker-compose.yml`**; tests profile **`test`** + **`prepareTestDatabase`** (Flyway clean on **`challengestest`**) |
 | Run / test | `./gradlew bootRun` / `./gradlew test` |

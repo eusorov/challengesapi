@@ -40,7 +40,12 @@ This repository is intended to host the **challenges API** — a Java Spring Boo
 | Framework | Spring Boot **4.0.5** |
 | Build | **Gradle** 9.4.1 (wrapper — see `gradle/wrapper/gradle-wrapper.properties`) |
 | HTTP | **Spring Web MVC** — JSON REST (`spring-boot-starter-webmvc`). **React** SPA is **out of scope** in this repo (separate client). |
-| Test | JUnit 5 (`spring-boot-starter-webmvc-test`) |
+| Persistence | **PostgreSQL**, **Spring Data JPA**, **Flyway** migrations (`src/main/resources/db/migration`) |
+| Security | **Spring Security** (stateless), **JWT** (JJWT), auth behavior in **`com.authspring.api`** (merged with **`com.challenges.api`** in one app) |
+| API docs | **springdoc-openapi** — OpenAPI 3 + Swagger UI (`/v3/api-docs`, `/swagger-ui.html`) |
+| Email / resilience | **Spring Mail**; **Resilience4j** (Spring Boot 4 starter) |
+| Local DB | **`docker-compose.yml`** — Postgres (optional); integration tests use DB **`challengestest`** (see `application-test.yml`); **`prepareTestDatabase`** runs **Flyway clean** before `./gradlew test` |
+| Test | JUnit 5 (`spring-boot-starter-webmvc-test`, `spring-security-test`, JPA/JDBC test starters) |
 | Run | `./gradlew bootRun` |
 | Test command | `./gradlew test` |
 
@@ -48,8 +53,8 @@ This repository is intended to host the **challenges API** — a Java Spring Boo
 
 - **Base path:** JSON resources live under **`/api/...`** (see controller `@RequestMapping` paths).
 - **Versioning:** send header **`API-Version: 1`** on HTTP requests; controllers are mapped at **`version = "1"`**.
-- **Layering:** **`@RestController`** classes in **`com.challenges.api.web`** delegate to **`@Service`** types in **`com.challenges.api.service`**; **repositories** are only used from services.
+- **Layering:** **`@RestController`** classes in **`com.challenges.api.web`** delegate to **`@Service`** types in **`com.challenges.api.service`**; **repositories** are only used from services. Auth endpoints and JWT filters live under **`com.authspring.api`**.
 - **Invites → participants:** When an invite is **`ACCEPTED`** (**`InviteStatus.ACCEPTED`**), the API creates a **`Participant`** row for the invitee (challenge-wide or subtask-scoped to match the invite).
-- **Authentication:** **none** in this phase—callers pass **user ids** and related ids in request bodies as each endpoint documents.
+- **Authentication:** **JWT** — most **`/api/**`** routes require a **Bearer** token after login/register; **public** paths include **`POST /api/login`**, **`POST /api/register`**, **`POST /api/users`**, password reset / forgot-password, and **`GET /api/email/verify/**`**. See **`SecurityConfig`** for the exact allowlist.
 
 **Scope:** Only the REST API in this repository—**React** UI and server-rendered templates are not built here.
