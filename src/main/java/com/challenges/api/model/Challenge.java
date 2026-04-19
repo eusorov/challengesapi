@@ -48,6 +48,9 @@ public class Challenge {
 	@OneToOne(mappedBy = "challenge", cascade = CascadeType.ALL, optional = true)
 	private Schedule schedule;
 
+	@Column(name = "image_object_key", length = 1024)
+	private String imageObjectKey;
+
 	protected Challenge() {
 	}
 
@@ -97,6 +100,14 @@ public class Challenge {
 
 	public Schedule getSchedule() {
 		return schedule;
+	}
+
+	public String getImageObjectKey() {
+		return imageObjectKey;
+	}
+
+	public void setImageObjectKey(String imageObjectKey) {
+		this.imageObjectKey = imageObjectKey;
 	}
 
 	public void bindSchedule(Schedule s) {
