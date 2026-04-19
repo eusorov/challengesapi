@@ -1,13 +1,16 @@
 package com.challenges.api.web;
 
+import com.authspring.api.security.UserPrincipal;
 import com.challenges.api.service.ChallengeService;
 import com.challenges.api.web.dto.ChallengeRequest;
 import com.challenges.api.web.dto.ChallengeResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,27 +18,35 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping(path = "/api/challenges", version = "1")
 public class ChallengeController {
 
 	private final ChallengeService challengeService;
+	private final String imagePublicBaseUrl;
 
-	public ChallengeController(ChallengeService challengeService) {
+	public ChallengeController(
+			ChallengeService challengeService,
+			@Value("${aws.s3.public-base-url:}") String imagePublicBaseUrl) {
 		this.challengeService = challengeService;
+		this.imagePublicBaseUrl = imagePublicBaseUrl;
 	}
 
 	@GetMapping
 	public @NonNull List<ChallengeResponse> list() {
-		return challengeService.listChallenges().stream().map(ChallengeResponse::from).toList();
+		return challengeService.listChallenges().stream()
+				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl))
+				.toList();
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ChallengeResponse> get(@PathVariable Long id) {
 		return challengeService.findById(id)
-				.map(ChallengeResponse::from)
+				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl))
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
@@ -43,15 +54,27 @@ public class ChallengeController {
 	@PostMapping
 	public ResponseEntity<ChallengeResponse> create(@Valid @RequestBody ChallengeRequest req) {
 		return challengeService.create(req)
-				.map(ch -> ResponseEntity.status(HttpStatus.CREATED).body(ChallengeResponse.from(ch)))
+				.map(ch -> ResponseEntity.status(HttpStatus.CREATED)
+						.body(ChallengeResponse.from(ch, imagePublicBaseUrl)))
 				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<ChallengeResponse> replace(@PathVariable Long id, @Valid @RequestBody ChallengeRequest req) {
 		return challengeService.replace(id, req)
-				.map(ChallengeResponse::from)
+				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl))
 				.map(ResponseEntity::ok)
+				.orElse(ResponseEntity.notFound().build());
+	}
+
+	@PostMapping("/{id}/image")
+	public ResponseEntity<ChallengeResponse> uploadImage(
+			@PathVariable Long id,
+			@RequestParam("file") MultipartFile file,
+			@AuthenticationPrincipal UserPrincipal principal) {
+		return challengeService
+				.uploadImage(id, file, principal.getId())
+				.map(ch -> ResponseEntity.ok(ChallengeResponse.from(ch, imagePublicBaseUrl)))
 				.orElse(ResponseEntity.notFound().build());
 	}
 

@@ -11,9 +11,20 @@ public record ChallengeResponse(
 		String description,
 		LocalDate startDate,
 		LocalDate endDate,
-		Instant createdAt) {
+		Instant createdAt,
+		String imageObjectKey,
+		String imageUrl) {
 
 	public static ChallengeResponse from(Challenge c) {
+		return from(c, null);
+	}
+
+	public static ChallengeResponse from(Challenge c, String imagePublicBaseUrl) {
+		String key = c.getImageObjectKey();
+		String url = null;
+		if (key != null && imagePublicBaseUrl != null && !imagePublicBaseUrl.isBlank()) {
+			url = imagePublicBaseUrl.replaceAll("/$", "") + "/" + key;
+		}
 		return new ChallengeResponse(
 				c.getId(),
 				c.getOwner().getId(),
@@ -21,6 +32,8 @@ public record ChallengeResponse(
 				c.getDescription(),
 				c.getStartDate(),
 				c.getEndDate(),
-				c.getCreatedAt());
+				c.getCreatedAt(),
+				key,
+				url);
 	}
 }
