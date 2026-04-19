@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Service
 public class ChallengeService {
@@ -97,12 +98,17 @@ public class ChallengeService {
 				if (bytes.length == 0) {
 					throw new IllegalArgumentException("Empty file");
 				}
-				challengeImageStorage.putObject(key, bytes, contentType);
+				PutObjectResponse response = challengeImageStorage.putObject(key, bytes, contentType);
+				// check if the response is successful
+				if (response.sdkHttpResponse().isSuccessful()) {
+					ch.setImageObjectKey(key);
+					return challenges.save(ch);
+				} else {
+					throw new IllegalStateException("Failed to upload image to S3");
+				}
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			}
-			ch.setImageObjectKey(key);
-			return challenges.save(ch);
 		});
 	}
 }

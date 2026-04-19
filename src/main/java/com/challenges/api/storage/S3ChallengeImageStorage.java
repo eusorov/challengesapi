@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Component
 public class S3ChallengeImageStorage implements ChallengeImageStorage {
@@ -18,8 +19,8 @@ public class S3ChallengeImageStorage implements ChallengeImageStorage {
 	}
 
 	@Override
-	public void putObject(String objectKey, byte[] body, String contentType) {
-		s3.putObject(
+	public PutObjectResponse putObject(String objectKey, byte[] body, String contentType) {
+		return s3.putObject(
 				PutObjectRequest.builder()
 						.bucket(props.bucket())
 						.key(objectKey)
