@@ -1,4 +1,34 @@
 services:
+  api:
+    build:
+      context: .
+    container_name: challenges-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-challenges}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-challenges}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-challenges}
+      - JWT_SECRET=${JWT_SECRET:-change-me-use-at-least-32-bytes-for-hs256-dev-only!!}
+      - MAIL_HOST=${MAIL_HOST:-host.docker.internal}
+      - MAIL_PORT=${MAIL_PORT:-1025}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - VIRTUAL_HOST=challenges.api.usomi.de,challenges.api.local
+      - VIRTUAL_PORT=8080
+      - LETSENCRYPT_HOST=challenges.api.usomi.de
+
+    extra_hosts:
+      # SMTP tools on the host (e.g. Mailpit on 1025);
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - challenges_net
+      - nginx_proxy_net
+
   postgres:
     image: postgres:16-alpine
     container_name: challenges-postgres
@@ -20,8 +50,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - challenges_net
 
 # If challengestest is missing (volume created before init script was added), run once:
 #   docker exec challenges-postgres psql -U challenges -d challenges -c "CREATE DATABASE challengestest;"
 volumes:
   challenges-pgdata:
+
+networks:
+  challenges_net:
+    driver: bridge
+  nginx_proxy_net:
+    external: true

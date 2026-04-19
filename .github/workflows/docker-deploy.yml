@@ -1,0 +1,61 @@
+name: Deploy Docker
+
+on:
+  workflow_call:
+    inputs:
+      IMAGE_FULL_NAME:
+        required: true
+        type: string
+        description: Full Docker image reference (e.g. ghcr.io/eusorov/image:latest)
+      IMAGE_SHORT_NAME:
+        required: true
+        type: string
+        description: Short Docker image name (e.g. image)
+    secrets:
+      VPS_HOST:
+        required: true
+      VPS_USER:
+        required: true
+      VPS_SSH_KEY:
+        required: true
+      DOCKER_TOKEN:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+  workflow_dispatch:
+
+env:
+  REMOTE_DIR: ~/${{ inputs.IMAGE_SHORT_NAME }}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Copy docker-compose.yml to VPS
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose*.yml"
+          target: ${{ env.REMOTE_DIR }}  
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            ocker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.DOCKER_TOKEN }}
+            docker image prune -a
+            docker pull ${{ inputs.IMAGE_FULL_NAME }}
+            
+            export IMAGE_FULL_NAME="${{ inputs.IMAGE_FULL_NAME }}"
+            
+            docker compose -f docker-compose.yml -f docker-compose.deploy.yml down || true
+            docker compose -f docker-compose.yml -f docker-compose.deploy.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.deploy.yml up -d
+      

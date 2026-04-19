@@ -1,0 +1,127 @@
+name: Build Docker
+
+on:
+  push:
+  pull_request:
+
+env:
+  IMAGE_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  test:
+    # Run tests only when source (or build config) changes on push.
+    # Always run on manual dispatch.
+    if: >
+      github.event_name != 'push' ||
+      contains(join(github.event.head_commit.added, ' '), 'src/') ||
+      contains(join(github.event.head_commit.modified, ' '), 'src/') ||
+      contains(join(github.event.head_commit.removed, ' '), 'src/') ||
+      contains(join(github.event.head_commit.added, ' '), 'build.gradle') ||
+      contains(join(github.event.head_commit.modified, ' '), 'build.gradle') ||
+      contains(join(github.event.head_commit.removed, ' '), 'build.gradle') ||
+      contains(join(github.event.head_commit.added, ' '), 'settings.gradle') ||
+      contains(join(github.event.head_commit.modified, ' '), 'settings.gradle') ||
+      contains(join(github.event.head_commit.removed, ' '), 'settings.gradle')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Run tests
+        run: ./gradlew test
+
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      branch: ${{ steps.branch.outputs.branch }}
+      tag: ${{ steps.image.outputs.tag }}
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine branch
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.base_ref }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+          echo "Branch: $BRANCH"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Set image
+        id: image
+        run: |
+          BRANCH="${{ steps.branch.outputs.branch }}"
+          TAG=$([ "$BRANCH" = "master" ] && echo "latest" || echo "$BRANCH")
+          IMAGE="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${TAG}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Pull previous image for cache
+        run: |
+          docker pull ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest || true
+          docker pull ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:buildcache || true
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: |
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:buildcache
+            type=gha
+          cache-to: |
+            type=registry,ref=ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+            type=gha,mode=max,multistage=true
+  deploy:
+    name: Deploy
+    needs: docker
+    uses: ./.github/workflows/docker-deploy.yml
+    with:
+      IMAGE_FULL_NAME: ${{ needs.docker.outputs.image }}
+      IMAGE_SHORT_NAME: ${{ github.event.repository.name }}
+    secrets:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
