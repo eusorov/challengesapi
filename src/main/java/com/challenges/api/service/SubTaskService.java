@@ -3,6 +3,7 @@ package com.challenges.api.service;
 import com.challenges.api.model.SubTask;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.SubTaskRepository;
+import com.challenges.api.support.ChallengeConstraints;
 import com.challenges.api.web.dto.SubTaskRequest;
 import com.challenges.api.web.dto.SubTaskUpdateRequest;
 import java.util.List;
@@ -38,7 +39,15 @@ public class SubTaskService {
 	@Transactional
 	public Optional<SubTask> create(@NonNull SubTaskRequest req) {
 		Assert.notNull(req, "request must not be null");
-		return challenges.findById(req.challengeId()).map(ch -> subTasks.save(new SubTask(ch, req.title(), req.sortIndex())));
+		return challenges.findById(req.challengeId()).map(ch -> {
+			if (subTasks.countByChallenge_Id(ch.getId()) >= ChallengeConstraints.MAX_SUBTASKS_PER_CHALLENGE) {
+				throw new IllegalArgumentException(
+						"A challenge cannot have more than "
+								+ ChallengeConstraints.MAX_SUBTASKS_PER_CHALLENGE
+								+ " subtasks");
+			}
+			return subTasks.save(new SubTask(ch, req.title(), req.sortIndex()));
+		});
 	}
 
 	@Transactional

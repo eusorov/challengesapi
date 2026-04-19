@@ -12,6 +12,7 @@ import com.challenges.api.model.Challenge;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.UserRepository;
+import com.challenges.api.support.ChallengeConstraints;
 import com.challenges.api.support.JwtLoginSupport;
 import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
@@ -95,5 +96,32 @@ class SubTaskControllerIT {
 				.andExpect(jsonPath("$.title").value("Step B"));
 
 		mockMvc.perform(delete("/api/subtasks/" + subTaskId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)).andExpect(status().isNoContent());
+	}
+
+	@Test
+	void createSubtask_returnsBadRequestWhenChallengeAlreadyHasMaxSubtasks() throws Exception {
+		for (int i = 0; i < ChallengeConstraints.MAX_SUBTASKS_PER_CHALLENGE; i++) {
+			String body = String.format(
+					"{\"challengeId\":%d,\"title\":\"st-%d\",\"sortIndex\":%d}",
+					challenge.getId(), i, i);
+			mockMvc.perform(
+							post("/api/subtasks")
+									.header(HV, V1)
+									.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+									.contentType(APPLICATION_JSON)
+									.content(body))
+					.andExpect(status().isCreated());
+		}
+
+		String overflow = String.format(
+				"{\"challengeId\":%d,\"title\":\"one-too-many\",\"sortIndex\":99}",
+				challenge.getId());
+		mockMvc.perform(
+						post("/api/subtasks")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(overflow))
+				.andExpect(status().isBadRequest());
 	}
 }
