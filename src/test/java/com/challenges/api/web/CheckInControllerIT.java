@@ -57,8 +57,8 @@ class CheckInControllerIT {
 
 	@BeforeEach
 	void setup() {
-		user = users.save(new User("ci-user@test"));
-		User other = users.save(new User("ci-other@test"));
+		user = users.save(User.forTest("ci-user@test"));
+		User other = users.save(User.forTest("ci-other@test"));
 		challenge = challenges.save(new Challenge(user, "ci-ch", null, LocalDate.of(2026, 5, 1), null));
 		Challenge otherCh = challenges.save(new Challenge(other, "other", null, LocalDate.of(2026, 5, 2), null));
 		otherSubTask = subTasks.save(new SubTask(otherCh, "foreign", 0));

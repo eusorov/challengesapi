@@ -49,7 +49,7 @@ class ParticipantControllerIT {
 
 	@BeforeEach
 	void setup() {
-		participantUser = users.save(new User("part-user@test"));
+		participantUser = users.save(User.forTest("part-user@test"));
 		challenge =
 				challenges.save(new Challenge(participantUser, "part-ch", null, LocalDate.of(2026, 6, 1), null));
 		participants.save(new Participant(participantUser, challenge));

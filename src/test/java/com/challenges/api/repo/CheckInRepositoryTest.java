@@ -28,7 +28,7 @@ class CheckInRepositoryTest {
 
 	@Test
 	void persistsChallengeLevelAndSubtaskLevelCheckIns() {
-		User u = entityManager.persistAndFlush(new User("checkin@example.com"));
+		User u = entityManager.persistAndFlush(User.forTest("checkin@example.com"));
 		Challenge ch = entityManager.persistAndFlush(new Challenge(u, "CI", null, LocalDate.of(2026, 6, 1), null));
 		SubTask st = entityManager.persistAndFlush(new SubTask(ch, "Part", 0));
 		LocalDate day = LocalDate.of(2026, 6, 15);

@@ -5,6 +5,7 @@ import com.challenges.api.repo.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -13,9 +14,11 @@ import org.springframework.util.Assert;
 public class UserService {
 
 	private final UserRepository users;
+	private final PasswordEncoder passwordEncoder;
 
-	public UserService(UserRepository users) {
+	public UserService(UserRepository users, PasswordEncoder passwordEncoder) {
 		this.users = users;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	@Transactional(readOnly = true)
@@ -32,7 +35,8 @@ public class UserService {
 	@Transactional
 	public @NonNull User create(@NonNull String email) {
 		Assert.notNull(email, "email must not be null");
-		return users.save(new User(email));
+		return users.save(
+				new User("User", email, passwordEncoder.encode("password"), "user"));
 	}
 
 	@Transactional

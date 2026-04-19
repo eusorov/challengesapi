@@ -41,8 +41,8 @@ class ChallengeControllerIT {
 
 	@BeforeEach
 	void setup() {
-		owner1 = users.save(new User("ch-owner1@test"));
-		users.save(new User("ch-owner2@test"));
+		owner1 = users.save(User.forTest("ch-owner1@test"));
+		users.save(User.forTest("ch-owner2@test"));
 	}
 
 	@Test

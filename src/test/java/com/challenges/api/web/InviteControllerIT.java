@@ -57,8 +57,8 @@ class InviteControllerIT {
 
 	@BeforeEach
 	void setup() {
-		inviter = users.save(new User("inviter@test"));
-		invitee = users.save(new User("invitee@test"));
+		inviter = users.save(User.forTest("inviter@test"));
+		invitee = users.save(User.forTest("invitee@test"));
 		challenge =
 				challenges.save(new Challenge(inviter, "invite-ch", null, LocalDate.of(2026, 4, 1), null));
 	}

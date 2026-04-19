@@ -60,8 +60,8 @@ class CommentControllerIT {
 
 	@BeforeEach
 	void setup() {
-		owner = users.save(new User("owner-comments@test"));
-		commenter = users.save(new User("commenter@test"));
+		owner = users.save(User.forTest("owner-comments@test"));
+		commenter = users.save(User.forTest("commenter@test"));
 		challenge =
 				challenges.save(new Challenge(owner, "ch-comments", null, LocalDate.of(2026, 4, 1), null));
 	}

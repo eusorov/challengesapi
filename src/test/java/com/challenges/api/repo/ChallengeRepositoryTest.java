@@ -26,7 +26,7 @@ class ChallengeRepositoryTest {
 
 	@Test
 	void persistsBoundedChallengeWithStartAndEnd() {
-		User u = entityManager.persistAndFlush(new User("owner-bounded@example.com"));
+		User u = entityManager.persistAndFlush(User.forTest("owner-bounded@example.com"));
 		LocalDate start = LocalDate.of(2026, 1, 1);
 		LocalDate end = LocalDate.of(2026, 1, 31);
 		Challenge ch = new Challenge(u, "Jan 2026", null, start, end);
@@ -41,7 +41,7 @@ class ChallengeRepositoryTest {
 
 	@Test
 	void persistsOpenEndedChallengeWithNullEndDate() {
-		User u = entityManager.persistAndFlush(new User("owner-open@example.com"));
+		User u = entityManager.persistAndFlush(User.forTest("owner-open@example.com"));
 		LocalDate start = LocalDate.of(2026, 2, 1);
 		Challenge ch = new Challenge(u, "Open", "no end", start, null);
 		challengeRepository.save(ch);

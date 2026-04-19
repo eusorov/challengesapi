@@ -54,7 +54,7 @@ class DomainBulkFixtureIT {
 	void bulkFixture_countsAndSchedules() {
 		List<User> users = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
-			users.add(userRepository.save(new User("u" + i + "@fixture.test")));
+			users.add(userRepository.save(User.forTest("u" + i + "@fixture.test")));
 		}
 
 		List<Challenge> challenges = new ArrayList<>();

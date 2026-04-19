@@ -29,8 +29,8 @@ class ParticipantRepositoryTest {
 
 	@Test
 	void findsWideVsSubtaskScopedParticipants() {
-		User u1 = entityManager.persistAndFlush(new User("p1@example.com"));
-		User u2 = entityManager.persistAndFlush(new User("p2@example.com"));
+		User u1 = entityManager.persistAndFlush(User.forTest("p1@example.com"));
+		User u2 = entityManager.persistAndFlush(User.forTest("p2@example.com"));
 		Challenge ch =
 				entityManager.persistAndFlush(new Challenge(u1, "P challenge", null, LocalDate.of(2026, 4, 1), null));
 		SubTask st = entityManager.persistAndFlush(new SubTask(ch, "Scoped sub", 0));

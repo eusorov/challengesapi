@@ -31,7 +31,7 @@ class ScheduleRepositoryTest {
 
 	@Test
 	void persistsChallengeScheduleAndSubtaskSchedule() {
-		User u = entityManager.persistAndFlush(new User("sched-user@example.com"));
+		User u = entityManager.persistAndFlush(User.forTest("sched-user@example.com"));
 		Challenge ch = entityManager.persistAndFlush(new Challenge(u, "Scheduled", null, LocalDate.of(2026, 5, 1), null));
 
 		Schedule chSch = Schedule.forChallenge(ch, ScheduleKind.DAILY, List.of());

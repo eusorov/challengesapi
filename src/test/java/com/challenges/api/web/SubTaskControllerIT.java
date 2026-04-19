@@ -48,7 +48,7 @@ class SubTaskControllerIT {
 
 	@BeforeEach
 	void setup() {
-		User u = users.save(new User("st-owner@test"));
+		User u = users.save(User.forTest("st-owner@test"));
 		challenge = challenges.save(new Challenge(u, "nested", null, LocalDate.of(2026, 2, 1), null));
 	}
 

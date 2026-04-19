@@ -47,7 +47,7 @@ class ScheduleControllerIT {
 
 	@BeforeEach
 	void setup() {
-		User u = users.save(new User("sch-owner@test"));
+		User u = users.save(User.forTest("sch-owner@test"));
 		challenge = challenges.save(new Challenge(u, "scheduled", null, LocalDate.of(2026, 3, 1), null));
 	}
 

@@ -30,8 +30,8 @@ class InviteRepositoryTest {
 
 	@Test
 	void savesChallengeWideInvite() {
-		User inviter = entityManager.persistAndFlush(new User("inviter@example.com"));
-		User invitee = entityManager.persistAndFlush(new User("invitee@example.com"));
+		User inviter = entityManager.persistAndFlush(User.forTest("inviter@example.com"));
+		User invitee = entityManager.persistAndFlush(User.forTest("invitee@example.com"));
 		Challenge ch = entityManager.persistAndFlush(new Challenge(inviter, "Group run", null, LocalDate.of(2026, 7, 1), null));
 
 		Invite inv = inviteRepository.save(new Invite(inviter, invitee, ch));
@@ -48,8 +48,8 @@ class InviteRepositoryTest {
 
 	@Test
 	void findsPendingByInvitee() {
-		User inviter = entityManager.persistAndFlush(new User("a@example.com"));
-		User invitee = entityManager.persistAndFlush(new User("b@example.com"));
+		User inviter = entityManager.persistAndFlush(User.forTest("a@example.com"));
+		User invitee = entityManager.persistAndFlush(User.forTest("b@example.com"));
 		Challenge ch = entityManager.persistAndFlush(new Challenge(inviter, "C", null, LocalDate.of(2026, 7, 2), null));
 		SubTask st = entityManager.persistAndFlush(new SubTask(ch, "mile", 0));
 		inviteRepository.save(new Invite(inviter, invitee, ch, st));
@@ -61,7 +61,7 @@ class InviteRepositoryTest {
 
 	@Test
 	void rejectsSelfInviteWhenIdsPresent() {
-		User u = entityManager.persistAndFlush(new User("solo@example.com"));
+		User u = entityManager.persistAndFlush(User.forTest("solo@example.com"));
 		Challenge ch = entityManager.persistAndFlush(new Challenge(u, "Solo", null, LocalDate.of(2026, 7, 3), null));
 
 		Throwable thrown = catchThrowable(() -> entityManager.persistAndFlush(new Invite(u, u, ch)));

@@ -21,7 +21,7 @@ class UserRepositoryTest {
 
 	@Test
 	void savesAndFindsUserById() {
-		User saved = userRepository.save(new User("pat@example.com"));
+		User saved = userRepository.save(User.forTest("pat@example.com"));
 		assertThat(saved.getId()).isNotNull();
 		assertThat(userRepository.findById(saved.getId())).get().extracting(User::getEmail).isEqualTo("pat@example.com");
 	}
