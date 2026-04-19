@@ -14,6 +14,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.5'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.springdoc.openapi-gradle-plugin' version '1.9.0'
 }
 
 import org.flywaydb.core.Flyway
@@ -35,7 +36,7 @@ def challengesTestDbUrl = System.getenv('SPRING_DATASOURCE_TEST_URL') ?: 'jdbc:p
 def challengesTestDbUser = System.getenv('SPRING_DATASOURCE_TEST_USERNAME') ?: 'challenges'
 def challengesTestDbPassword = System.getenv('SPRING_DATASOURCE_TEST_PASSWORD') ?: 'challenges'
 
-tasks.register('prepareChallengesTestDatabase') {
+tasks.register('prepareTestDatabase') {
 	group = 'verification'
 	description = 'Flyway clean on the integration-test DB once per ./gradlew test (app startup still runs migrate only).'
 	doLast {
@@ -64,6 +65,9 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+ 
+	// OpenAPI 3 + Swagger UI (/v3/api-docs, /v3/api-docs.yaml, /swagger-ui.html)
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
@@ -76,7 +80,7 @@ dependencies {
 }
 
 tasks.named('test') {
-	dependsOn tasks.named('prepareChallengesTestDatabase')
+	dependsOn tasks.named('prepareTestDatabase')
 	useJUnitPlatform()
 	systemProperty 'spring.profiles.active', 'test'
 }

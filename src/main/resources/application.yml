@@ -32,6 +32,14 @@ spring:
           starttls:
             enable: false
 
+# OpenAPI 3 + Swagger UI (springdoc). JSON: GET /v3/api-docs — YAML: GET /v3/api-docs.yaml — UI: GET /swagger-ui.html
+# Build-time spec: ./gradlew generateOpenApiDocs → build/openapi/openapi.yaml (profile `openapi`, in-memory H2)
+springdoc:
+  packages-to-scan:
+    - com.challenges.api.web
+    - com.authspring.api.web
+  show-actuator: false
+
 management:
   endpoints:
     web:
