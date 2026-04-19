@@ -38,3 +38,18 @@ app:
     signing-key: test-verification-signing-key-32chars!!
     public-base-url: https://example.com
     expire-minutes: 60
+  mail:
+    verification:
+      subject: Verify Your Email Address
+      greeting-template: "Hello Dear {name}!"
+      lines:
+        - Welcome! Thank you for registering with us.
+        - Please click the link below to verify your email address and activate your account.
+      action-label: Verify Email Address
+      footer-lines:
+        - This verification link will expire in {minutes} minutes.
+        - If you did not create an account, no further action is required.
+      salutation: Best regards, Team
+      expiry-minutes: 60
+      from-address: noreply@example.com
+      from-name: Team
