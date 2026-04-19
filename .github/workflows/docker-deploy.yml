@@ -56,7 +56,7 @@ jobs:
             export IMAGE_FULL_NAME="${{ inputs.IMAGE_FULL_NAME }}"
             cd ${{ env.REMOTE_DIR }}
             
-            docker compose -f docker-compose.yml -f docker-compose.deploy.yml down || true
-            docker compose -f docker-compose.yml -f docker-compose.deploy.yml pull
-            docker compose -f docker-compose.yml -f docker-compose.deploy.yml up -d
+            docker compose -f docker-compose.deploy.yml down || true
+            docker compose -f docker-compose.deploy.yml pull
+            docker compose -f docker-compose.deploy.yml up -d
       
