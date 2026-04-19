@@ -109,7 +109,7 @@ class ChallengeDomainWorkflowIT {
 		MvcResult res =
 				mockMvc.perform(
 								post("/api/users").header(HV, V1).contentType(APPLICATION_JSON).content(
-										"{\"email\":\"" + email + "\"}"))
+										"{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
 						.andExpect(status().isCreated())
 						.andReturn();
 		return objectMapper.readTree(res.getResponse().getContentAsString()).get("id").asLong();

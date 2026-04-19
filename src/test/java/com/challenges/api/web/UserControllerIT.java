@@ -33,7 +33,7 @@ class UserControllerIT {
 		mockMvc.perform(post("/api/users")
 						.header(HV, V1)
 						.contentType(APPLICATION_JSON)
-						.content("{\"email\":\"x@y.z\"}"))
+						.content("{\"email\":\"x@y.z\",\"password\":\"password123\"}"))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.email").value("x@y.z"));
 

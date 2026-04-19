@@ -16,6 +16,8 @@ public class UserService {
 	private final UserRepository users;
 	private final PasswordEncoder passwordEncoder;
 
+	private static final String DEFAULT_ROLE = "ROLE_USER";
+
 	public UserService(UserRepository users, PasswordEncoder passwordEncoder) {
 		this.users = users;
 		this.passwordEncoder = passwordEncoder;
@@ -33,10 +35,10 @@ public class UserService {
 	}
 
 	@Transactional
-	public @NonNull User create(@NonNull String email) {
+	public @NonNull User create(@NonNull String email, @NonNull String password) {
 		Assert.notNull(email, "email must not be null");
 		return users.save(
-				new User("User", email, passwordEncoder.encode("password"), "user"));
+				new User("User", email, passwordEncoder.encode(password), DEFAULT_ROLE));
 	}
 
 	@Transactional
