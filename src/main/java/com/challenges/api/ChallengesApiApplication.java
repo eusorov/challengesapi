@@ -1,5 +1,6 @@
 package com.challenges.api;
 
+import com.authspring.api.config.FrontendProperties;
 import com.authspring.api.config.JwtProperties;
 import com.authspring.api.config.VerificationMailProperties;
 import com.authspring.api.config.VerificationProperties;
@@ -11,7 +12,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties({
 	JwtProperties.class,
 	VerificationProperties.class,
-	VerificationMailProperties.class
+	VerificationMailProperties.class,
+	FrontendProperties.class
 })
 public class ChallengesApiApplication {
 

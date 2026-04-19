@@ -1,6 +1,6 @@
 package com.authspring.api.service;
 
-import com.authspring.api.security.LaravelSignedUrlSigner;
+import com.authspring.api.security.SignedUrlSigner;
 import com.authspring.api.security.UserPrincipal;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.UserRepository;
@@ -13,12 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmailVerificationNotificationService {
 
 	private final UserRepository userRepository;
-	private final LaravelSignedUrlSigner signedUrlSigner;
+	private final SignedUrlSigner signedUrlSigner;
 	private final EmailVerificationMailSender mailSender;
 
 	public EmailVerificationNotificationService(
 			UserRepository userRepository,
-			LaravelSignedUrlSigner signedUrlSigner,
+			SignedUrlSigner signedUrlSigner,
 			EmailVerificationMailSender mailSender) {
 		this.userRepository = userRepository;
 		this.signedUrlSigner = signedUrlSigner;

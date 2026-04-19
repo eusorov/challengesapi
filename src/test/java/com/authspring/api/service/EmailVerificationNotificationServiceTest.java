@@ -9,7 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.authspring.api.security.LaravelSignedUrlSigner;
+import com.authspring.api.security.SignedUrlSigner;
 import com.authspring.api.security.UserPrincipal;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.UserRepository;
@@ -28,7 +28,7 @@ class EmailVerificationNotificationServiceTest {
 	private UserRepository userRepository;
 
 	@Mock
-	private LaravelSignedUrlSigner signedUrlSigner;
+	private SignedUrlSigner signedUrlSigner;
 
 	@Mock
 	private EmailVerificationMailSender mailSender;

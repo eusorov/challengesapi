@@ -133,6 +133,10 @@ public class User {
 		return updatedAt;
 	}
 
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = java.util.Objects.requireNonNull(updatedAt);
+	}
+
 	public void setEmail(String email) {
 		this.email = java.util.Objects.requireNonNull(email);
 	}

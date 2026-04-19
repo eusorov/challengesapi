@@ -9,11 +9,11 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LaravelSignedUrlSigner {
+public class SignedUrlSigner {
 
 	private final VerificationProperties properties;
 
-	public LaravelSignedUrlSigner(VerificationProperties properties) {
+	public SignedUrlSigner(VerificationProperties properties) {
 		this.properties = properties;
 	}
 
