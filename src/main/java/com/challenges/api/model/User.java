@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Table(name = "users")
 public class User {
 
-	public static final String DEFAULT_ROLE = "ROLE_USER";
+	public static final String DEFAULT_ROLE = "USER";
 
 	/** BCrypt hash of "password" — for tests and API-created users until auth sets real passwords. */
 	public static final String TEST_PASSWORD_HASH =

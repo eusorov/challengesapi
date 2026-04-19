@@ -45,8 +45,7 @@ public class ScheduleService {
 		Assert.notNull(challengeId, "challengeId must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
-		return Objects.requireNonNull(challenges.findById(challengeId)
-				.map(ch -> replaceChallengeSchedule(Objects.requireNonNull(ch), kind, weekDays)));
+		return challenges.findById(challengeId).map(ch -> replaceChallengeSchedule(ch, kind, weekDays));
 	}
 
 	@Transactional
@@ -55,8 +54,7 @@ public class ScheduleService {
 		Assert.notNull(subTaskId, "subTaskId must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
-		return Objects.requireNonNull(subTasks.findById(subTaskId)
-				.map(st -> replaceSubTaskSchedule(Objects.requireNonNull(st), kind, weekDays)));
+		return subTasks.findById(subTaskId).map(st -> replaceSubTaskSchedule(st, kind, weekDays));
 	}
 
 	private Schedule replaceChallengeSchedule(Challenge ch, ScheduleKind kind, List<DayOfWeek> weekDays) {
@@ -84,7 +82,7 @@ public class ScheduleService {
 	@Transactional(readOnly = true)
 	public Optional<Schedule> findById(@NonNull Long id) {
 		Assert.notNull(id, "id must not be null");
-		return Objects.requireNonNull(schedules.findByIdWithAssociations(id));
+		return schedules.findByIdWithAssociations(id);
 	}
 
 	@Transactional
@@ -93,12 +91,11 @@ public class ScheduleService {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(kind, "kind must not be null");
 		Assert.notNull(weekDays, "weekDays must not be null");
-		return Objects.requireNonNull(schedules.findByIdWithAssociations(id).map(s -> {
-			Schedule schedule = Objects.requireNonNull(s);
-			schedule.setKind(kind);
-			schedule.replaceWeekDays(weekDays);
-			return Objects.requireNonNull(schedules.save(schedule));
-		}));
+		return schedules.findByIdWithAssociations(id).map(s -> {
+			s.setKind(kind);
+			s.replaceWeekDays(weekDays);
+			return Objects.requireNonNull(schedules.save(s));
+		});
 	}
 
 	@Transactional
