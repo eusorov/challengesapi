@@ -1,6 +1,7 @@
 package com.challenges.api.web.dto;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -10,6 +11,7 @@ public record ChallengeResponse(
 		Long ownerUserId,
 		String title,
 		String description,
+		ChallengeCategory category,
 		LocalDate startDate,
 		LocalDate endDate,
 		Instant createdAt,
@@ -35,6 +37,7 @@ public record ChallengeResponse(
 				c.getOwner().getId(),
 				c.getTitle(),
 				c.getDescription(),
+				c.getCategory(),
 				c.getStartDate(),
 				c.getEndDate(),
 				c.getCreatedAt(),

@@ -137,7 +137,7 @@ class ChallengeDomainWorkflowIT {
 	private long postChallenge(long ownerUserId, String title, LocalDate startDate) throws Exception {
 		String body = String.format(
 				"{\"ownerUserId\":%d,\"title\":\"%s\",\"description\":\"full workflow\",\""
-						+ "startDate\":\"%s\",\"endDate\":null}",
+						+ "startDate\":\"%s\",\"endDate\":null,\"category\":\"HEALTH_AND_FITNESS\"}",
 				ownerUserId, title, startDate);
 		MvcResult res =
 				mockMvc.perform(post("/api/challenges")

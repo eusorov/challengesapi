@@ -77,7 +77,7 @@ class ChallengeImageUploadIT {
 
 		String body = String.format(
 				"{\"ownerUserId\":%d,\"title\":\"Summer Pic\",\"description\":null,"
-						+ "\"startDate\":\"2026-01-01\",\"endDate\":null}",
+						+ "\"startDate\":\"2026-01-01\",\"endDate\":null,\"category\":\"OTHER\"}",
 				owner1.getId());
 		String created = mockMvc.perform(post("/api/challenges")
 						.header(HV, V1)

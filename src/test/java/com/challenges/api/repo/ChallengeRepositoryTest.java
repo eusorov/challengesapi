@@ -3,6 +3,7 @@ package com.challenges.api.repo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.User;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class ChallengeRepositoryTest {
 		User u = entityManager.persistAndFlush(User.forTest("owner-bounded@example.com"));
 		LocalDate start = LocalDate.of(2026, 1, 1);
 		LocalDate end = LocalDate.of(2026, 1, 31);
-		Challenge ch = new Challenge(u, "Jan 2026", null, start, end);
+		Challenge ch = new Challenge(u, "Jan 2026", null, start, end, ChallengeCategory.PRODUCTIVITY);
 		challengeRepository.save(ch);
 		entityManager.flush();
 		entityManager.clear();
@@ -37,13 +38,14 @@ class ChallengeRepositoryTest {
 		Challenge loaded = challengeRepository.findById(ch.getId()).orElseThrow();
 		assertThat(loaded.getStartDate()).isEqualTo(start);
 		assertThat(loaded.getEndDate()).isEqualTo(end);
+		assertThat(loaded.getCategory()).isEqualTo(ChallengeCategory.PRODUCTIVITY);
 	}
 
 	@Test
 	void persistsOpenEndedChallengeWithNullEndDate() {
 		User u = entityManager.persistAndFlush(User.forTest("owner-open@example.com"));
 		LocalDate start = LocalDate.of(2026, 2, 1);
-		Challenge ch = new Challenge(u, "Open", "no end", start, null);
+		Challenge ch = new Challenge(u, "Open", "no end", start, null, ChallengeCategory.SLEEP);
 		challengeRepository.save(ch);
 		entityManager.flush();
 		entityManager.clear();
@@ -51,5 +53,6 @@ class ChallengeRepositoryTest {
 		Challenge loaded = challengeRepository.findById(ch.getId()).orElseThrow();
 		assertThat(loaded.getStartDate()).isEqualTo(start);
 		assertThat(loaded.getEndDate()).isNull();
+		assertThat(loaded.getCategory()).isEqualTo(ChallengeCategory.SLEEP);
 	}
 }

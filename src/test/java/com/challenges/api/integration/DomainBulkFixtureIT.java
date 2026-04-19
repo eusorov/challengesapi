@@ -3,6 +3,7 @@ package com.challenges.api.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.Participant;
 import com.challenges.api.model.Schedule;
 import com.challenges.api.model.ScheduleKind;
@@ -61,7 +62,8 @@ class DomainBulkFixtureIT {
 		for (int i = 0; i < 10; i++) {
 			User owner = users.get(i / 2);
 			LocalDate start = LocalDate.of(2026, 1, 1).plusDays(i);
-			challenges.add(challengeRepository.save(new Challenge(owner, "ch" + i, null, start, null)));
+			challenges.add(challengeRepository.save(
+					new Challenge(owner, "ch" + i, null, start, null, ChallengeCategory.OTHER)));
 		}
 
 		for (int c = 0; c < 10; c++) {

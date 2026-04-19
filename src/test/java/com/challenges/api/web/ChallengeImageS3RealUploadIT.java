@@ -110,7 +110,7 @@ class ChallengeImageS3RealUploadIT {
 
 		String body = String.format(
 				"{\"ownerUserId\":%d,\"title\":\"S3 IT Challenge\",\"description\":null,"
-						+ "\"startDate\":\"2026-01-01\",\"endDate\":null}",
+						+ "\"startDate\":\"2026-01-01\",\"endDate\":null,\"category\":\"LEARNING\"}",
 				owner.getId());
 		String created = mockMvc.perform(post("/api/challenges")
 						.header(HV, V1)

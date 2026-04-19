@@ -58,7 +58,8 @@ public class ChallengeService {
 						req.title(),
 						req.description(),
 						req.startDate(),
-						req.endDate())));
+						req.endDate(),
+						req.category())));
 	}
 
 	@Transactional
@@ -69,6 +70,7 @@ public class ChallengeService {
 			ch.setOwner(owner);
 			ch.setTitle(req.title());
 			ch.setDescription(req.description());
+			ch.setCategory(req.category());
 			ch.setStartDate(req.startDate());
 			ch.setEndDate(req.endDate());
 			return challenges.save(ch);

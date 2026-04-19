@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.Participant;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
@@ -58,7 +59,8 @@ class ParticipantControllerIT {
 	void setup() throws Exception {
 		participantUser = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "part-user@test"));
 		challenge =
-				challenges.save(new Challenge(participantUser, "part-ch", null, LocalDate.of(2026, 6, 1), null));
+				challenges.save(new Challenge(
+						participantUser, "part-ch", null, LocalDate.of(2026, 6, 1), null, ChallengeCategory.OTHER));
 		participants.save(new Participant(participantUser, challenge));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "part-user@test", "password");
 	}

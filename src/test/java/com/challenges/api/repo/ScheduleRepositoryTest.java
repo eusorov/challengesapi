@@ -3,6 +3,7 @@ package com.challenges.api.repo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.Schedule;
 import com.challenges.api.model.ScheduleKind;
 import com.challenges.api.model.SubTask;
@@ -32,7 +33,8 @@ class ScheduleRepositoryTest {
 	@Test
 	void persistsChallengeScheduleAndSubtaskSchedule() {
 		User u = entityManager.persistAndFlush(User.forTest("sched-user@example.com"));
-		Challenge ch = entityManager.persistAndFlush(new Challenge(u, "Scheduled", null, LocalDate.of(2026, 5, 1), null));
+		Challenge ch = entityManager.persistAndFlush(new Challenge(
+				u, "Scheduled", null, LocalDate.of(2026, 5, 1), null, ChallengeCategory.OTHER));
 
 		Schedule chSch = Schedule.forChallenge(ch, ScheduleKind.DAILY, List.of());
 		ch.bindSchedule(chSch);

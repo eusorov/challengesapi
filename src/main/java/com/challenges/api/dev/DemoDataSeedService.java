@@ -1,6 +1,7 @@
 package com.challenges.api.dev;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.CheckIn;
 import com.challenges.api.model.Participant;
 import com.challenges.api.model.Schedule;
@@ -93,6 +94,7 @@ public class DemoDataSeedService {
 		users.flush();
 
 		LocalDate base = LocalDate.of(2026, 4, 1);
+		ChallengeCategory[] categories = ChallengeCategory.values();
 		List<Challenge> chList = new ArrayList<>(BULK_CHALLENGE_COUNT);
 		for (int i = 0; i < BULK_CHALLENGE_COUNT; i++) {
 			User owner = seedUsers.get(i);
@@ -100,7 +102,7 @@ public class DemoDataSeedService {
 			LocalDate end = i % 3 == 0 ? start.plusMonths(1 + (i % 3)) : null;
 			String title = truncate(faker.book().title() + " — " + faker.lorem().word(), TITLE_MAX);
 			String description = truncate(faker.lorem().paragraph(2 + (i % 3)), DESCRIPTION_MAX);
-			chList.add(new Challenge(owner, title, description, start, end));
+			chList.add(new Challenge(owner, title, description, start, end, categories[i % categories.length]));
 		}
 		challenges.saveAll(chList);
 		challenges.flush();

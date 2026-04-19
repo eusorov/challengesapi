@@ -3,6 +3,8 @@ package com.challenges.api.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,6 +40,10 @@ public class Challenge {
 	@Column(length = 8000)
 	private String description;
 
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 64)
+	private ChallengeCategory category;
+
 	/** Inclusive start of the challenge window. */
 	@Column(name = "start_date", nullable = false)
 	private LocalDate startDate;
@@ -62,12 +68,19 @@ public class Challenge {
 	protected Challenge() {
 	}
 
-	public Challenge(User owner, String title, String description, LocalDate startDate, LocalDate endDate) {
+	public Challenge(
+			User owner,
+			String title,
+			String description,
+			LocalDate startDate,
+			LocalDate endDate,
+			ChallengeCategory category) {
 		this.owner = owner;
 		this.title = title;
 		this.description = description;
 		this.startDate = startDate;
 		this.endDate = endDate;
+		this.category = java.util.Objects.requireNonNull(category);
 	}
 
 	@PrePersist
@@ -92,6 +105,10 @@ public class Challenge {
 
 	public String getDescription() {
 		return description;
+	}
+
+	public ChallengeCategory getCategory() {
+		return category;
 	}
 
 	public LocalDate getStartDate() {
@@ -136,6 +153,10 @@ public class Challenge {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public void setCategory(ChallengeCategory category) {
+		this.category = java.util.Objects.requireNonNull(category);
 	}
 
 	public void setStartDate(LocalDate startDate) {

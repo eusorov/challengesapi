@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.SubTask;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
@@ -67,7 +68,8 @@ class InviteControllerIT {
 		inviter = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "inviter@test"));
 		invitee = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "invitee@test"));
 		challenge =
-				challenges.save(new Challenge(inviter, "invite-ch", null, LocalDate.of(2026, 4, 1), null));
+				challenges.save(new Challenge(
+						inviter, "invite-ch", null, LocalDate.of(2026, 4, 1), null, ChallengeCategory.OTHER));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "inviter@test", "password");
 	}
 

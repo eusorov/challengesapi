@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.SubTask;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
@@ -66,8 +67,10 @@ class CheckInControllerIT {
 	void setup() throws Exception {
 		user = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-user@test"));
 		User other = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-other@test"));
-		challenge = challenges.save(new Challenge(user, "ci-ch", null, LocalDate.of(2026, 5, 1), null));
-		Challenge otherCh = challenges.save(new Challenge(other, "other", null, LocalDate.of(2026, 5, 2), null));
+		challenge = challenges.save(new Challenge(
+				user, "ci-ch", null, LocalDate.of(2026, 5, 1), null, ChallengeCategory.OTHER));
+		Challenge otherCh = challenges.save(new Challenge(
+				other, "other", null, LocalDate.of(2026, 5, 2), null, ChallengeCategory.OTHER));
 		otherSubTask = subTasks.save(new SubTask(otherCh, "foreign", 0));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-user@test", "password");
 	}

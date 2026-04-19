@@ -3,6 +3,7 @@ package com.challenges.api.repo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.SubTask;
 import com.challenges.api.model.User;
 import java.time.LocalDate;
@@ -28,7 +29,7 @@ class SubTaskRepositoryTest {
 	@Test
 	void persistsSubTaskLinkedToChallenge() {
 		User u = entityManager.persistAndFlush(User.forTest("st-owner@example.com"));
-		Challenge ch = new Challenge(u, "Main", null, LocalDate.of(2026, 3, 1), null);
+		Challenge ch = new Challenge(u, "Main", null, LocalDate.of(2026, 3, 1), null, ChallengeCategory.OTHER);
 		entityManager.persistAndFlush(ch);
 		SubTask st = new SubTask(ch, "First sub", 0);
 		subTaskRepository.save(st);

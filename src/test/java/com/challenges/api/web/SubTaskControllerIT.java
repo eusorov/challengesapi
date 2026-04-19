@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.UserRepository;
@@ -60,7 +61,8 @@ class SubTaskControllerIT {
 	@BeforeEach
 	void setup() throws Exception {
 		User u = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "st-owner@test"));
-		challenge = challenges.save(new Challenge(u, "nested", null, LocalDate.of(2026, 2, 1), null));
+		challenge = challenges.save(new Challenge(
+				u, "nested", null, LocalDate.of(2026, 2, 1), null, ChallengeCategory.OTHER));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "st-owner@test", "password");
 	}
 

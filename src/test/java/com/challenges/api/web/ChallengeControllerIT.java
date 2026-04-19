@@ -57,7 +57,7 @@ class ChallengeControllerIT {
 	void createChallengeThenGetById() throws Exception {
 		String body = String.format(
 				"{\"ownerUserId\":%d,\"title\":\"My ch\",\"description\":null,"
-						+ "\"startDate\":\"2026-01-01\",\"endDate\":null}",
+						+ "\"startDate\":\"2026-01-01\",\"endDate\":null,\"category\":\"PRODUCTIVITY\"}",
 				owner1.getId());
 
 		String created =
@@ -69,6 +69,7 @@ class ChallengeControllerIT {
 						.andExpect(status().isCreated())
 						.andExpect(jsonPath("$.ownerUserId").value(owner1.getId().intValue()))
 						.andExpect(jsonPath("$.title").value("My ch"))
+						.andExpect(jsonPath("$.category").value("PRODUCTIVITY"))
 						.andExpect(jsonPath("$.subtasks").isArray())
 						.andReturn()
 						.getResponse()
