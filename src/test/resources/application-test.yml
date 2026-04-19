@@ -10,6 +10,8 @@ challenges:
       on-startup: false
 
 spring:
+  cache:
+    type: none
   datasource:
     url: ${SPRING_DATASOURCE_TEST_URL:jdbc:postgresql://localhost:5432/challengestest}
     username: ${SPRING_DATASOURCE_TEST_USERNAME:challenges}

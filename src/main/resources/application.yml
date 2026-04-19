@@ -19,6 +19,13 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/challenges}
     username: ${SPRING_DATASOURCE_USERNAME:challenges}
     password: ${SPRING_DATASOURCE_PASSWORD:challenges}
+    hikari:
+      pool-name: challenges-api-pool
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT_MS:30000}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT_MS:600000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME_MS:1800000}
   jpa:
     open-in-view: false
     show-sql: true
