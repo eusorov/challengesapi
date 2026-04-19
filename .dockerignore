@@ -1,0 +1,21 @@
+# Git / IDE
+.git
+.github
+.idea
+.vscode
+*.iml
+
+# Local build outputs (rebuilt inside the image)
+build
+out
+.gradle
+
+# Secrets / local env (never bake into context)
+.env
+.env.*
+
+# Docs and plans (not needed to compile)
+docs
+
+# Optional: keep docker-compose out of compile context
+docker-compose.yml
