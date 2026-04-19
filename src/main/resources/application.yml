@@ -5,7 +5,7 @@
 aws:
   s3:
     bucket: ${AWS_S3_BUCKET:challanges}
-    region: ${AWS_REGION:eu-west-1}
+    region: ${AWS_REGION:eu-central-1}
     public-base-url: ${AWS_S3_PUBLIC_BASE_URL:}
 
 spring:

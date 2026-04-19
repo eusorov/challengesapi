@@ -22,6 +22,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @ExtendWith(MockitoExtension.class)
 class ChallengeServiceImageUploadTest {
@@ -44,6 +46,12 @@ class ChallengeServiceImageUploadTest {
 
 	@Test
 	void uploadImage_owner_putsObjectWithExpectedKeyShape() throws Exception {
+		PutObjectResponse putOk = mock(PutObjectResponse.class);
+		SdkHttpResponse httpOk = mock(SdkHttpResponse.class);
+		when(httpOk.isSuccessful()).thenReturn(true);
+		when(putOk.sdkHttpResponse()).thenReturn(httpOk);
+		when(challengeImageStorage.putObject(any(), any(), any())).thenReturn(putOk);
+
 		User owner = mock(User.class);
 		when(owner.getId()).thenReturn(1L);
 		Challenge ch = mock(Challenge.class);

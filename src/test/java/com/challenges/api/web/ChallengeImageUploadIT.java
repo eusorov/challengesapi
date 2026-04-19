@@ -28,6 +28,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -62,6 +64,12 @@ class ChallengeImageUploadIT {
 
 	@BeforeEach
 	void setup() throws Exception {
+		PutObjectResponse putOk = Mockito.mock(PutObjectResponse.class);
+		SdkHttpResponse httpOk = Mockito.mock(SdkHttpResponse.class);
+		Mockito.when(httpOk.isSuccessful()).thenReturn(true);
+		Mockito.when(putOk.sdkHttpResponse()).thenReturn(httpOk);
+		Mockito.when(challengeImageStorage.putObject(any(), any(), any())).thenReturn(putOk);
+
 		owner1 = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "img-owner1@test"));
 		owner2 = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "img-owner2@test"));
 		bearerOwner1 = JwtLoginSupport.bearerAuthorization(mockMvc, "img-owner1@test", "password");

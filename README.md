@@ -45,3 +45,15 @@ Backend service for a **challenges** product: **users create challenges, invite 
 ```
 
 More detail for contributors and agents lives in **`AGENTS.md`** and **`CLAUDE.md`**.
+
+## Demo data (optional)
+
+Never enable this in **production**.
+
+With Postgres running, start the app with profile **`demo-seed`**:
+
+```bash
+./gradlew bootRun --args='--spring.profiles.active=demo-seed'
+```
+
+This inserts **10 users** (`seed01@demo.local` through `seed10@demo.local`) with password **`password`** (BCrypt hash **`User.TEST_PASSWORD_HASH`** in code), **10 challenges**, schedules, subtasks, participants, check-ins, and invites. A second start **does not duplicate** rows (idempotent guard on `seed01@demo.local`). The **`demo-seed`** **`ApplicationRunner`** is off under the **`test`** profile (`challenges.demo.seed.on-startup: false` in `application-test.yml`) so `./gradlew test` does not commit seed data into **`challengestest`**; **`bootRun`** with **`demo-seed`** still runs the loader by default.
