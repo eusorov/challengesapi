@@ -42,7 +42,7 @@ jobs:
       REMOTE_DIR: ~/${{ inputs.IMAGE_SHORT_NAME }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Copy docker-compose.yml to VPS
         uses: appleboy/scp-action@v1.0.0
         with:
