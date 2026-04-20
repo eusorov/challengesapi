@@ -1,8 +1,0 @@
-# Activated when profile "h2" is active (with "test" via build.gradle: ./gradlew test -Pdb=h2).
-# In-memory H2 with PostgreSQL compatibility for Flyway migrations (BIGSERIAL, timestamptz, etc.).
-spring:
-  datasource:
-    url: jdbc:h2:mem:challengestest;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
-    username: sa
-    password: ""
-    driver-class-name: org.h2.Driver

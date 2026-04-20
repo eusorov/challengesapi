@@ -50,7 +50,7 @@ spring:
             enable: false
 
 # OpenAPI 3 + Swagger UI (springdoc). JSON: GET /v3/api-docs — YAML: GET /v3/api-docs.yaml — UI: GET /swagger-ui.html
-# Build-time spec: ./gradlew generateOpenApiDocs → build/openapi/openapi.yaml (profile `openapi`, in-memory H2)
+# Build-time spec: ./gradlew generateOpenApiDocs → build/openapi/openapi.yaml (profile `openapi`; use a reachable PostgreSQL datasource)
 springdoc:
   packages-to-scan:
     - com.challenges.api.web

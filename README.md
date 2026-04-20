@@ -38,9 +38,7 @@ Backend service for a **challenges** product: **users create challenges, invite 
 ./gradlew bootRun
 ```
 
-4. Run tests (expects DB **`challengestest`**):
-
-Tests run default **without PostgreSQL**, in-memory **H2**. But it is possible to run agains test postgresql DB with : `./gradlew test -Pdb=pg` (alias `-PtestDb=h2`). Default **`./gradlew test`** is H2 (`-Pdb=h2`).
+4. Run tests — requires PostgreSQL with database **`challengestest`** (see `docker-compose.yml`). **`./gradlew test`** runs Flyway clean on that database first, then the suite.
 
 ```bash
 ./gradlew test
