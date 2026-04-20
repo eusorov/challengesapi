@@ -28,7 +28,10 @@ public class SubTaskController {
 		this.subTaskService = subTaskService;
 	}
 
-	@GetMapping({ "/challenges/{challengeId}/subtasks", "/challenges/{challengeId}/subtasks/" })
+	@GetMapping({
+		"/challenges/{challengeId:\\d+}/subtasks",
+		"/challenges/{challengeId:\\d+}/subtasks/"
+	})
 	public @NonNull List<SubTaskResponse> listForChallenge(@PathVariable Long challengeId) {
 		return subTaskService.listForChallenge(challengeId).stream().map(SubTaskResponse::from).toList();
 	}

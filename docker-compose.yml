@@ -30,7 +30,9 @@ services:
       - nginx_proxy_net
 
   postgres:
-    image: postgres:16-alpine
+    #image: postgres:16-alpine
+    image: postgis/postgis:16-3.5-alpine
+    platform: linux/amd64
     container_name: challenges-postgres
     # POSTGRES_DB / USER / PASSWORD apply only on first start with an empty data volume.
     # Override POSTGRES_DB from the host: export POSTGRES_DB=mydb  (or set in a .env file beside this compose file).

@@ -1,4 +1,5 @@
 # Profile test: PostgreSQL database challengestest (isolated from dev DB "challenges").
+# Requires PostGIS (Flyway V15: CREATE EXTENSION postgis; geography columns). Use docker-compose postgres image postgis/postgis or install postgis on the host.
 # Requires: docker compose up, and DB challengestest present (init script on first volume, or see docker-compose comment).
 # Fresh data each suite: `./gradlew test` runs Flyway clean on this DB first (build.gradle → prepareChallengesTestDatabase);
 # application startup then runs migrate as usual (no clean in-app).

@@ -3,6 +3,7 @@ package com.challenges.api.web;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.closeTo;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -90,6 +91,55 @@ class ChallengeControllerIT {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.ownerUserId").value(owner1.getId().intValue()))
 				.andExpect(jsonPath("$.subtasks").isArray());
+	}
+
+	@Test
+	void createWithLocation_roundTripsCityAndCoordinates() throws Exception {
+		String body = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Berlin run\",\"description\":null,"
+						+ "\"startDate\":\"2026-02-01\",\"endDate\":null,\"category\":\"HEALTH_AND_FITNESS\","
+						+ "\"city\":\"Berlin\",\"location\":{\"latitude\":52.52,\"longitude\":13.405}}",
+				owner1.getId());
+
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
+						.andExpect(status().isCreated())
+						.andExpect(jsonPath("$.city").value("Berlin"))
+						.andExpect(jsonPath("$.location.latitude", closeTo(52.52, 1e-6)))
+						.andExpect(jsonPath("$.location.longitude", closeTo(13.405, 1e-6)))
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(get("/api/challenges/" + challengeId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.city").value("Berlin"))
+				.andExpect(jsonPath("$.location.latitude", closeTo(52.52, 1e-6)))
+				.andExpect(jsonPath("$.location.longitude", closeTo(13.405, 1e-6)));
+	}
+
+	@Test
+	void createWithCityOnly_returnsBadRequest() throws Exception {
+		String body = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"No coords\",\"description\":null,"
+						+ "\"startDate\":\"2026-03-01\",\"endDate\":null,\"category\":\"OTHER\","
+						+ "\"city\":\"Paris\"}",
+				owner1.getId());
+
+		mockMvc.perform(post("/api/challenges")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(body))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test

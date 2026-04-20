@@ -17,6 +17,7 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import org.locationtech.jts.geom.Point;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -67,6 +68,12 @@ public class Challenge {
 
 	@Column(name = "is_private", nullable = false)
 	private boolean isPrivate = false;
+
+	@Column(length = 255)
+	private String city;
+
+	@Column(columnDefinition = "geography(Point,4326)")
+	private Point location;
 
 	protected Challenge() {
 	}
@@ -188,5 +195,21 @@ public class Challenge {
 
 	public void setPrivate(boolean isPrivate) {
 		this.isPrivate = isPrivate;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public Point getLocation() {
+		return location;
+	}
+
+	public void setLocation(Point location) {
+		this.location = location;
 	}
 }

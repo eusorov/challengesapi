@@ -32,7 +32,10 @@ public class CommentController {
 		this.commentService = commentService;
 	}
 
-	@GetMapping({ "/challenges/{challengeId}/comments", "/challenges/{challengeId}/comments/" })
+	@GetMapping({
+		"/challenges/{challengeId:\\d+}/comments",
+		"/challenges/{challengeId:\\d+}/comments/"
+	})
 	public @NonNull Page<CommentResponse> list(
 			@PathVariable Long challengeId,
 			@RequestParam(required = false) @Nullable Long subTaskId,
@@ -40,7 +43,10 @@ public class CommentController {
 		return commentService.listForChallenge(challengeId, subTaskId, pageable).map(CommentResponse::from);
 	}
 
-	@PostMapping({ "/challenges/{challengeId}/comments", "/challenges/{challengeId}/comments/" })
+	@PostMapping({
+		"/challenges/{challengeId:\\d+}/comments",
+		"/challenges/{challengeId:\\d+}/comments/"
+	})
 	public ResponseEntity<CommentResponse> create(
 			@PathVariable Long challengeId, @Valid @RequestBody CommentRequest req) {
 		return commentService.create(challengeId, req)

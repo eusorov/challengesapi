@@ -30,7 +30,10 @@ public class CheckInController {
 		this.checkInService = checkInService;
 	}
 
-	@GetMapping({ "/challenges/{challengeId}/check-ins", "/challenges/{challengeId}/check-ins/" })
+	@GetMapping({
+		"/challenges/{challengeId:\\d+}/check-ins",
+		"/challenges/{challengeId:\\d+}/check-ins/"
+	})
 	public @NonNull Page<CheckInResponse> listForChallenge(
 			@PathVariable Long challengeId, @PageableDefault(size = 20) Pageable pageable) {
 		return checkInService.listForChallenge(challengeId, pageable).map(CheckInResponse::from);

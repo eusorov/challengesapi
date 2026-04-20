@@ -21,7 +21,7 @@ public class ParticipantController {
 		this.participantService = participantService;
 	}
 
-	@GetMapping({ "/{challengeId}/participants", "/{challengeId}/participants/" })
+	@GetMapping({ "/{challengeId:\\d+}/participants", "/{challengeId:\\d+}/participants/" })
 	public @NonNull Page<ParticipantResponse> listForChallenge(
 			@PathVariable Long challengeId, @PageableDefault(size = 20) Pageable pageable) {
 		return participantService.listForChallenge(challengeId, pageable).map(ParticipantResponse::from);

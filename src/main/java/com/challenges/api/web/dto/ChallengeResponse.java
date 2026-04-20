@@ -2,6 +2,7 @@ package com.challenges.api.web.dto;
 
 import com.challenges.api.model.Challenge;
 import com.challenges.api.model.ChallengeCategory;
+import com.challenges.api.support.ChallengeLocationMapping;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -14,6 +15,8 @@ public record ChallengeResponse(
 		String description,
 		ChallengeCategory category,
 		@JsonProperty("private") boolean isPrivate,
+		String city,
+		ChallengeLocationDto location,
 		LocalDate startDate,
 		LocalDate endDate,
 		Instant createdAt,
@@ -41,6 +44,8 @@ public record ChallengeResponse(
 				c.getDescription(),
 				c.getCategory(),
 				c.isPrivate(),
+				c.getCity(),
+				ChallengeLocationMapping.fromPoint(c.getLocation()),
 				c.getStartDate(),
 				c.getEndDate(),
 				c.getCreatedAt(),

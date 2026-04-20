@@ -61,6 +61,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-flyway'
 	implementation 'org.flywaydb:flyway-database-postgresql'
 	runtimeOnly 'org.postgresql:postgresql'
+	// Align with hibernate-core from Spring Boot (see ./gradlew dependencyInsight --dependency hibernate-core).
+	implementation 'org.hibernate.orm:hibernate-spatial:7.2.7.Final'
 
 	implementation platform('io.github.resilience4j:resilience4j-bom:2.4.0')
 	implementation 'io.github.resilience4j:resilience4j-spring-boot4:2.4.0'

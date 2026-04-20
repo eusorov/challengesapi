@@ -5,6 +5,7 @@ import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.storage.ChallengeImageStorage;
 import com.challenges.api.support.ChallengeImagePaths;
+import com.challenges.api.support.ChallengeLocationMapping;
 import com.challenges.api.web.dto.ChallengeRequest;
 import java.io.IOException;
 import java.util.List;
@@ -55,13 +56,19 @@ public class ChallengeService {
 	public Optional<Challenge> create(@NonNull ChallengeRequest req) {
 		Assert.notNull(req, "request must not be null");
 		boolean isPrivate = Boolean.TRUE.equals(req.isPrivate());
-		return users.findById(req.ownerUserId()).map(owner -> challenges.save(new Challenge(owner,
-						req.title(),
-						req.description(),
-						req.startDate(),
-						req.endDate(),
-						req.category(),
-						isPrivate)));
+		return users.findById(req.ownerUserId()).map(owner -> {
+			validateLocationRuleC(req);
+			Challenge ch = new Challenge(
+					owner,
+					req.title(),
+					req.description(),
+					req.startDate(),
+					req.endDate(),
+					req.category(),
+					isPrivate);
+			applyLocationFromRequest(ch, req);
+			return challenges.save(ch);
+		});
 	}
 
 	@Transactional
@@ -69,6 +76,7 @@ public class ChallengeService {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
 		return users.findById(req.ownerUserId()).flatMap(owner -> challenges.findByIdWithSubtasksAndOwner(id).map(ch -> {
+			validateLocationRuleC(req);
 			ch.setOwner(owner);
 			ch.setTitle(req.title());
 			ch.setDescription(req.description());
@@ -76,6 +84,7 @@ public class ChallengeService {
 			ch.setStartDate(req.startDate());
 			ch.setEndDate(req.endDate());
 			ch.setPrivate(Boolean.TRUE.equals(req.isPrivate()));
+			applyLocationFromRequest(ch, req);
 			return challenges.save(ch);
 		}));
 	}
@@ -124,5 +133,27 @@ public class ChallengeService {
 				throw new IllegalStateException(e);
 			}
 		});
+	}
+
+	private static void validateLocationRuleC(ChallengeRequest req) {
+		boolean hasCity = req.city() != null && !req.city().isBlank();
+		boolean hasLoc = req.location() != null;
+		if ((hasCity || hasLoc) && !hasLoc) {
+			throw new IllegalArgumentException(
+					"location with latitude and longitude is required when city or location is set");
+		}
+	}
+
+	private static void applyLocationFromRequest(Challenge ch, ChallengeRequest req) {
+		ch.setCity(normalizeCity(req.city()));
+		ch.setLocation(req.location() != null ? ChallengeLocationMapping.toPoint(req.location()) : null);
+	}
+
+	private static String normalizeCity(String city) {
+		if (city == null) {
+			return null;
+		}
+		String trimmed = city.trim();
+		return trimmed.isEmpty() ? null : trimmed;
 	}
 }

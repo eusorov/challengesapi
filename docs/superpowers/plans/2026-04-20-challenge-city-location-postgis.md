@@ -70,8 +70,10 @@ In `src/main/resources/application.yml` under `spring.jpa`:
 
 ```yaml
   jpa:
-    database-platform: org.hibernate.spatial.dialect.postgis.PostgisDialect
+    database-platform: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
 ```
+
+(Hibernate ORM 7.x: `PostgisDialect` was removed; use **`PostgisPG10Dialect`** for PostgreSQL 10+.)
 
 If Spring Boot 4 auto-selects a dialect and startup works **without** this line, you may omit it — but PostGIS **`geography`** often **requires** the spatial dialect; keep it unless you verify clean **`ddl-auto: validate`** against **`geography`**.
 
