@@ -24,16 +24,6 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
-  workflow_dispatch:
-    inputs:
-      IMAGE_FULL_NAME:
-        required: true
-        type: string
-        description: Full Docker image reference (e.g. ghcr.io/owner/image:latest)
-      IMAGE_SHORT_NAME:
-        required: true
-        type: string
-        description: Short image/repo name (remote directory under ~)
 
 jobs:
   deploy:
@@ -50,7 +40,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "docker-compose*.yml"
-          target: ${{ env.REMOTE_DIR }}  
+          target: ${{ env.REMOTE_DIR }}
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -70,4 +60,3 @@ jobs:
             docker compose -f docker-compose.yml -f docker-compose.deploy.yml down || true
             docker compose -f docker-compose.yml -f docker-compose.deploy.yml pull
             docker compose -f docker-compose.yml -f docker-compose.deploy.yml up -d
-      
