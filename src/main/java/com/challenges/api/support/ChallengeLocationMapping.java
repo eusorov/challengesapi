@@ -14,10 +14,13 @@ public final class ChallengeLocationMapping {
 	private ChallengeLocationMapping() {}
 
 	/** Persists WGS-84: JTS x = longitude, y = latitude. */
+	public static Point toPoint(double latitude, double longitude) {
+		return GEOMETRY_FACTORY.createPoint(new Coordinate(longitude, latitude));
+	}
+
+	/** Persists WGS-84: JTS x = longitude, y = latitude. */
 	public static Point toPoint(ChallengeLocationDto dto) {
-		double lat = dto.latitude();
-		double lon = dto.longitude();
-		return GEOMETRY_FACTORY.createPoint(new Coordinate(lon, lat));
+		return toPoint(dto.latitude(), dto.longitude());
 	}
 
 	public static ChallengeLocationDto fromPoint(Point point) {

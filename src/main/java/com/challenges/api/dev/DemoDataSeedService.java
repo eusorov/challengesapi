@@ -14,6 +14,7 @@ import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.ScheduleRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
+import com.challenges.api.support.ChallengeLocationMapping;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -58,6 +59,14 @@ public class DemoDataSeedService {
 			DayOfWeek.THURSDAY,
 			DayOfWeek.FRIDAY);
 	private static final List<DayOfWeek> SAT_SUN = List.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
+
+	/** Representative WGS-84 points for demo challenges (rotated by challenge index). */
+	private static final List<DemoCity> SEED_CITIES = List.of(
+			new DemoCity("Berlin", 52.520008, 13.404954),
+			new DemoCity("Brandenburg an der Havel", 52.4125, 12.5311),
+			new DemoCity("Hamburg", 53.551086, 9.993682),
+			new DemoCity("Dresden", 51.050407, 13.737262),
+			new DemoCity("Munich", 48.137154, 11.576124));
 
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
@@ -108,8 +117,12 @@ public class DemoDataSeedService {
 			String title = truncate(faker.book().title() + " — " + faker.lorem().word(), TITLE_MAX);
 			String description = truncate(faker.lorem().paragraph(2 + (i % 3)), DESCRIPTION_MAX);
 			boolean isPrivate = i % PRIVATE_CHALLENGE_INDEX_MOD == 0;
-			chList.add(new Challenge(
-					owner, title, description, start, end, categories[i % categories.length], isPrivate));
+			Challenge ch = new Challenge(
+					owner, title, description, start, end, categories[i % categories.length], isPrivate);
+			DemoCity place = SEED_CITIES.get(Math.floorMod(i, SEED_CITIES.size()));
+			ch.setCity(place.city);
+			ch.setLocation(ChallengeLocationMapping.toPoint(place.latitude, place.longitude));
+			chList.add(ch);
 		}
 		challenges.saveAll(chList);
 		challenges.flush();
@@ -241,4 +254,6 @@ public class DemoDataSeedService {
 			return values()[Math.floorMod(i, values().length)];
 		}
 	}
+
+	private record DemoCity(String city, double latitude, double longitude) {}
 }
