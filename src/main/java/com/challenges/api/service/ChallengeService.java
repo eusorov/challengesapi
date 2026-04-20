@@ -37,7 +37,7 @@ public class ChallengeService {
 	@Transactional(readOnly = true)
 	public @NonNull Page<Challenge> listChallenges(@NonNull Pageable pageable) {
 		Assert.notNull(pageable, "pageable must not be null");
-		Page<Long> idPage = challenges.findIdsOrderByIdAsc(pageable);
+		Page<Long> idPage = challenges.findNonPrivateIdsOrderByIdAsc(pageable);
 		if (idPage.isEmpty()) {
 			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
 		}

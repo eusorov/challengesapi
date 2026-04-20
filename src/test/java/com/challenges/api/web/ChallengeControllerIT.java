@@ -91,4 +91,38 @@ class ChallengeControllerIT {
 				.andExpect(jsonPath("$.ownerUserId").value(owner1.getId().intValue()))
 				.andExpect(jsonPath("$.subtasks").isArray());
 	}
+
+	@Test
+	void listChallenges_omitsPrivate_butGetByIdStillWorks() throws Exception {
+		String body = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Secret ch\",\"description\":null,"
+						+ "\"startDate\":\"2026-06-01\",\"endDate\":null,\"category\":\"LEARNING\",\"private\":true}",
+				owner1.getId());
+
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
+						.andExpect(status().isCreated())
+						.andExpect(jsonPath("$.private").value(true))
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(get("/api/challenges").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(0))
+				.andExpect(jsonPath("$.numberOfElements").value(0));
+
+		mockMvc.perform(get("/api/challenges/" + challengeId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.title").value("Secret ch"))
+				.andExpect(jsonPath("$.private").value(true));
+	}
 }

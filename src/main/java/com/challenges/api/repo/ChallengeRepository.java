@@ -18,13 +18,13 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 	Optional<Challenge> findByIdWithSubtasksAndOwner(@Param("id") Long id);
 
 	/**
-	 * Paged challenge ids only (no joins). Intended flow: call this with {@link Pageable}, then
+	 * Paged ids of non-private challenges only (no joins). Intended flow: call this with {@link Pageable}, then
 	 * {@link #findAllWithSubtasksAndOwnerByIdIn} with {@link Page#getContent()} so fetch-joins apply only to one page.
 	 */
 	@Query(
-			value = "select c.id from Challenge c order by c.id asc",
-			countQuery = "select count(c) from Challenge c")
-	Page<Long> findIdsOrderByIdAsc(Pageable pageable);
+			value = "select c.id from Challenge c where c.isPrivate = false order by c.id asc",
+			countQuery = "select count(c) from Challenge c where c.isPrivate = false")
+	Page<Long> findNonPrivateIdsOrderByIdAsc(Pageable pageable);
 
 	/**
 	 * Loads challenges with owner and subtasks for the given ids. Ordered by {@code c.id} ascending.
