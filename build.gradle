@@ -45,6 +45,9 @@ def challengesTestDbUrl = System.getenv('SPRING_DATASOURCE_TEST_URL') ?: 'jdbc:p
 def challengesTestDbUser = System.getenv('SPRING_DATASOURCE_TEST_USERNAME') ?: 'challenges'
 def challengesTestDbPassword = System.getenv('SPRING_DATASOURCE_TEST_PASSWORD') ?: 'challenges'
 
+// Large demo-seed DB test; excluded from default `test` unless -PrunDemoSeedIT=true
+def runDemoSeedIT = Boolean.parseBoolean(findProperty('runDemoSeedIT')?.toString() ?: 'false')
+
 tasks.register('prepareTestDatabase') {
 	group = 'verification'
 	description = 'Flyway clean on the PostgreSQL integration-test DB (skipped when -Pdb=h2).'
@@ -102,5 +105,10 @@ tasks.named('test') {
 		systemProperty 'spring.profiles.active', 'test,h2'
 	} else {
 		systemProperty 'spring.profiles.active', 'test'
+	}
+	if (!runDemoSeedIT) {
+		filter {
+			excludeTestsMatching '.*\\.DemoDataLoaderIT'
+		}
 	}
 }

@@ -3,7 +3,8 @@
 # Fresh data each suite: `./gradlew test` runs Flyway clean on this DB first (build.gradle → prepareChallengesTestDatabase);
 # application startup then runs migrate as usual (no clean in-app).
 #
-# Do not run demo-seed ApplicationRunner on context startup (integration tests share one DB; DemoDataLoaderIT calls DemoDataSeedService in-tx).
+# Do not run demo-seed ApplicationRunner on context startup (integration tests share one DB; DemoDataLoaderIT calls DemoDataSeedService in-tx). 
+#DemoDataLoaderIT is excluded from ./gradlew test unless -PrunDemoSeedIT=true.
 challenges:
   demo:
     seed:

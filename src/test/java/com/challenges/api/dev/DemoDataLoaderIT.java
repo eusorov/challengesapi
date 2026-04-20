@@ -13,6 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Bulk demo-seed integration test (1000 users / challenges). Excluded from the default {@code ./gradlew test}
+ * run; enable with {@code ./gradlew test -PrunDemoSeedIT=true} (optionally with
+ * {@code -Pdb=h2} / {@code -Pdb=pg}).
+ */
 @SpringBootTest
 @ActiveProfiles({"test", "demo-seed"})
 @Transactional
