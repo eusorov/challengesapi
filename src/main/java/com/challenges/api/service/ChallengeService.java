@@ -54,12 +54,14 @@ public class ChallengeService {
 	@Transactional
 	public Optional<Challenge> create(@NonNull ChallengeRequest req) {
 		Assert.notNull(req, "request must not be null");
+		boolean isPrivate = Boolean.TRUE.equals(req.isPrivate());
 		return users.findById(req.ownerUserId()).map(owner -> challenges.save(new Challenge(owner,
 						req.title(),
 						req.description(),
 						req.startDate(),
 						req.endDate(),
-						req.category())));
+						req.category(),
+						isPrivate)));
 	}
 
 	@Transactional
@@ -73,6 +75,7 @@ public class ChallengeService {
 			ch.setCategory(req.category());
 			ch.setStartDate(req.startDate());
 			ch.setEndDate(req.endDate());
+			ch.setPrivate(Boolean.TRUE.equals(req.isPrivate()));
 			return challenges.save(ch);
 		}));
 	}

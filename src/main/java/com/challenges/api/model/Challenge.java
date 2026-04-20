@@ -65,6 +65,9 @@ public class Challenge {
 	@Column(name = "image_object_key", length = 1024)
 	private String imageObjectKey;
 
+	@Column(name = "is_private", nullable = false)
+	private boolean isPrivate = false;
+
 	protected Challenge() {
 	}
 
@@ -75,12 +78,24 @@ public class Challenge {
 			LocalDate startDate,
 			LocalDate endDate,
 			ChallengeCategory category) {
+		this(owner, title, description, startDate, endDate, category, false);
+	}
+
+	public Challenge(
+			User owner,
+			String title,
+			String description,
+			LocalDate startDate,
+			LocalDate endDate,
+			ChallengeCategory category,
+			boolean isPrivate) {
 		this.owner = owner;
 		this.title = title;
 		this.description = description;
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.category = java.util.Objects.requireNonNull(category);
+		this.isPrivate = isPrivate;
 	}
 
 	@PrePersist
@@ -165,5 +180,13 @@ public class Challenge {
 
 	public void setEndDate(LocalDate endDate) {
 		this.endDate = endDate;
+	}
+
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+
+	public void setPrivate(boolean isPrivate) {
+		this.isPrivate = isPrivate;
 	}
 }

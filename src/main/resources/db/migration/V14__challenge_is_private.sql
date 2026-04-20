@@ -1,0 +1,2 @@
+ALTER TABLE challenges
+    ADD COLUMN is_private BOOLEAN NOT NULL DEFAULT FALSE;

@@ -39,6 +39,7 @@ class ChallengeRepositoryTest {
 		assertThat(loaded.getStartDate()).isEqualTo(start);
 		assertThat(loaded.getEndDate()).isEqualTo(end);
 		assertThat(loaded.getCategory()).isEqualTo(ChallengeCategory.PRODUCTIVITY);
+		assertThat(loaded.isPrivate()).isFalse();
 	}
 
 	@Test
@@ -54,5 +55,6 @@ class ChallengeRepositoryTest {
 		assertThat(loaded.getStartDate()).isEqualTo(start);
 		assertThat(loaded.getEndDate()).isNull();
 		assertThat(loaded.getCategory()).isEqualTo(ChallengeCategory.SLEEP);
+		assertThat(loaded.isPrivate()).isFalse();
 	}
 }

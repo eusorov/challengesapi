@@ -70,6 +70,7 @@ class ChallengeControllerIT {
 						.andExpect(jsonPath("$.ownerUserId").value(owner1.getId().intValue()))
 						.andExpect(jsonPath("$.title").value("My ch"))
 						.andExpect(jsonPath("$.category").value("PRODUCTIVITY"))
+						.andExpect(jsonPath("$.private").value(false))
 						.andExpect(jsonPath("$.subtasks").isArray())
 						.andReturn()
 						.getResponse()

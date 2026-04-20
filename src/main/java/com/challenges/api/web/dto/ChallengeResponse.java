@@ -2,6 +2,7 @@ package com.challenges.api.web.dto;
 
 import com.challenges.api.model.Challenge;
 import com.challenges.api.model.ChallengeCategory;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -12,6 +13,7 @@ public record ChallengeResponse(
 		String title,
 		String description,
 		ChallengeCategory category,
+		@JsonProperty("private") boolean isPrivate,
 		LocalDate startDate,
 		LocalDate endDate,
 		Instant createdAt,
@@ -38,6 +40,7 @@ public record ChallengeResponse(
 				c.getTitle(),
 				c.getDescription(),
 				c.getCategory(),
+				c.isPrivate(),
 				c.getStartDate(),
 				c.getEndDate(),
 				c.getCreatedAt(),
