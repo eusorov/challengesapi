@@ -9,20 +9,25 @@ env:
 
 jobs:
   test:
-    # Run tests only when source (or build config) changes on push.
-    # Always run on manual dispatch.
-    if: >
-      github.event_name != 'push' ||
-      contains(join(github.event.head_commit.added, ' '), 'src/') ||
-      contains(join(github.event.head_commit.modified, ' '), 'src/') ||
-      contains(join(github.event.head_commit.removed, ' '), 'src/') ||
-      contains(join(github.event.head_commit.added, ' '), 'build.gradle') ||
-      contains(join(github.event.head_commit.modified, ' '), 'build.gradle') ||
-      contains(join(github.event.head_commit.removed, ' '), 'build.gradle') ||
-      contains(join(github.event.head_commit.added, ' '), 'settings.gradle') ||
-      contains(join(github.event.head_commit.modified, ' '), 'settings.gradle') ||
-      contains(join(github.event.head_commit.removed, ' '), 'settings.gradle')
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: challenges
+          POSTGRES_PASSWORD: challenges
+          POSTGRES_DB: challengestest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U challenges -d challengestest"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      SPRING_DATASOURCE_TEST_URL: jdbc:postgresql://localhost:5432/challengestest
+      SPRING_DATASOURCE_TEST_USERNAME: challenges
+      SPRING_DATASOURCE_TEST_PASSWORD: challenges
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,6 +53,7 @@ jobs:
 
   docker:
     name: Build Docker Image
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
