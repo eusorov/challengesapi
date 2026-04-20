@@ -40,6 +40,11 @@ public class DemoDataSeedService {
 	static final int PARTICIPANTS_PER_CHALLENGE = 10;
 	/** Check-ins per seeded participant (split: half challenge-wide, half on a subtask). */
 	static final int CHECKINS_PER_PARTICIPANT = 4;
+	/**
+	 * Challenges whose index is divisible by this value have no {@code city} or {@code location} (remainder get a
+	 * rotating demo place).
+	 */
+	static final int NO_LOCATION_CHALLENGE_INDEX_MOD = 4;
 
 	/**
 	 * First seeded user email — idempotency guard ({@link #seedIfEmpty()} skips if this exists).
@@ -119,9 +124,11 @@ public class DemoDataSeedService {
 			boolean isPrivate = i % PRIVATE_CHALLENGE_INDEX_MOD == 0;
 			Challenge ch = new Challenge(
 					owner, title, description, start, end, categories[i % categories.length], isPrivate);
-			DemoCity place = SEED_CITIES.get(Math.floorMod(i, SEED_CITIES.size()));
-			ch.setCity(place.city);
-			ch.setLocation(ChallengeLocationMapping.toPoint(place.latitude, place.longitude));
+			if (i % NO_LOCATION_CHALLENGE_INDEX_MOD != 0) {
+				DemoCity place = SEED_CITIES.get(Math.floorMod(i, SEED_CITIES.size()));
+				ch.setCity(place.city);
+				ch.setLocation(ChallengeLocationMapping.toPoint(place.latitude, place.longitude));
+			}
 			chList.add(ch);
 		}
 		challenges.saveAll(chList);
