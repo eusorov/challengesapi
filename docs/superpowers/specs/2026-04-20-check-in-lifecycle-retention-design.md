@@ -4,7 +4,7 @@
 
 - **Current model:** One row per **actual** check-in in `check_ins` (`user_id`, `challenge_id`, `check_date`, optional `subtask_id`). Absences are not stored.
 - **Risk:** At large scale (many participants × long-running or numerous challenges × frequent check-ins), the fact table grows without bound.
-- **Product choice (approved):** **Challenge-lifecycle (C)** — keep **full per-day detail** for **active** challenges and for a **configurable grace period after a challenge ends**, then **reduce** footprint via **summaries** and **removal** of raw rows from the primary database (optional **cold archive** before delete).
+- **Product choice (approved):** **Challenge-lifecycle (C)** — keep **full per-day detail** for **active** challenges and for a **configurable grace period after a challenge ends**, then **reduce** footprint via **summaries** and **removal** of raw rows from the primary database. (Optional export to object storage before delete was **removed** from scope.)
 
 ## Goals
 
@@ -52,9 +52,8 @@ New table, e.g. **`check_in_summaries`**, keyed by **participant scope** the pro
 
 1. **Scheduler** (Spring `@Scheduled` or external cron invoking an admin endpoint): select challenges **eligible for rollup** in small batches.
 2. **Per challenge (transactional steps):**
-   - **Optional:** Export raw rows to **S3** (NDJSON, CSV, or Parquet) for compliance/restore — **feature flag** `challenges.check-ins.archive-before-delete`.
-   - **Aggregate** from `check_ins` into `check_in_summaries` (INSERT … ON CONFLICT DO UPDATE).
-   - **Delete** `check_ins` for that `challenge_id` (and all participants) **after** successful summary commit (and after successful export if enabled).
+   - **Aggregate** from `check_ins` into `check_in_summaries` (SQL `INSERT … SELECT`).
+   - **Delete** `check_ins` for that `challenge_id` (and all participants) **after** successful summary commit.
    - **Mark** rollup complete.
 3. **Failure:** Retry on next run; job must be **idempotent** (re-aggregate over remaining rows, or skip if already complete).
 
@@ -84,4 +83,4 @@ Document breaking behavior in **OpenAPI** release notes when shipped.
 ## Approval
 
 - **Product:** Challenge-lifecycle (C) with summary after grace period — **approved** (user confirmation 2026-04-20).
-- **Engineering:** Implement per this document; default `N` and archive flag via config.
+- **Engineering:** Implement per this document; default `N` via config.

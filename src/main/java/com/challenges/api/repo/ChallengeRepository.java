@@ -1,6 +1,7 @@
 package com.challenges.api.repo;
 
 import com.challenges.api.model.Challenge;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -34,4 +35,23 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 			"select distinct c from Challenge c join fetch c.owner left join fetch c.subtasks "
 					+ "where c.id in :ids order by c.id asc")
 	List<Challenge> findAllWithSubtasksAndOwnerByIdIn(@Param("ids") Collection<Long> ids);
+
+	/**
+	 * Challenges that ended on or before {@code maxEndDate} and have not completed check-in rollup.
+	 * Used with {@code maxEndDate = today - retentionDays} so grace period after {@code end_date} is respected.
+	 */
+	@Query(
+			value = """
+					SELECT c.id FROM challenges c
+					WHERE c.end_date IS NOT NULL
+					AND c.end_date <= :maxEndDate
+					AND NOT EXISTS (
+						SELECT 1 FROM check_in_rollup_runs r
+						WHERE r.challenge_id = c.id AND r.status = 'COMPLETE'
+					)
+					ORDER BY c.id ASC
+					LIMIT :limit
+					""",
+			nativeQuery = true)
+	List<Long> findIdsEligibleForCheckInRollup(@Param("maxEndDate") LocalDate maxEndDate, @Param("limit") int limit);
 }

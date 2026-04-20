@@ -4,12 +4,16 @@ import com.challenges.api.model.CheckIn;
 import com.challenges.api.model.SubTask;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.CheckInRepository;
+import com.challenges.api.repo.CheckInSummaryRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.web.dto.CheckInRequest;
+import com.challenges.api.web.dto.CheckInSummaryResponse;
 import com.challenges.api.web.dto.CheckInUpdateRequest;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,19 +26,44 @@ import org.springframework.util.Assert;
 public class CheckInService {
 
 	private final CheckInRepository checkIns;
+	private final CheckInSummaryRepository checkInSummaries;
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
 	private final SubTaskRepository subTasks;
+	private final CheckInRollupService checkInRollupService;
 
 	public CheckInService(
 			CheckInRepository checkIns,
+			CheckInSummaryRepository checkInSummaries,
 			UserRepository users,
 			ChallengeRepository challenges,
-			SubTaskRepository subTasks) {
+			SubTaskRepository subTasks,
+			CheckInRollupService checkInRollupService) {
 		this.checkIns = checkIns;
+		this.checkInSummaries = checkInSummaries;
 		this.users = users;
 		this.challenges = challenges;
 		this.subTasks = subTasks;
+		this.checkInRollupService = checkInRollupService;
+	}
+
+	/**
+	 * Per-day rows from {@code check_ins}. Empty once this challenge has completed check-in rollup; use
+	 * {@link #listSummariesForRolledUpChallenge(Long)} for aggregated data after rollup.
+	 */
+	@Transactional(readOnly = true)
+	public @NonNull List<CheckInSummaryResponse> listSummariesForRolledUpChallenge(@NonNull Long challengeId) {
+		Assert.notNull(challengeId, "challengeId must not be null");
+		if (!challenges.existsById(challengeId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		}
+		if (!checkInRollupService.isRolledUp(challengeId)) {
+			throw new ResponseStatusException(
+					HttpStatus.NOT_FOUND, "Summaries exist only after check-in rollup for eligible ended challenges.");
+		}
+		return checkInSummaries.findByChallenge_IdWithAssociations(challengeId).stream()
+				.map(CheckInSummaryResponse::from)
+				.toList();
 	}
 
 	@Transactional(readOnly = true)

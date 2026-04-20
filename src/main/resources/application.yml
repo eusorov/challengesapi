@@ -2,6 +2,14 @@
 # Create an app database once (reuses same Postgres on 5432):
 #   docker exec challenges-postgres psql -U challenges -d challenges -c "CREATE DATABASE challenges;"
 # Override any time: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
+challenges:
+  check-ins:
+    # Raw check_ins kept until challenge end + this many days; then summarized and deleted (see CheckInRollupService).
+    retention-days-after-challenge-end: ${CHECK_INS_RETENTION_DAYS_AFTER_END:90}
+    rollup-enabled: ${CHECK_INS_ROLLUP_ENABLED:true}
+    rollup-fixed-delay-ms: ${CHECK_INS_ROLLUP_FIXED_DELAY_MS:3600000}
+    rollup-batch-size: ${CHECK_INS_ROLLUP_BATCH_SIZE:10}
+
 aws:
   s3:
     bucket: ${AWS_S3_BUCKET:challenges-726512394960-eu-central-1-an}

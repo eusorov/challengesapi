@@ -10,6 +10,8 @@ challenges:
   demo:
     seed:
       on-startup: false
+  check-ins:
+    rollup-enabled: false
 
 spring:
   cache:

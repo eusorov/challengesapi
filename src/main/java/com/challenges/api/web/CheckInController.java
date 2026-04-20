@@ -3,7 +3,9 @@ package com.challenges.api.web;
 import com.challenges.api.service.CheckInService;
 import com.challenges.api.web.dto.CheckInRequest;
 import com.challenges.api.web.dto.CheckInResponse;
+import com.challenges.api.web.dto.CheckInSummaryResponse;
 import com.challenges.api.web.dto.CheckInUpdateRequest;
+import java.util.List;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
@@ -37,6 +39,18 @@ public class CheckInController {
 	public @NonNull Page<CheckInResponse> listForChallenge(
 			@PathVariable Long challengeId, @PageableDefault(size = 20) Pageable pageable) {
 		return checkInService.listForChallenge(challengeId, pageable).map(CheckInResponse::from);
+	}
+
+	/**
+	 * Aggregated check-in stats after {@link com.challenges.api.service.CheckInRollupService} has run for this challenge.
+	 * Returns 404 if the challenge is unknown or rollup has not completed yet (use {@code /check-ins} for per-day rows).
+	 */
+	@GetMapping({
+		"/challenges/{challengeId:\\d+}/check-in-summaries",
+		"/challenges/{challengeId:\\d+}/check-in-summaries/"
+	})
+	public @NonNull List<CheckInSummaryResponse> listSummariesForChallenge(@PathVariable Long challengeId) {
+		return checkInService.listSummariesForRolledUpChallenge(challengeId);
 	}
 
 	@GetMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
