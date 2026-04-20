@@ -47,6 +47,10 @@ class DemoDataLoaderIT {
 		assertThat(users.existsByEmail(DemoDataSeedService.SEED_EMAIL_1)).isTrue();
 		assertThat(users.count()).isEqualTo(DemoDataSeedService.BULK_USER_COUNT);
 		assertThat(challenges.count()).isEqualTo(DemoDataSeedService.BULK_CHALLENGE_COUNT);
+		int expectedPrivate =
+				(DemoDataSeedService.BULK_CHALLENGE_COUNT - 1) / DemoDataSeedService.PRIVATE_CHALLENGE_INDEX_MOD
+						+ 1;
+		assertThat(challenges.countByIsPrivateTrue()).isEqualTo(expectedPrivate);
 		assertThat(participants.count())
 				.isEqualTo(
 						(long) DemoDataSeedService.BULK_CHALLENGE_COUNT

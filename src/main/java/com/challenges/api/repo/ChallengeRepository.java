@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 
+	long countByIsPrivateTrue();
+
 	@Query("select distinct c from Challenge c join fetch c.owner left join fetch c.subtasks where c.id = :id")
 	Optional<Challenge> findByIdWithSubtasksAndOwner(@Param("id") Long id);
 

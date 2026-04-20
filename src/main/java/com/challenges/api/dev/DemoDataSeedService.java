@@ -31,6 +31,11 @@ public class DemoDataSeedService {
 
 	static final int BULK_USER_COUNT = 1_000;
 	static final int BULK_CHALLENGE_COUNT = 1_000;
+	/**
+	 * Challenges whose zero-based index is divisible by this value are seeded as private (e.g. {@code 200}
+	 * → indices 0, 200, 400, … are private).
+	 */
+	static final int PRIVATE_CHALLENGE_INDEX_MOD = 200;
 	static final int PARTICIPANTS_PER_CHALLENGE = 10;
 	/** Check-ins per seeded participant (split: half challenge-wide, half on a subtask). */
 	static final int CHECKINS_PER_PARTICIPANT = 4;
@@ -102,7 +107,9 @@ public class DemoDataSeedService {
 			LocalDate end = i % 3 == 0 ? start.plusMonths(1 + (i % 3)) : null;
 			String title = truncate(faker.book().title() + " — " + faker.lorem().word(), TITLE_MAX);
 			String description = truncate(faker.lorem().paragraph(2 + (i % 3)), DESCRIPTION_MAX);
-			chList.add(new Challenge(owner, title, description, start, end, categories[i % categories.length]));
+			boolean isPrivate = i % PRIVATE_CHALLENGE_INDEX_MOD == 0;
+			chList.add(new Challenge(
+					owner, title, description, start, end, categories[i % categories.length], isPrivate));
 		}
 		challenges.saveAll(chList);
 		challenges.flush();
