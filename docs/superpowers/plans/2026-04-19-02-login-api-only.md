@@ -4,7 +4,7 @@
 
 **Goal:** Port **only** the **`POST /api/login`** contract from `/Users/evgenyusorov/workspace/java/authspring` into **challengesapi**: JSON and form-urlencoded bodies, **200** with `{ "token", "user" }`, **422** `ProblemDetail` with Laravel-style `errors.email` on bad credentials. **Do not** add register, forgot/reset password, email verification, `/api/logout`, `/api/users` (authspring), secured test routes, or `JwtAuthenticationFilter`-based protection of other endpoints.
 
-**Architecture:** Add **`com.authspring.api`** as a **component-scan sibling** of **`com.challenges.api`**. Reuse **`com.challenges.api.model.User`** and **`PasswordEncoder`** already defined in **`com.challenges.api.config.SecurityConfig`** (single bean; do **not** add a second `SecurityConfig`). Persist issued JWT fingerprints in **`personal_access_tokens`** using the **existing Flyway** table from **`V11__personal_access_tokens.sql`** (`user_id`, `token_hash`, …) — **not** authspring’s polymorphic `tokenable_type` / `tokenable_id` / `token` column names; implement a **challenges-shaped JPA entity** and a **small** `PersonalAccessTokenService` that only **`recordLoginToken`**. Login response **`user`** object uses a **new DTO** (e.g. `AuthUserResponse`) so it does not clash with **`com.challenges.api.web.dto.UserResponse`** (`/api/users`).
+**Architecture:** Add **`com.authspring.api`** as a **component-scan sibling** of **`com.challenges.api`**. Reuse **`com.challenges.api.model.User`** and **`PasswordEncoder`** already defined in **`com.challenges.api.config.SecurityConfig`** (single bean; do **not** add a second `SecurityConfig`). Persist issued JWT fingerprints in **`personal_access_tokens`** using the **Flyway** table from **`V11__personal_access_tokens.sql`**: Laravel-style polymorphic columns **`tokenable_type`**, **`tokenable_id`**, and a **`token`** column that stores the **SHA-256 hex** of the compact JWT (same convention as authspring). Map **`tokenable_type`** to **`User.class.getName()`** and **`tokenable_id`** to the user’s id. Implement **`PersonalAccessToken`** (JPA), **`PersonalAccessTokenRepository`**, and **`PersonalAccessTokenService.recordLoginToken`**. Login response **`user`** object uses a **new DTO** (e.g. `AuthUserResponse`) so it does not clash with **`com.challenges.api.web.dto.UserResponse`** (`/api/users`).
 
 **Tech stack:** Java 25, Spring Boot 4.0.x, Spring Security, JJWT 0.12.6, PostgreSQL, Flyway, JUnit 5, MockMvc (same as existing ITs).
 
@@ -24,9 +24,9 @@
 | `src/main/java/com/challenges/api/ChallengesApiApplication.java` | Add `scanBasePackages = {"com.challenges.api", "com.authspring.api"}`. |
 | `src/main/java/com/authspring/api/config/JwtProperties.java` | Copy from authspring; `package com.authspring.api.config`; `@ConfigurationProperties(prefix = "jwt")`. Bound via `@EnableConfigurationProperties` on **`ChallengesApiApplication`** (Task 1) or a single `@Configuration` class under `com.authspring.api.config` — not both. |
 | `src/main/java/com/authspring/api/security/JwtService.java` | `createToken(com.challenges.api.model.User)` + constructor validation (secret ≥ 32 bytes). |
-| `src/main/java/com/challenges/api/model/PersonalAccessToken.java` | JPA entity mapped to **`V11`** columns (`user_id`, `token_hash`, …). |
-| `src/main/java/com/challenges/api/repo/PersonalAccessTokenRepository.java` | `findByTokenHash`, `deleteByTokenHash` (only if you add revoke later; **YAGNI** for login-only — `JpaRepository` save is enough if service only inserts). |
-| `src/main/java/com/authspring/api/service/PersonalAccessTokenService.java` | **Only** `recordLoginToken(User, String jwtCompact)`; SHA-256 hex → `token_hash`; set `user_id`, `name`, `abilities`, `expires_at`, `created_at` from `JwtProperties.expirationMs`. |
+| `src/main/java/com/challenges/api/model/PersonalAccessToken.java` | JPA entity mapped to **`V11`** columns (`tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, timestamps). |
+| `src/main/java/com/challenges/api/repo/PersonalAccessTokenRepository.java` | `findByToken`, `deleteByToken` (hash lookup by the **`token`** column value). |
+| `src/main/java/com/authspring/api/service/PersonalAccessTokenService.java` | `recordLoginToken(User, String jwtCompact)` — SHA-256 hex → **`token`**; set **`tokenable_type`** / **`tokenable_id`** / `name` / `abilities` / `expires_at` / `created_at` / `updated_at`. (Optional follow-ups: `existsForJwtCompact`, `revokeByJwtFromRequest` for JWT filter / logout — see later plans.) |
 | `src/main/java/com/authspring/api/service/SessionService.java` | Same logic as authspring: `findByEmail`, `passwordEncoder.matches`, `jwtService.createToken`, `recordLoginToken`, `AuthUserResponse.from`. |
 | `src/main/java/com/authspring/api/web/dto/LoginRequest.java` | Same as authspring; optional `@Size(max = 255)` on email. |
 | `src/main/java/com/authspring/api/web/dto/LoginResponse.java` | `record LoginResponse(String token, AuthUserResponse user)`. |
@@ -38,7 +38,7 @@
 **Explicitly out of scope (do not add in this plan):**
 - `JwtAuthenticationFilter`, `UserPrincipal`, `@RequiresAuth`, `/api/logout`, `ProblemJsonAuthenticationEntryPoint` (unless a follow-up plan secures routes).
 - `RegisterController`, `ForgotPasswordController`, `ResetPasswordController`, `VerifyEmailController`, `UserController` (authspring), `EmailVerificationNotificationController`.
-- Full `PersonalAccessTokenService` (`revokeByJwtFromRequest`, `existsForJwtCompact`) until logout/JWT gate exists.
+- Stricter **login-only** MVP could ship **`recordLoginToken`** alone; the repository still exposes **`findByToken`** / **`deleteByToken`** for when **`existsForJwtCompact`** / **`revokeByJwtFromRequest`** are added with the JWT filter and logout plans.
 - `JwtService.createPasswordResetFlowToken` / password-reset flows.
 
 ---
@@ -228,14 +228,17 @@ public class PersonalAccessToken {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "user_id", nullable = false)
-	private Long userId;
+	@Column(name = "tokenable_type", nullable = false, length = 255)
+	private String tokenableType;
 
-	@Column(nullable = false, length = 255)
+	@Column(name = "tokenable_id", nullable = false)
+	private Long tokenableId;
+
+	@Column(nullable = false, columnDefinition = "TEXT")
 	private String name;
 
-	@Column(name = "token_hash", nullable = false, unique = true, length = 255)
-	private String tokenHash;
+	@Column(nullable = false, unique = true, length = 64)
+	private String token;
 
 	@Column(columnDefinition = "TEXT")
 	private String abilities;
@@ -249,19 +252,30 @@ public class PersonalAccessToken {
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
-	protected PersonalAccessToken() {
+	@Column(name = "updated_at", nullable = false)
+	private Instant updatedAt;
+
+	public PersonalAccessToken() {
 	}
 
 	public Long getId() {
 		return id;
 	}
 
-	public Long getUserId() {
-		return userId;
+	public String getTokenableType() {
+		return tokenableType;
 	}
 
-	public void setUserId(Long userId) {
-		this.userId = userId;
+	public void setTokenableType(String tokenableType) {
+		this.tokenableType = tokenableType;
+	}
+
+	public Long getTokenableId() {
+		return tokenableId;
+	}
+
+	public void setTokenableId(Long tokenableId) {
+		this.tokenableId = tokenableId;
 	}
 
 	public String getName() {
@@ -272,12 +286,12 @@ public class PersonalAccessToken {
 		this.name = name;
 	}
 
-	public String getTokenHash() {
-		return tokenHash;
+	public String getToken() {
+		return token;
 	}
 
-	public void setTokenHash(String tokenHash) {
-		this.tokenHash = tokenHash;
+	public void setToken(String token) {
+		this.token = token;
 	}
 
 	public String getAbilities() {
@@ -311,6 +325,14 @@ public class PersonalAccessToken {
 	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Instant updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 }
 ```
 
@@ -322,9 +344,15 @@ Create `src/main/java/com/challenges/api/repo/PersonalAccessTokenRepository.java
 package com.challenges.api.repo;
 
 import com.challenges.api.model.PersonalAccessToken;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PersonalAccessTokenRepository extends JpaRepository<PersonalAccessToken, Long> {}
+public interface PersonalAccessTokenRepository extends JpaRepository<PersonalAccessToken, Long> {
+
+	Optional<PersonalAccessToken> findByToken(String token);
+
+	void deleteByToken(String token);
+}
 ```
 
 - [ ] **Step 3: Compile**
@@ -342,12 +370,12 @@ git commit -m "feat(auth): JPA entity for personal_access_tokens (V11)"
 
 ---
 
-### Task 5: `PersonalAccessTokenService` (insert-only for login)
+### Task 5: `PersonalAccessTokenService` (login persistence + hash helpers)
 
 **Files:**
 - Create: `src/main/java/com/authspring/api/service/PersonalAccessTokenService.java`
 
-- [ ] **Step 1: Add service**
+- [ ] **Step 1: Add service** (minimal login path is **`recordLoginToken`**; **`existsForJwtCompact`** / **`revokeByJwtFromRequest`** support JWT gate and logout when wired.)
 
 ```java
 package com.authspring.api.service;
@@ -356,16 +384,20 @@ import com.authspring.api.config.JwtProperties;
 import com.challenges.api.model.PersonalAccessToken;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.PersonalAccessTokenRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PersonalAccessTokenService {
+
+	private static final String BEARER_PREFIX = "Bearer ";
 
 	private final PersonalAccessTokenRepository repository;
 	private final JwtProperties jwtProperties;
@@ -381,13 +413,33 @@ public class PersonalAccessTokenService {
 		Instant now = Instant.now();
 		Instant expiresAt = now.plusMillis(jwtProperties.expirationMs());
 		PersonalAccessToken row = new PersonalAccessToken();
-		row.setUserId(user.getId());
+		row.setTokenableType(User.class.getName());
+		row.setTokenableId(user.getId());
 		row.setName("api");
-		row.setTokenHash(sha256Hex(jwtCompact));
+		row.setToken(sha256Hex(jwtCompact));
 		row.setAbilities("[\"*\"]");
 		row.setExpiresAt(expiresAt);
 		row.setCreatedAt(now);
+		row.setUpdatedAt(now);
 		repository.save(row);
+	}
+
+	@Transactional(readOnly = true)
+	public boolean existsForJwtCompact(String jwtCompact) {
+		return repository.findByToken(sha256Hex(jwtCompact)).isPresent();
+	}
+
+	@Transactional
+	public void revokeByJwtFromRequest(HttpServletRequest request) {
+		String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+		if (header == null || !header.startsWith(BEARER_PREFIX)) {
+			return;
+		}
+		String raw = header.substring(BEARER_PREFIX.length()).trim();
+		if (raw.isEmpty()) {
+			return;
+		}
+		repository.deleteByToken(sha256Hex(raw));
 	}
 
 	private static String sha256Hex(String value) {
@@ -726,9 +778,9 @@ git commit -m "test(auth): login JSON, form, and invalid credentials"
 
 ## Self-review
 
-1. **Spec coverage:** Single route **`POST /api/login`** (JSON + form), success payload, 422 error shape, persistence of token hash — each maps to Tasks 3–8. **Out-of-scope** items listed explicitly.
+1. **Spec coverage:** Single route **`POST /api/login`** (JSON + form), success payload, 422 error shape, persistence of JWT fingerprint (SHA-256 hex in **`token`**) — each maps to Tasks 3–8. **Out-of-scope** items listed explicitly.
 2. **Placeholder scan:** No TBD/TODO steps; code blocks are complete.
-3. **Type consistency:** `LoginResponse` uses `AuthUserResponse`; `JwtService.createToken` takes `com.challenges.api.model.User`; `PersonalAccessToken` columns match **`V11`**.
+3. **Type consistency:** `LoginResponse` uses `AuthUserResponse`; `JwtService.createToken` takes `com.challenges.api.model.User`; `PersonalAccessToken` maps **`V11`** (`tokenable_type`, `tokenable_id`, `token` = SHA-256 hex of JWT, etc.).
 
 **Flyway / DB note:** Changing **`V11`** after it has run in an environment will cause checksum errors — this plan **does not** change **`V11`**. Fresh DBs run migrations 1–11 as today.
 
