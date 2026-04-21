@@ -1,7 +1,9 @@
 # Challenge list: text search and discovery filters
 
-**Status:** Partial  
+**Status:** Done (2026-04-21)  
 **Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.1
+
+**Implemented:** Branch `feature/challenge-search-and-private-visibility`, commit `1e800b4`. `GET /api/challenges` optional query params **`q`**, **`category`** (enum name), **`city`**; OpenAPI via `@Parameter` on `ChallengeController.list`; tests in `ChallengeControllerIT`, `ChallengeRepositoryTest`.
 
 ## Problem
 
