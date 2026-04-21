@@ -144,7 +144,7 @@
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | Create check-in | `POST` | `/api/check-ins` | **OK** | [`2026-04-21-check-in-create-participant-validation.md` (done)](../../tickets/done/2026-04-21-check-in-create-participant-validation.md) | **Bearer JWT** required (**401** without). Body **`userId`** must match the authenticated user (**403** otherwise). **Owner** or **participant** only: challenge-wide rows require challenge-wide **`Participant`** (or owner); **`subTaskId`** set requires challenge-wide **or** matching subtask-scoped **`Participant`**. |
-| Update / delete | `PUT` `DELETE` | `/api/check-ins/{id}` | OK | — | |
+| Update / delete | `PUT` `DELETE` | `/api/check-ins/{id}` | **Partial** | [`2026-04-21-check-in-update-delete-author-only.md`](../../tickets/2026-04-21-check-in-update-delete-author-only.md) | **Rule:** only the **check-in author** (**`user_id`** on the row = person who logged it) may update or delete; **challenge owner** does **not** edit others’ check-ins here. **Target:** **Bearer JWT** (**401** without); subject must match check-in user (**403** otherwise); missing id → **404**. **Today:** **`PUT`** / **`DELETE`** omit **`UserPrincipal`** — ids are mutable by anyone who knows them. |
 
 ---
 
