@@ -103,4 +103,21 @@ class ChallengeRepositoryTest {
 						null, null, "berlin", PageRequest.of(0, 20));
 		assertThat(byCity.getContent()).containsExactly(a.getId());
 	}
+
+	@Test
+	void findIdsByOwnerUserIdOrderByIdAsc_returnsOnlyThatOwnersChallengesOrderedById() {
+		User u1 = entityManager.persistAndFlush(User.forTest("repo-owner-a@example.com"));
+		User u2 = entityManager.persistAndFlush(User.forTest("repo-owner-b@example.com"));
+		LocalDate d = LocalDate.of(2026, 5, 1);
+		Challenge c1 = new Challenge(u1, "a1", null, d, null, ChallengeCategory.OTHER);
+		Challenge c2 = new Challenge(u1, "a2", null, d, null, ChallengeCategory.OTHER, true);
+		Challenge c3 = new Challenge(u2, "b1", null, d, null, ChallengeCategory.OTHER);
+		challengeRepository.saveAll(List.of(c1, c2, c3));
+		entityManager.flush();
+		entityManager.clear();
+
+		var page = challengeRepository.findIdsByOwnerUserIdOrderByIdAsc(u1.getId(), PageRequest.of(0, 20));
+		assertThat(page.getTotalElements()).isEqualTo(2);
+		assertThat(page.getContent()).containsExactly(c1.getId(), c2.getId());
+	}
 }

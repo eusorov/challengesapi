@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -261,6 +262,60 @@ class ChallengeControllerIT {
 		mockMvc.perform(get("/api/challenges/" + id).header(HV, V1))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.title").value("Public board"));
+	}
+
+	@Test
+	void listMine_requiresAuth() throws Exception {
+		mockMvc.perform(get("/api/challenges/mine").header(HV, V1)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void listMine_returnsOnlyOwnedChallenges_includingPrivate() throws Exception {
+		String pubBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Owned public\",\"description\":null,"
+						+ "\"startDate\":\"2026-09-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		mockMvc.perform(post("/api/challenges")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(pubBody))
+				.andExpect(status().isCreated());
+
+		String privBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Owned private\",\"description\":null,"
+						+ "\"startDate\":\"2026-09-01\",\"endDate\":null,\"category\":\"LEARNING\",\"private\":true}",
+				owner1.getId());
+		mockMvc.perform(post("/api/challenges")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(privBody))
+				.andExpect(status().isCreated());
+
+		User owner2 = users.findByEmail("ch-owner2@test").orElseThrow();
+		String otherBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Other user ch\",\"description\":null,"
+						+ "\"startDate\":\"2026-09-01\",\"endDate\":null,\"category\":\"PRODUCTIVITY\"}",
+				owner2.getId());
+		mockMvc.perform(post("/api/challenges")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, JwtLoginSupport.bearerAuthorization(mockMvc, "ch-owner2@test", "password"))
+						.contentType(APPLICATION_JSON)
+						.content(otherBody))
+				.andExpect(status().isCreated());
+
+		mockMvc.perform(get("/api/challenges/mine").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(2))
+				.andExpect(jsonPath("$.numberOfElements").value(2))
+				.andExpect(jsonPath("$.content[*].title").value(containsInAnyOrder("Owned public", "Owned private")));
+
+		String bearerOwner2 = JwtLoginSupport.bearerAuthorization(mockMvc, "ch-owner2@test", "password");
+		mockMvc.perform(get("/api/challenges/mine").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerOwner2))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(1))
+				.andExpect(jsonPath("$.content[0].title").value("Other user ch"));
 	}
 
 	@Test

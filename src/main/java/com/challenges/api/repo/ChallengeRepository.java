@@ -33,6 +33,11 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 			countQuery = "select count(c) from Challenge c where c.isPrivate = false")
 	Page<Long> findNonPrivateIdsOrderByIdAsc(Pageable pageable);
 
+	@Query(
+			value = "select c.id from Challenge c where c.owner.id = :ownerUserId order by c.id asc",
+			countQuery = "select count(c) from Challenge c where c.owner.id = :ownerUserId")
+	Page<Long> findIdsByOwnerUserIdOrderByIdAsc(@Param("ownerUserId") Long ownerUserId, Pageable pageable);
+
 	/**
 	 * Filtered public listing (native SQL so nullable category binds cleanly). Pass {@code searchTextLike} as {@code null}
 	 * to skip text search; otherwise a pattern such as {@code %query%}. Pass {@code category} as enum name (e.g. {@code

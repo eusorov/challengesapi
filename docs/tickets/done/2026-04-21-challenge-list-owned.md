@@ -1,8 +1,9 @@
 # List challenges owned by the current user
 
-**Status:** Planned  
-**Work branch:** `ticket/challenge-list-owned`  
-**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.2
+**Status:** Done (2026-04-21)  
+**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.2
+
+**Implemented:** Branch `ticket/challenge-list-owned`, commit `a2721ce`. `GET /api/challenges/mine` — `ChallengeController.listMine`, `ChallengeService.listOwnedByUser`, `ChallengeRepository.findIdsByOwnerUserIdOrderByIdAsc` + `findAllWithSubtasksAndOwnerByIdIn`; OpenAPI `@Operation`; tests in `ChallengeControllerIT`, `ChallengeRepositoryTest`.
 
 ## Problem
 
@@ -29,5 +30,5 @@ There is no API to list **my owned** challenges (including **private**). Clients
 
 ## References
 
-- `ChallengeController.list`, `ChallengeService.listChallenges`, `ChallengeRepository`
+- `ChallengeController.listMine`, `ChallengeService.listOwnedByUser`, `ChallengeRepository.findIdsByOwnerUserIdOrderByIdAsc`
 - `UserPrincipal` usage on `ChallengeController.get`

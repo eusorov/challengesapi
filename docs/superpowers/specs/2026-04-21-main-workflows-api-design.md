@@ -39,7 +39,7 @@
 
 | Step | Method | Path | Status | Notes |
 |------|--------|------|--------|--------|
-| “My owned challenges” | `GET` | `/api/challenges/mine` | **Planned** | Ticket: [`docs/tickets/2026-04-21-challenge-list-owned.md`](../../tickets/2026-04-21-challenge-list-owned.md). Authenticated; lists **all** challenges owned by JWT user (including **private**). Pagination like **`GET /api/challenges`**. |
+| “My owned challenges” | `GET` | `/api/challenges/mine` | **OK** | **Bearer JWT** required (**401** without). Paged **`ChallengeResponse`** for **`owner_user_id =` current user** (public and private). Same **`page`/`size`** defaults as **`GET /api/challenges`**. Done: [`docs/tickets/done/2026-04-21-challenge-list-owned.md`](../../tickets/done/2026-04-21-challenge-list-owned.md). |
 
 ### 1.3 Private challenges the user was invited to
 

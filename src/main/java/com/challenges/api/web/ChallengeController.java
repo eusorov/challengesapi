@@ -8,6 +8,7 @@ import com.challenges.api.service.ParticipantService;
 import com.challenges.api.web.dto.ChallengeRequest;
 import com.challenges.api.web.dto.ChallengeResponse;
 import com.challenges.api.web.dto.ParticipantResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
@@ -60,6 +61,19 @@ public class ChallengeController {
 		return challengeService
 				.listChallenges(pageable, q, category, city)
 				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl));
+	}
+
+	@Operation(summary = "List challenges owned by the current user (includes private)")
+	@GetMapping({ "/mine", "/mine/" })
+	public ResponseEntity<Page<ChallengeResponse>> listMine(
+			@PageableDefault(size = 20) Pageable pageable, @AuthenticationPrincipal UserPrincipal principal) {
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		Page<ChallengeResponse> page = challengeService
+				.listOwnedByUser(principal.getId(), pageable)
+				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl));
+		return ResponseEntity.ok(page);
 	}
 
 	@GetMapping({ "/{id:\\d+}", "/{id:\\d+}/" })

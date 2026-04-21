@@ -69,6 +69,19 @@ public class ChallengeService {
 		return new PageImpl<>(loaded, pageable, idPage.getTotalElements());
 	}
 
+	/** Paged challenges owned by the user (public and private). */
+	@Transactional(readOnly = true)
+	public @NonNull Page<Challenge> listOwnedByUser(@NonNull Long ownerUserId, @NonNull Pageable pageable) {
+		Assert.notNull(ownerUserId, "ownerUserId must not be null");
+		Assert.notNull(pageable, "pageable must not be null");
+		Page<Long> idPage = challenges.findIdsByOwnerUserIdOrderByIdAsc(ownerUserId, pageable);
+		if (idPage.isEmpty()) {
+			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
+		}
+		List<Challenge> loaded = challenges.findAllWithSubtasksAndOwnerByIdIn(idPage.getContent());
+		return new PageImpl<>(loaded, pageable, idPage.getTotalElements());
+	}
+
 	/**
 	 * Loads a challenge for an HTTP GET. Public challenges are visible to anyone. Private challenges are visible only to
 	 * the owner, any participant (challenge-wide or subtask-scoped), or a user with a usable pending invite (same rule
