@@ -1,8 +1,10 @@
 package com.challenges.api.web;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -370,6 +372,205 @@ class ChallengeControllerIT {
 		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants")
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerInvitee))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	void replaceChallenge_asOwner_updates() throws Exception {
+		String createBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Before\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		String putBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"After\",\"description\":\"x\","
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"PRODUCTIVITY\",\"private\":true}",
+				owner1.getId());
+		mockMvc.perform(put("/api/challenges/" + challengeId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(putBody))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.title").value("After"))
+				.andExpect(jsonPath("$.description").value("x"))
+				.andExpect(jsonPath("$.category").value("PRODUCTIVITY"))
+				.andExpect(jsonPath("$.private").value(true));
+	}
+
+	@Test
+	void replaceChallenge_withoutBearer_unauthorized() throws Exception {
+		String createBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"U\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		String putBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Nope\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		mockMvc.perform(put("/api/challenges/" + challengeId)
+						.header(HV, V1)
+						.contentType(APPLICATION_JSON)
+						.content(putBody))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void replaceChallenge_asNonOwner_forbidden() throws Exception {
+		String createBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Mine\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		User owner2 = users.findByEmail("ch-owner2@test").orElseThrow();
+		String putBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Stolen\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner2.getId());
+		String bearerOwner2 = JwtLoginSupport.bearerAuthorization(mockMvc, "ch-owner2@test", "password");
+		mockMvc.perform(put("/api/challenges/" + challengeId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerOwner2)
+						.contentType(APPLICATION_JSON)
+						.content(putBody))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void replaceChallenge_ownerUserIdNotMatchingJwt_forbidden() throws Exception {
+		String createBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"O\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		User owner2 = users.findByEmail("ch-owner2@test").orElseThrow();
+		String putBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Confused\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner2.getId());
+		mockMvc.perform(put("/api/challenges/" + challengeId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(putBody))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void deleteChallenge_asOwner_noContent() throws Exception {
+		String createBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Del me\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(delete("/api/challenges/" + challengeId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isNoContent());
+	}
+
+	@Test
+	void deleteChallenge_withoutBearer_unauthorized() throws Exception {
+		String createBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"X\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(delete("/api/challenges/" + challengeId).header(HV, V1)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void deleteChallenge_asNonOwner_forbidden() throws Exception {
+		String createBody = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Keep\",\"description\":null,"
+						+ "\"startDate\":\"2026-10-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		String bearerOwner2 = JwtLoginSupport.bearerAuthorization(mockMvc, "ch-owner2@test", "password");
+		mockMvc.perform(delete("/api/challenges/" + challengeId)
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerOwner2))
+				.andExpect(status().isForbidden());
+
+		mockMvc.perform(get("/api/challenges/" + challengeId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk());
 	}
 }

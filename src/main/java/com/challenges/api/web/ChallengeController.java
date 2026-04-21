@@ -107,8 +107,14 @@ public class ChallengeController {
 	}
 
 	@PutMapping({ "/{id:\\d+}", "/{id:\\d+}/" })
-	public ResponseEntity<ChallengeResponse> replace(@PathVariable Long id, @Valid @RequestBody ChallengeRequest req) {
-		return challengeService.replace(id, req)
+	public ResponseEntity<ChallengeResponse> replace(
+			@PathVariable Long id,
+			@Valid @RequestBody ChallengeRequest req,
+			@AuthenticationPrincipal @Nullable UserPrincipal principal) {
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return challengeService.replace(id, req, principal.getId())
 				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl))
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
@@ -126,8 +132,12 @@ public class ChallengeController {
 	}
 
 	@DeleteMapping({ "/{id:\\d+}", "/{id:\\d+}/" })
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
-		if (!challengeService.delete(id)) {
+	public ResponseEntity<Void> delete(
+			@PathVariable Long id, @AuthenticationPrincipal @Nullable UserPrincipal principal) {
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		if (!challengeService.delete(id, principal.getId())) {
 			return ResponseEntity.notFound().build();
 		}
 		return ResponseEntity.noContent().build();

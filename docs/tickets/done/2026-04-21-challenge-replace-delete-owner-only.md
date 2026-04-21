@@ -1,7 +1,9 @@
 # Challenges: owner-only replace and delete
 
-**Status:** Partial  
-**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) §3.4
+**Status:** Done (2026-04-21)  
+**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../../superpowers/specs/2026-04-21-main-workflows-api-design.md) §3.4
+
+**Implemented:** **`ChallengeService.replace(id, req, actorUserId)`** requires **`req.ownerUserId()`** to match **`actorUserId`** (**403**), loads the challenge, and asserts the actor owns it (**403**). Updates fields without changing **`owner`**. **`delete(id, actorUserId)`** loads the challenge, asserts owner, then deletes (**404** if missing). **`ChallengeController`** returns **401** when **`UserPrincipal`** is missing on **`PUT`** / **`DELETE`**. Tests: **`ChallengeControllerIT`**.
 
 ## Problem
 
@@ -21,3 +23,7 @@
 ## References
 
 - `ChallengeController.replace`, `ChallengeController.delete`, `ChallengeService.replace`, `ChallengeService.delete`
+
+## Contract note
+
+**`PUT`** no longer reassigns **`owner`** from the body. **`ownerUserId`** must match the JWT subject; the persisted **`Challenge.owner`** remains the existing entity association.

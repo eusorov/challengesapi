@@ -18,11 +18,13 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Service
@@ -139,12 +141,16 @@ public class ChallengeService {
 	}
 
 	@Transactional
-	public Optional<Challenge> replace(@NonNull Long id, @NonNull ChallengeRequest req) {
+	public Optional<Challenge> replace(@NonNull Long id, @NonNull ChallengeRequest req, @NonNull Long actorUserId) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
-		return users.findById(req.ownerUserId()).flatMap(owner -> challenges.findByIdWithSubtasksAndOwner(id).map(ch -> {
+		Assert.notNull(actorUserId, "actorUserId must not be null");
+		if (!req.ownerUserId().equals(actorUserId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		}
+		return challenges.findByIdWithSubtasksAndOwner(id).map(ch -> {
+			assertActorOwnsChallenge(actorUserId, ch);
 			validateLocationRuleC(req);
-			ch.setOwner(owner);
 			ch.setTitle(req.title());
 			ch.setDescription(req.description());
 			ch.setCategory(req.category());
@@ -153,15 +159,18 @@ public class ChallengeService {
 			ch.setPrivate(Boolean.TRUE.equals(req.isPrivate()));
 			applyLocationFromRequest(ch, req);
 			return challenges.save(ch);
-		}));
+		});
 	}
 
 	@Transactional
-	public boolean delete(@NonNull Long id) {
+	public boolean delete(@NonNull Long id, @NonNull Long actorUserId) {
 		Assert.notNull(id, "id must not be null");
-		if (!challenges.existsById(id)) {
+		Assert.notNull(actorUserId, "actorUserId must not be null");
+		Optional<Challenge> loaded = challenges.findByIdWithSubtasksAndOwner(id);
+		if (loaded.isEmpty()) {
 			return false;
 		}
+		assertActorOwnsChallenge(actorUserId, loaded.get());
 		challenges.deleteById(id);
 		return true;
 	}
@@ -200,6 +209,12 @@ public class ChallengeService {
 				throw new IllegalStateException(e);
 			}
 		});
+	}
+
+	private static void assertActorOwnsChallenge(@NonNull Long actorUserId, @NonNull Challenge challenge) {
+		if (!challenge.getOwner().getId().equals(actorUserId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		}
 	}
 
 	private static void validateLocationRuleC(ChallengeRequest req) {

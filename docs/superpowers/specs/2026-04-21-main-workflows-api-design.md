@@ -101,7 +101,7 @@
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
-| Set private on create/update | body | `POST /api/challenges`, `PUT /api/challenges/{id}` | OK | — | JSON field **`private`**. Owner-only **PUT** / **DELETE** tracked in **§3.4**. |
+| Set private on create/update | body | `POST /api/challenges`, `PUT /api/challenges/{id}` | OK | — | JSON field **`private`**. **`PUT`** / **`DELETE`** are **owner-only** (**§3.4**). |
 | Public list | `GET` | `/api/challenges` | OK | [`2026-04-21-challenge-public-list-text-search.md` (done)](../../tickets/done/2026-04-21-challenge-public-list-text-search.md) | **Non-private only** repository query. |
 
 ### 3.3 Subtasks (with own schedule)
@@ -116,8 +116,8 @@
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
-| Replace challenge | `PUT` | `/api/challenges/{id}` | **Partial** | [`2026-04-21-challenge-replace-delete-owner-only.md`](../../tickets/2026-04-21-challenge-replace-delete-owner-only.md) | **`ChallengeService.replace`** does **not** verify caller **owner** (only **`ownerUserId`** in body). **Upload image** **`POST /api/challenges/{id}/image`** **does** check owner vs **`UserPrincipal`**. |
-| Delete challenge | `DELETE` | `/api/challenges/{id}` | **Partial** | [`2026-04-21-challenge-replace-delete-owner-only.md`](../../tickets/2026-04-21-challenge-replace-delete-owner-only.md) | No owner check. |
+| Replace challenge | `PUT` | `/api/challenges/{id}` | OK | [`2026-04-21-challenge-replace-delete-owner-only.md` (done)](../../tickets/done/2026-04-21-challenge-replace-delete-owner-only.md) | **Bearer JWT** required (**401** without). **`ownerUserId`** in the body must equal the JWT subject (**403** otherwise). Only the **current owner** may update (**403**). **Ownership transfer** via **`PUT`** is **not** supported (owner stays the authenticated user). |
+| Delete challenge | `DELETE` | `/api/challenges/{id}` | OK | [`2026-04-21-challenge-replace-delete-owner-only.md` (done)](../../tickets/done/2026-04-21-challenge-replace-delete-owner-only.md) | **Bearer JWT** required (**401** without). **Owner-only** (**403** for others). Missing id → **404**. |
 
 ---
 
