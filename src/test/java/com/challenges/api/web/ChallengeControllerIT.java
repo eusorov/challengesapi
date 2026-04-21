@@ -80,6 +80,13 @@ class ChallengeControllerIT {
 		JsonNode node = objectMapper.readTree(created);
 		long challengeId = node.get("id").asLong();
 
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content[0].userId").value(owner1.getId().intValue()))
+				.andExpect(jsonPath("$.content[0].subTaskId").value((Object) null));
+
 		mockMvc.perform(get("/api/challenges").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content[0].ownerUserId").value(owner1.getId().intValue()))
