@@ -4,9 +4,7 @@ import com.authspring.api.security.UserPrincipal;
 import com.challenges.api.service.CheckInService;
 import com.challenges.api.web.dto.CheckInRequest;
 import com.challenges.api.web.dto.CheckInResponse;
-import com.challenges.api.web.dto.CheckInSummaryResponse;
 import com.challenges.api.web.dto.CheckInUpdateRequest;
-import java.util.List;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -45,20 +43,6 @@ public class CheckInController {
 			@PageableDefault(size = 20) Pageable pageable) {
 		Long viewerId = principal != null ? principal.getId() : null;
 		return checkInService.listForChallenge(challengeId, viewerId, pageable).map(CheckInResponse::from);
-	}
-
-	/**
-	 * Aggregated check-in stats after {@link com.challenges.api.service.CheckInRollupService} has run for this challenge.
-	 * Returns 404 if the challenge is unknown or rollup has not completed yet (use {@code /check-ins} for per-day rows).
-	 */
-	@GetMapping({
-		"/challenges/{challengeId:\\d+}/check-in-summaries",
-		"/challenges/{challengeId:\\d+}/check-in-summaries/"
-	})
-	public @NonNull List<CheckInSummaryResponse> listSummariesForChallenge(
-			@PathVariable Long challengeId, @AuthenticationPrincipal @Nullable UserPrincipal principal) {
-		Long viewerId = principal != null ? principal.getId() : null;
-		return checkInService.listSummariesForRolledUpChallenge(challengeId, viewerId);
 	}
 
 	@GetMapping({ "/check-ins/{id}", "/check-ins/{id}/" })

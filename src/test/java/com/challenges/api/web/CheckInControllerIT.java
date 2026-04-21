@@ -335,4 +335,66 @@ class CheckInControllerIT {
 						delete("/api/check-ins/" + checkInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, otherBearerAuth))
 				.andExpect(status().isNotFound());
 	}
+
+	@Test
+	void pendingInviteeMayReadPrivateChallengeButNotCheckIns() throws Exception {
+		User owner = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-pend-owner@test"));
+		User pendingInvitee = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-pend-inv@test"));
+		String ownerBearer = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-pend-owner@test", "password");
+		String inviteeBearer = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-pend-inv@test", "password");
+
+		String createChallenge = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Private ci\",\"description\":null,"
+						+ "\"startDate\":\"2026-05-01\",\"endDate\":null,\"category\":\"OTHER\",\"private\":true}",
+				owner.getId());
+		String chJson =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, ownerBearer)
+								.contentType(APPLICATION_JSON)
+								.content(createChallenge))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long privateChallengeId = objectMapper.readTree(chJson).get("id").asLong();
+
+		String inviteBody = String.format(
+				"{\"inviteeEmail\":\"ci-pend-inv@test\",\"challengeId\":%d,\"subTaskId\":null,\"expiresAt\":null}",
+				privateChallengeId);
+		mockMvc.perform(post("/api/invites")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, ownerBearer)
+						.contentType(APPLICATION_JSON)
+						.content(inviteBody))
+				.andExpect(status().isCreated());
+
+		mockMvc.perform(
+						get("/api/challenges/" + privateChallengeId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, inviteeBearer))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.private").value(true));
+
+		String ownerCheckIn = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-05-20\",\"subTaskId\":null}",
+				owner.getId(), privateChallengeId);
+		String ciJson =
+				mockMvc.perform(post("/api/check-ins")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, ownerBearer)
+								.contentType(APPLICATION_JSON)
+								.content(ownerCheckIn))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long checkInId = objectMapper.readTree(ciJson).get("id").asLong();
+
+		mockMvc.perform(
+						get("/api/challenges/" + privateChallengeId + "/check-ins")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, inviteeBearer))
+				.andExpect(status().isNotFound());
+		mockMvc.perform(get("/api/check-ins/" + checkInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, inviteeBearer))
+				.andExpect(status().isNotFound());
+	}
 }

@@ -72,12 +72,12 @@
 
 ### 1.5 Participant sees other participants’ check-ins on one challenge
 
-*Workflow:* Members (or owner) page through check-ins, read rollup summaries after an ended challenge is processed, or fetch a single check-in—stricter than “invite only”: you must actually be a participant for read.
+*Workflow:* Members (or owner) page through check-ins or fetch a single check-in—stricter than “invite only”: you must actually be a participant for read (a pending invite is not enough).
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | List check-ins for challenge | `GET` | `/api/challenges/{challengeId}/check-ins?page=` | **OK** | [`2026-04-21-check-ins-read-participant-only.md` (done)](../../tickets/done/2026-04-21-check-ins-read-participant-only.md) | **Bearer JWT** required (**404** without). Viewer must be **owner** or have any **participant** row for the challenge (challenge-wide or subtask-scoped). Challenge must be visible to the viewer via **`ChallengeService.findByIdForViewer`** (stricter than **§1.1**: a **usable `PENDING` invite** alone does **not** grant check-in read). Returns paged check-ins for the challenge. |
-| Summaries after rollup | `GET` | `/api/challenges/{challengeId}/check-in-summaries` | **OK** | [`2026-04-21-check-ins-read-participant-only.md` (done)](../../tickets/done/2026-04-21-check-ins-read-participant-only.md) | Same read gate as list check-ins; **404** when rollup has not completed yet (unchanged). |
+| Summaries after rollup | — | *(no HTTP route)* | — | — | **`check_in_summaries`** are written by **`CheckInRollupService`** only; clients use **`GET .../check-ins`** until rollup clears per-day rows. |
 | Single check-in | `GET` | `/api/check-ins/{id}` | **OK** | [`2026-04-21-check-ins-read-participant-only.md` (done)](../../tickets/done/2026-04-21-check-ins-read-participant-only.md) | Same read gate as list (challenge inferred from the check-in). **404** if check-in missing or viewer not allowed. |
 
 ---

@@ -1,6 +1,7 @@
 package com.challenges.api.web;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -245,5 +246,52 @@ class InviteControllerIT {
 						.contentType(APPLICATION_JSON)
 						.content(body))
 				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void getInvite_byId_returnsInvite() throws Exception {
+		String body = String.format(
+				"{\"inviteeEmail\":\"invitee@test\",\"challengeId\":%d,\"subTaskId\":null,\"expiresAt\":null}",
+				challenge.getId());
+		String created =
+				mockMvc.perform(post("/api/invites").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(body))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long inviteId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(get("/api/invites/" + inviteId).header(HV, V1))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(inviteId))
+				.andExpect(jsonPath("$.challengeId").value(challenge.getId().intValue()))
+				.andExpect(jsonPath("$.status").value("PENDING"));
+	}
+
+	@Test
+	void getInvite_unknown_returnsNotFound() throws Exception {
+		mockMvc.perform(get("/api/invites/999999999").header(HV, V1)).andExpect(status().isNotFound());
+	}
+
+	@Test
+	void deleteInvite_removesRow() throws Exception {
+		String body = String.format(
+				"{\"inviteeEmail\":\"invitee@test\",\"challengeId\":%d,\"subTaskId\":null,\"expiresAt\":null}",
+				challenge.getId());
+		String created =
+				mockMvc.perform(post("/api/invites").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(body))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long inviteId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(delete("/api/invites/" + inviteId).header(HV, V1)).andExpect(status().isNoContent());
+		mockMvc.perform(get("/api/invites/" + inviteId).header(HV, V1)).andExpect(status().isNotFound());
+	}
+
+	@Test
+	void deleteInvite_unknown_returnsNotFound() throws Exception {
+		mockMvc.perform(delete("/api/invites/999999999").header(HV, V1)).andExpect(status().isNotFound());
 	}
 }

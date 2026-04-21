@@ -5,12 +5,10 @@ import com.challenges.api.model.CheckIn;
 import com.challenges.api.model.SubTask;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.CheckInRepository;
-import com.challenges.api.repo.CheckInSummaryRepository;
 import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.web.dto.CheckInRequest;
-import com.challenges.api.web.dto.CheckInSummaryResponse;
 import com.challenges.api.web.dto.CheckInUpdateRequest;
 import java.util.List;
 import java.util.Optional;
@@ -29,54 +27,28 @@ import org.springframework.util.Assert;
 public class CheckInService {
 
 	private final CheckInRepository checkIns;
-	private final CheckInSummaryRepository checkInSummaries;
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
 	private final SubTaskRepository subTasks;
-	private final CheckInRollupService checkInRollupService;
 	private final ChallengeService challengeService;
 	private final ParticipantRepository participants;
 
 	public CheckInService(
 			CheckInRepository checkIns,
-			CheckInSummaryRepository checkInSummaries,
 			UserRepository users,
 			ChallengeRepository challenges,
 			SubTaskRepository subTasks,
-			CheckInRollupService checkInRollupService,
 			ChallengeService challengeService,
 			ParticipantRepository participants) {
 		this.checkIns = checkIns;
-		this.checkInSummaries = checkInSummaries;
 		this.users = users;
 		this.challenges = challenges;
 		this.subTasks = subTasks;
-		this.checkInRollupService = checkInRollupService;
 		this.challengeService = challengeService;
 		this.participants = participants;
 	}
 
-	/**
-	 * Per-day rows from {@code check_ins}. Empty once this challenge has completed check-in rollup; use
-	 * {@link #listSummariesForRolledUpChallenge(Long, Long)} for aggregated data after rollup.
-	 */
-	@Transactional(readOnly = true)
-	public @NonNull List<CheckInSummaryResponse> listSummariesForRolledUpChallenge(
-			@NonNull Long challengeId, @Nullable Long viewerUserId) {
-		Assert.notNull(challengeId, "challengeId must not be null");
-		assertViewerMayReadCheckInsForChallenge(challengeId, viewerUserId);
-		if (!challenges.existsById(challengeId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		}
-		if (!checkInRollupService.isRolledUp(challengeId)) {
-			throw new ResponseStatusException(
-					HttpStatus.NOT_FOUND, "Summaries exist only after check-in rollup for eligible ended challenges.");
-		}
-		return checkInSummaries.findByChallenge_IdWithAssociations(challengeId).stream()
-				.map(CheckInSummaryResponse::from)
-				.toList();
-	}
-
+	/** Per-day rows from {@code check_ins} for a challenge the viewer may read. */
 	@Transactional(readOnly = true)
 	public @NonNull Page<CheckIn> listForChallenge(
 			@NonNull Long challengeId, @Nullable Long viewerUserId, @NonNull Pageable pageable) {

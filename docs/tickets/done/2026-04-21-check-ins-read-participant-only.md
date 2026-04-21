@@ -3,11 +3,11 @@
 **Status:** Done (2026-04-21)  
 **Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.5
 
-**Implemented:** `CheckInService` gates **`listForChallenge`**, **`listSummariesForRolledUpChallenge`**, and **`findByIdForViewer`** with **`assertViewerMayReadCheckInsForChallenge`**: **404** when no JWT, when **`findByIdForViewer`** fails, or when the viewer is neither **owner** nor a **participant**. `CheckInController` passes **`UserPrincipal`** on the three **GET** handlers. Tests: **`CheckInControllerIT.readCheckInsRequiresAuthAndMembership`**.
+**Implemented:** `CheckInService` gates **`listForChallenge`** and **`findByIdForViewer`** with **`assertViewerMayReadCheckInsForChallenge`**: **404** when no JWT, when **`findByIdForViewer`** fails, or when the viewer is neither **owner** nor a **participant** (a **pending invite** alone is not enough). **`GET /api/challenges/{id}/check-in-summaries`** was removed from the API; rollup summaries stay internal. `CheckInController` passes **`UserPrincipal`** on the two **GET** handlers. Tests: **`CheckInControllerIT`** (`readCheckInsRequiresAuthAndMembership`, **`pendingInviteeMayReadPrivateChallengeButNotCheckIns`**).
 
 ## Problem
 
-`GET /api/challenges/{challengeId}/check-ins` and `GET /api/challenges/{challengeId}/check-in-summaries` do not verify that the caller is a **participant** (or owner) of the challenge. Anyone can read check-ins for any challenge id.
+`GET /api/challenges/{challengeId}/check-ins` did not verify that the caller is a **participant** (or owner) of the challenge. Anyone could read check-ins for any challenge id.
 
 ## Scope
 
