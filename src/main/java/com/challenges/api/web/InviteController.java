@@ -1,17 +1,20 @@
 package com.challenges.api.web;
 
+import com.authspring.api.security.UserPrincipal;
 import com.challenges.api.service.InviteService;
+import com.challenges.api.web.dto.InviteListRole;
 import com.challenges.api.web.dto.InviteRequest;
 import com.challenges.api.web.dto.InviteResponse;
 import com.challenges.api.web.dto.InviteUpdateRequest;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,10 +36,19 @@ public class InviteController {
 	}
 
 	@GetMapping({ "", "/" })
-	public @NonNull Page<InviteResponse> list(
+	public ResponseEntity<Page<InviteResponse>> list(
 			@RequestParam(required = false) @Nullable Long challengeId,
-			@PageableDefault(size = 20) Pageable pageable) {
-		return inviteService.list(challengeId, pageable).map(InviteResponse::from);
+			@Parameter(description = "RECEIVED = invites where you are the invitee (default); SENT = invites you created")
+			@RequestParam(defaultValue = "RECEIVED")
+					InviteListRole role,
+			@PageableDefault(size = 20) Pageable pageable,
+			@AuthenticationPrincipal UserPrincipal principal) {
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		Page<InviteResponse> page =
+				inviteService.listForUser(principal.getId(), role, challengeId, pageable).map(InviteResponse::from);
+		return ResponseEntity.ok(page);
 	}
 
 	@GetMapping({ "/{id}", "/{id}/" })

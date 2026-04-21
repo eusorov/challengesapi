@@ -93,7 +93,7 @@ class ChallengeDomainWorkflowIT {
 		// --- Invitee accepts the challenge → becomes a Participant (challenge-wide scope) ---
 		acceptInvite(inviteId);
 
-		mockMvc.perform(get("/api/invites?challengeId=" + challengeId)
+		mockMvc.perform(get("/api/invites?challengeId=" + challengeId + "&role=SENT")
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())

@@ -45,7 +45,7 @@
 
 | Step | Method | Path | Status | Notes |
 |------|--------|------|--------|--------|
-| Discover via invites | `GET` | `/api/invites?challengeId=&page=` | **Partial** | **`InviteController`** only filters by **`challengeId`**, not by **current invitee**. **`GET /api/invites`** without filter lists invites globally — **not suitable** for production “my invites” until scoped to the authenticated user. |
+| Discover via invites | `GET` | `/api/invites?role=&challengeId=&page=` | **OK** | **Bearer JWT** required (**401** without). **`role`**: **`RECEIVED`** (default) = you are **invitee**; **`SENT`** = you are **inviter**. Optional **`challengeId`** narrows within that scope. No global enumeration. Done: [`docs/tickets/done/2026-04-21-invites-list-scope-current-user.md`](../../tickets/done/2026-04-21-invites-list-scope-current-user.md). |
 | Open challenge | `GET` | `/api/challenges/{id}` | **OK** | Same visibility as **1.1** (private requires access). |
 
 ### 1.4 Participants for a challenge
@@ -128,7 +128,7 @@
 
 | Other invite ops | Method | Path | Status |
 |------------------|--------|------|--------|
-| List | `GET` | `/api/invites` | **Partial** (see **1.3**) |
+| List | `GET` | `/api/invites` | **OK** (see **1.3** — scoped + **`role`**) |
 | Get | `GET` | `/api/invites/{id}` | OK |
 | Update | `PUT` | `/api/invites/{id}` | OK |
 | Delete | `DELETE` | `/api/invites/{id}` | OK |

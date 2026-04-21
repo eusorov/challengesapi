@@ -11,6 +11,7 @@ import com.challenges.api.repo.InviteRepository;
 import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
+import com.challenges.api.web.dto.InviteListRole;
 import com.challenges.api.web.dto.InviteRequest;
 import com.challenges.api.web.dto.InviteUpdateRequest;
 import java.time.Instant;
@@ -48,12 +49,18 @@ public class InviteService {
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull Page<Invite> list(@Nullable Long challengeIdFilter, @NonNull Pageable pageable) {
+	public @NonNull Page<Invite> listForUser(
+			@NonNull Long userId,
+			@NonNull InviteListRole role,
+			@Nullable Long challengeIdFilter,
+			@NonNull Pageable pageable) {
+		Assert.notNull(userId, "userId must not be null");
+		Assert.notNull(role, "role must not be null");
 		Assert.notNull(pageable, "pageable must not be null");
 		Page<Long> idPage =
-				challengeIdFilter != null
-						? invites.findIdsForChallengeOrderByIdAsc(challengeIdFilter, pageable)
-						: invites.findIdsOrderByIdAsc(pageable);
+				role == InviteListRole.RECEIVED
+						? invites.findIdsForInviteeOrderByIdAsc(userId, challengeIdFilter, pageable)
+						: invites.findIdsForInviterOrderByIdAsc(userId, challengeIdFilter, pageable);
 		if (idPage.isEmpty()) {
 			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
 		}

@@ -1,7 +1,9 @@
 # Invites list: scope to current user (inviter / invitee)
 
-**Status:** Partial  
-**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.3, §4
+**Status:** Done (2026-04-21)  
+**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.3, §4
+
+**Implemented:** `GET /api/invites` requires **Bearer JWT** (**401** without). Query **`role`**: **`RECEIVED`** (default) or **`SENT`**; optional **`challengeId`** combined with pagination. `InviteRepository.findIdsForInviteeOrderByIdAsc` / `findIdsForInviterOrderByIdAsc`; `InviteService.listForUser`; `InviteListRole` enum; tests in `InviteControllerIT`, `ChallengeDomainWorkflowIT`.
 
 ## Problem
 
@@ -21,4 +23,4 @@
 
 ## References
 
-- `InviteController.list`, `InviteService.list`, `InviteRepository`
+- `InviteController.list`, `InviteService.listForUser`, `InviteRepository`

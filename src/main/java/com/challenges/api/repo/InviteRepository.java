@@ -5,6 +5,7 @@ import com.challenges.api.model.InviteStatus;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,17 +19,35 @@ public interface InviteRepository extends JpaRepository<Invite, Long> {
 	List<Invite> findByInvitee_IdAndChallenge_IdAndStatusOrderByIdAsc(
 			Long inviteeId, Long challengeId, InviteStatus status);
 
-	@Query(value = "select i.id from Invite i order by i.id asc", countQuery = "select count(i) from Invite i")
-	Page<Long> findIdsOrderByIdAsc(Pageable pageable);
+	@Query(
+			value = """
+					select i.id from Invite i
+					where i.invitee.id = :userId
+					and (:challengeId is null or i.challenge.id = :challengeId)
+					order by i.id asc
+					""",
+			countQuery = """
+					select count(i) from Invite i
+					where i.invitee.id = :userId
+					and (:challengeId is null or i.challenge.id = :challengeId)
+					""")
+	Page<Long> findIdsForInviteeOrderByIdAsc(
+			@Param("userId") Long userId, @Param("challengeId") @Nullable Long challengeId, Pageable pageable);
 
 	@Query(
 			value = """
 					select i.id from Invite i
-					where i.challenge.id = :challengeId
+					where i.inviter.id = :userId
+					and (:challengeId is null or i.challenge.id = :challengeId)
 					order by i.id asc
 					""",
-			countQuery = "select count(i) from Invite i where i.challenge.id = :challengeId")
-	Page<Long> findIdsForChallengeOrderByIdAsc(@Param("challengeId") Long challengeId, Pageable pageable);
+			countQuery = """
+					select count(i) from Invite i
+					where i.inviter.id = :userId
+					and (:challengeId is null or i.challenge.id = :challengeId)
+					""")
+	Page<Long> findIdsForInviterOrderByIdAsc(
+			@Param("userId") Long userId, @Param("challengeId") @Nullable Long challengeId, Pageable pageable);
 
 	@Query(
 			"""

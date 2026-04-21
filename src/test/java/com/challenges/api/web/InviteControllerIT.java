@@ -63,6 +63,53 @@ class InviteControllerIT {
 	private Challenge challenge;
 	private String bearerAuth;
 
+	@Test
+	void listInvites_requiresAuth() throws Exception {
+		mockMvc.perform(get("/api/invites").header(HV, V1)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void listInvites_receivedAndSent_scopeToCurrentUser() throws Exception {
+		String body = String.format(
+				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,"
+						+ "\"subTaskId\":null,\"expiresAt\":null}",
+				inviter.getId(), invitee.getId(), challenge.getId());
+		String created =
+				mockMvc.perform(post("/api/invites")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long inviteId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(
+						get("/api/invites?role=RECEIVED").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(0));
+
+		mockMvc.perform(
+						get("/api/invites?role=SENT").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(1))
+				.andExpect(jsonPath("$.content[0].id").value(inviteId));
+
+		String bearerInvitee = JwtLoginSupport.bearerAuthorization(mockMvc, "invitee@test", "password");
+		mockMvc.perform(
+						get("/api/invites?role=RECEIVED").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerInvitee))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(1))
+				.andExpect(jsonPath("$.content[0].id").value(inviteId));
+
+		mockMvc.perform(
+						get("/api/invites?role=SENT").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerInvitee))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(0));
+	}
+
 	@BeforeEach
 	void setup() throws Exception {
 		inviter = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "inviter@test"));
@@ -91,7 +138,17 @@ class InviteControllerIT {
 		long inviteId = objectMapper.readTree(created).get("id").asLong();
 
 		mockMvc.perform(
-						get("/api/invites?challengeId=" + challenge.getId()).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+						get("/api/invites?challengeId=" + challenge.getId() + "&role=SENT")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content[0].id").value(inviteId));
+
+		String bearerInvitee = JwtLoginSupport.bearerAuthorization(mockMvc, "invitee@test", "password");
+		mockMvc.perform(
+						get("/api/invites?challengeId=" + challenge.getId())
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerInvitee))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content[0].id").value(inviteId));
 
