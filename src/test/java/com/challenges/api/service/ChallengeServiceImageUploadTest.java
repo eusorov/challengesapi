@@ -41,11 +41,14 @@ class ChallengeServiceImageUploadTest {
 	@Mock
 	private ChallengeImageStorage challengeImageStorage;
 
+	@Mock
+	private InviteService inviteService;
+
 	private ChallengeService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new ChallengeService(users, challenges, participants, challengeImageStorage);
+		service = new ChallengeService(users, challenges, participants, challengeImageStorage, inviteService);
 	}
 
 	@Test

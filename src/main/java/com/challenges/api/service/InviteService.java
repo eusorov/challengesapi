@@ -67,6 +67,27 @@ public class InviteService {
 		return invites.findByIdWithAssociations(id);
 	}
 
+	/**
+	 * Whether the invitee has at least one {@link InviteStatus#PENDING} invite for this challenge with no expiry or
+	 * {@code expires_at} strictly after {@code now} (same “usable” rule as join).
+	 */
+	@Transactional(readOnly = true)
+	public boolean hasUsablePendingInvite(@NonNull Long inviteeUserId, @NonNull Long challengeId) {
+		Assert.notNull(inviteeUserId, "inviteeUserId must not be null");
+		Assert.notNull(challengeId, "challengeId must not be null");
+		Instant now = Instant.now();
+		List<Invite> pending =
+				invites.findByInvitee_IdAndChallenge_IdAndStatusOrderByIdAsc(
+						inviteeUserId, challengeId, InviteStatus.PENDING);
+		for (Invite inv : pending) {
+			if (inv.getExpiresAt() != null && !inv.getExpiresAt().isAfter(now)) {
+				continue;
+			}
+			return true;
+		}
+		return false;
+	}
+
 	@Transactional
 	public Optional<Invite> create(@NonNull InviteRequest req) {
 		Assert.notNull(req, "request must not be null");

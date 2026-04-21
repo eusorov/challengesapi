@@ -1,6 +1,7 @@
 package com.challenges.api.service;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.Participant;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.ParticipantRepository;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -30,22 +32,36 @@ public class ChallengeService {
 	private final ChallengeRepository challenges;
 	private final ParticipantRepository participants;
 	private final ChallengeImageStorage challengeImageStorage;
+	private final InviteService inviteService;
 
 	public ChallengeService(
 			UserRepository users,
 			ChallengeRepository challenges,
 			ParticipantRepository participants,
-			ChallengeImageStorage challengeImageStorage) {
+			ChallengeImageStorage challengeImageStorage,
+			InviteService inviteService) {
 		this.users = users;
 		this.challenges = challenges;
 		this.participants = participants;
 		this.challengeImageStorage = challengeImageStorage;
+		this.inviteService = inviteService;
 	}
 
 	@Transactional(readOnly = true)
-	public @NonNull Page<Challenge> listChallenges(@NonNull Pageable pageable) {
+	public @NonNull Page<Challenge> listChallenges(
+			@NonNull Pageable pageable,
+			@Nullable String q,
+			@Nullable ChallengeCategory category,
+			@Nullable String city) {
 		Assert.notNull(pageable, "pageable must not be null");
-		Page<Long> idPage = challenges.findNonPrivateIdsOrderByIdAsc(pageable);
+		String searchTextLike = toSearchLikePattern(normalizeSearchText(q));
+		String cityNormalized = normalizeCityFilter(city);
+		String categoryName = category == null ? null : category.name();
+		Page<Long> idPage =
+				searchTextLike == null && categoryName == null && cityNormalized == null
+						? challenges.findNonPrivateIdsOrderByIdAsc(pageable)
+						: challenges.findNonPrivateIdsWithFilters(
+								searchTextLike, categoryName, cityNormalized, pageable);
 		if (idPage.isEmpty()) {
 			return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
 		}
@@ -53,10 +69,35 @@ public class ChallengeService {
 		return new PageImpl<>(loaded, pageable, idPage.getTotalElements());
 	}
 
+	/**
+	 * Loads a challenge for an HTTP GET. Public challenges are visible to anyone. Private challenges are visible only to
+	 * the owner, any participant (challenge-wide or subtask-scoped), or a user with a usable pending invite (same rule
+	 * as join). Missing or unauthorized private challenges yield empty (caller maps to 404).
+	 */
 	@Transactional(readOnly = true)
-	public Optional<Challenge> findById(@NonNull Long id) {
+	public Optional<Challenge> findByIdForViewer(@NonNull Long id, @Nullable Long viewerUserId) {
 		Assert.notNull(id, "id must not be null");
-		return challenges.findByIdWithSubtasksAndOwner(id);
+		Optional<Challenge> loaded = challenges.findByIdWithSubtasksAndOwner(id);
+		if (loaded.isEmpty()) {
+			return Optional.empty();
+		}
+		Challenge c = loaded.get();
+		if (!c.isPrivate()) {
+			return Optional.of(c);
+		}
+		if (viewerUserId == null) {
+			return Optional.empty();
+		}
+		if (c.getOwner().getId().equals(viewerUserId)) {
+			return Optional.of(c);
+		}
+		if (participants.existsByUser_IdAndChallenge_Id(viewerUserId, id)) {
+			return Optional.of(c);
+		}
+		if (inviteService.hasUsablePendingInvite(viewerUserId, id)) {
+			return Optional.of(c);
+		}
+		return Optional.empty();
 	}
 
 	@Transactional
@@ -168,5 +209,27 @@ public class ChallengeService {
 		}
 		String trimmed = city.trim();
 		return trimmed.isEmpty() ? null : trimmed;
+	}
+
+	private static @Nullable String normalizeSearchText(@Nullable String q) {
+		if (q == null) {
+			return null;
+		}
+		String t = q.trim();
+		return t.isEmpty() ? null : t;
+	}
+
+	/** LIKE pattern for case-insensitive title/description match; {@code null} means no text filter. */
+	private static @Nullable String toSearchLikePattern(@Nullable String normalizedQ) {
+		if (normalizedQ == null) {
+			return null;
+		}
+		return "%" + normalizedQ + "%";
+	}
+
+	/** Lowercase trimmed city for repository comparison with {@code lower(trim(c.city))}. */
+	private static @Nullable String normalizeCityFilter(@Nullable String city) {
+		String n = normalizeCity(city);
+		return n == null ? null : n.toLowerCase();
 	}
 }

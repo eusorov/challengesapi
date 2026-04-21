@@ -63,4 +63,7 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 	boolean existsByUser_IdAndChallenge_IdAndSubTaskIsNull(Long userId, Long challengeId);
 
 	boolean existsByUser_IdAndChallenge_IdAndSubTask_Id(Long userId, Long challengeId, Long subTaskId);
+
+	/** Any participant row for this user and challenge (challenge-wide or subtask-scoped). */
+	boolean existsByUser_IdAndChallenge_Id(Long userId, Long challengeId);
 }

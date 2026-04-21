@@ -31,9 +31,9 @@
 
 | Step | Method | Path | Status | Notes |
 |------|--------|------|--------|--------|
-| Paginated list (public only) | `GET` | `/api/challenges?page=&size=` | **Partial** | Lists **`isPrivate = false`** only (`ChallengeService.listChallenges`). Not a text “search” filter yet — paging only. |
+| Paginated list (public only) | `GET` | `/api/challenges?page=&size=` | **OK** | Lists **`isPrivate = false`** only. Optional **`q`** (title/description substring), **`category`** (enum name), **`city`** (case-insensitive). Omitting filters = previous behavior. |
 | Challenge categories | `GET` | `/api/categories` | OK | Enum-like listing for UI filters. |
-| Single challenge | `GET` | `/api/challenges/{id}` | **Partial** | Returns **404** only if id missing. **Private** challenges are **not** hidden by membership today (no visibility gate on `get`). |
+| Single challenge | `GET` | `/api/challenges/{id}` | **OK** | **Public:** any caller. **Private:** **404** unless JWT viewer is **owner**, **any participant**, or has a **usable `PENDING` invite** (same rule as join). Unauthenticated callers never see private challenges. |
 
 ### 1.2 Owned private challenges
 
@@ -46,7 +46,7 @@
 | Step | Method | Path | Status | Notes |
 |------|--------|------|--------|--------|
 | Discover via invites | `GET` | `/api/invites?challengeId=&page=` | **Partial** | **`InviteController`** only filters by **`challengeId`**, not by **current invitee**. **`GET /api/invites`** without filter lists invites globally — **not suitable** for production “my invites” until scoped to the authenticated user. |
-| Open challenge | `GET` | `/api/challenges/{id}` | **Partial** | Same visibility note as **1.1**. |
+| Open challenge | `GET` | `/api/challenges/{id}` | **OK** | Same visibility as **1.1** (private requires access). |
 
 ### 1.4 Participants for a challenge
 

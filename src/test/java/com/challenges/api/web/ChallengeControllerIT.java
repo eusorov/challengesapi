@@ -181,5 +181,122 @@ class ChallengeControllerIT {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.title").value("Secret ch"))
 				.andExpect(jsonPath("$.private").value(true));
+
+		String bearerOwner2 = JwtLoginSupport.bearerAuthorization(mockMvc, "ch-owner2@test", "password");
+		mockMvc.perform(get("/api/challenges/" + challengeId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerOwner2))
+				.andExpect(status().isNotFound());
+
+		mockMvc.perform(get("/api/challenges/" + challengeId).header(HV, V1))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void listChallenges_filtersByQueryCategoryAndCity() throws Exception {
+		String bodyA = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Morning marathon\",\"description\":\"early run\","
+						+ "\"startDate\":\"2026-05-01\",\"endDate\":null,\"category\":\"HEALTH_AND_FITNESS\","
+						+ "\"city\":\"Berlin\",\"location\":{\"latitude\":52.52,\"longitude\":13.405}}",
+				owner1.getId());
+		mockMvc.perform(post("/api/challenges")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(bodyA))
+				.andExpect(status().isCreated());
+
+		String bodyB = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Night coding\",\"description\":null,"
+						+ "\"startDate\":\"2026-05-01\",\"endDate\":null,\"category\":\"PRODUCTIVITY\"}",
+				owner1.getId());
+		mockMvc.perform(post("/api/challenges")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(bodyB))
+				.andExpect(status().isCreated());
+
+		mockMvc.perform(get("/api/challenges")
+						.param("q", "marathon")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(1))
+				.andExpect(jsonPath("$.content[0].title").value("Morning marathon"));
+
+		mockMvc.perform(get("/api/challenges")
+						.param("category", "PRODUCTIVITY")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(1))
+				.andExpect(jsonPath("$.content[0].title").value("Night coding"));
+
+		mockMvc.perform(get("/api/challenges")
+						.param("city", "berlin")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(1))
+				.andExpect(jsonPath("$.content[0].title").value("Morning marathon"));
+	}
+
+	@Test
+	void getPublicChallenge_withoutAuth_succeeds() throws Exception {
+		String body = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Public board\",\"description\":null,"
+						+ "\"startDate\":\"2026-07-01\",\"endDate\":null,\"category\":\"OTHER\"}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long id = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(get("/api/challenges/" + id).header(HV, V1))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.title").value("Public board"));
+	}
+
+	@Test
+	void privateChallenge_visibleToInviteeWithPendingInvite() throws Exception {
+		User invitee = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ch-invitee-pending@test"));
+		String body = String.format(
+				"{\"ownerUserId\":%d,\"title\":\"Invite only\",\"description\":null,"
+						+ "\"startDate\":\"2026-08-01\",\"endDate\":null,\"category\":\"LEARNING\",\"private\":true}",
+				owner1.getId());
+		String created =
+				mockMvc.perform(post("/api/challenges")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(body))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long challengeId = objectMapper.readTree(created).get("id").asLong();
+
+		String inviteBody = String.format(
+				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,"
+						+ "\"subTaskId\":null,\"expiresAt\":null}",
+				owner1.getId(), invitee.getId(), challengeId);
+		mockMvc.perform(post("/api/invites")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(inviteBody))
+				.andExpect(status().isCreated());
+
+		String bearerInvitee = JwtLoginSupport.bearerAuthorization(mockMvc, "ch-invitee-pending@test", "password");
+		mockMvc.perform(get("/api/challenges/" + challengeId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerInvitee))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.title").value("Invite only"))
+				.andExpect(jsonPath("$.private").value(true));
 	}
 }

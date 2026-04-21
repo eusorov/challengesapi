@@ -74,4 +74,33 @@ class ChallengeRepositoryTest {
 		assertThat(page.getTotalElements()).isEqualTo(1);
 		assertThat(page.getContent()).containsExactly(pub.getId());
 	}
+
+	@Test
+	void findNonPrivateIdsWithFilters_bySearchCategoryAndCity() {
+		User u = entityManager.persistAndFlush(User.forTest("owner-filter@example.com"));
+		LocalDate d = LocalDate.of(2026, 4, 1);
+		Challenge a =
+				new Challenge(u, "Morning run club", "weekly runs", d, null, ChallengeCategory.HEALTH_AND_FITNESS);
+		a.setCity("Berlin");
+		Challenge b = new Challenge(u, "Evening walk", null, d, null, ChallengeCategory.PRODUCTIVITY);
+		b.setCity("Paris");
+		challengeRepository.saveAll(List.of(a, b));
+		entityManager.flush();
+		entityManager.clear();
+
+		var byQ =
+				challengeRepository.findNonPrivateIdsWithFilters(
+						"%morning%", null, null, PageRequest.of(0, 20));
+		assertThat(byQ.getContent()).containsExactly(a.getId());
+
+		var byCat =
+				challengeRepository.findNonPrivateIdsWithFilters(
+						null, ChallengeCategory.PRODUCTIVITY.name(), null, PageRequest.of(0, 20));
+		assertThat(byCat.getContent()).containsExactly(b.getId());
+
+		var byCity =
+				challengeRepository.findNonPrivateIdsWithFilters(
+						null, null, "berlin", PageRequest.of(0, 20));
+		assertThat(byCity.getContent()).containsExactly(a.getId());
+	}
 }

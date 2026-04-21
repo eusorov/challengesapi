@@ -1,14 +1,17 @@
 package com.challenges.api.web;
 
 import com.authspring.api.security.UserPrincipal;
+import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.service.ChallengeService;
 import com.challenges.api.service.JoinChallengeOutcome;
 import com.challenges.api.service.ParticipantService;
 import com.challenges.api.web.dto.ChallengeRequest;
 import com.challenges.api.web.dto.ChallengeResponse;
 import com.challenges.api.web.dto.ParticipantResponse;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,15 +48,26 @@ public class ChallengeController {
 	}
 
 	@GetMapping({ "", "/" })
-	public @NonNull Page<ChallengeResponse> list(@PageableDefault(size = 20) Pageable pageable) {
+	public @NonNull Page<ChallengeResponse> list(
+			@Parameter(description = "Case-insensitive substring match on title and description")
+			@RequestParam(required = false) @Nullable
+					String q,
+			@Parameter(description = "Exact category filter") @RequestParam(required = false) @Nullable
+					ChallengeCategory category,
+			@Parameter(description = "City match (case-insensitive, trimmed)") @RequestParam(required = false) @Nullable
+					String city,
+			@PageableDefault(size = 20) Pageable pageable) {
 		return challengeService
-				.listChallenges(pageable)
+				.listChallenges(pageable, q, category, city)
 				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl));
 	}
 
 	@GetMapping({ "/{id:\\d+}", "/{id:\\d+}/" })
-	public ResponseEntity<ChallengeResponse> get(@PathVariable Long id) {
-		return challengeService.findById(id)
+	public ResponseEntity<ChallengeResponse> get(
+			@PathVariable Long id, @AuthenticationPrincipal @Nullable UserPrincipal principal) {
+		Long viewerId = principal != null ? principal.getId() : null;
+		return challengeService
+				.findByIdForViewer(id, viewerId)
 				.map(ch -> ChallengeResponse.from(ch, imagePublicBaseUrl))
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
