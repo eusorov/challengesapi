@@ -74,4 +74,32 @@ class ParticipantControllerIT {
 				.andExpect(jsonPath("$.content[0].challengeId").value(challenge.getId().intValue()))
 				.andExpect(jsonPath("$.content[0].userId").value(participantUser.getId().intValue()));
 	}
+
+	@Test
+	void listParticipants_publicChallenge_withoutAuth() throws Exception {
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/participants").header(HV, V1))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content[0].userId").value(participantUser.getId().intValue()));
+	}
+
+	@Test
+	void listParticipants_privateChallenge_nonMember_returnsNotFound() throws Exception {
+		User stranger = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "part-stranger@test"));
+		Challenge priv =
+				challenges.save(
+						new Challenge(
+								participantUser,
+								"private members",
+								null,
+								LocalDate.of(2026, 7, 1),
+								null,
+								ChallengeCategory.OTHER,
+								true));
+		participants.save(new Participant(participantUser, priv));
+		String bearerStranger = JwtLoginSupport.bearerAuthorization(mockMvc, "part-stranger@test", "password");
+		mockMvc.perform(get("/api/challenges/" + priv.getId() + "/participants")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerStranger))
+				.andExpect(status().isNotFound());
+	}
 }

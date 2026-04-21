@@ -194,7 +194,9 @@ class ChallengeJoinControllerIT {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("ACCEPTED"));
 
-		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants").header(HV, V1))
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerB))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content[1].userId").value(userB.getId().intValue()));
 	}

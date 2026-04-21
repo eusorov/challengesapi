@@ -59,6 +59,7 @@ This repository is intended to host the **challenges API** — a Java Spring Boo
 - **`POST /api/challenges` (create):** The **owner** automatically gets a **challenge-wide** **`Participant`** row (same as join semantics for membership).
 - **`GET /api/challenges/mine`:** **Bearer JWT** required (**401** if missing). Paged owned challenges (public and private) for the current user; same pagination defaults as **`GET /api/challenges`**.
 - **`GET /api/invites`:** **Bearer JWT** required (**401** if missing). Query **`role=RECEIVED`** (default: invites where you are **invitee**) or **`role=SENT`** (invites you **sent**); optional **`challengeId`** narrows the list. Not a global invite dump.
+- **`GET /api/challenges/{id}/participants`:** Visibility matches **`GET /api/challenges/{id}`** (public vs private, **`UserPrincipal`** when present). Unauthorized private access → **404**.
 - **Authentication:** **JWT** — most **`/api/**`** routes require a **Bearer** token after login/register; **public** paths include **`POST /api/login`**, **`POST /api/register`**, **`POST /api/users`**, password reset / forgot-password, and **`GET /api/email/verify/**`**. See **`SecurityConfig`** for the exact allowlist.
 
 **Scope:** Only the REST API in this repository—**React** UI and server-rendered templates are not built here.

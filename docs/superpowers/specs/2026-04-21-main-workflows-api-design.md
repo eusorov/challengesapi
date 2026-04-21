@@ -52,7 +52,7 @@
 
 | Step | Method | Path | Status | Notes |
 |------|--------|------|--------|--------|
-| List participants | `GET` | `/api/challenges/{challengeId}/participants?page=` | OK | Paged list; no participant-only guard documented in controller. |
+| List participants | `GET` | `/api/challenges/{challengeId}/participants?page=` | **OK** | Same visibility as **`GET /api/challenges/{id}`**: **public** — any caller; **private** — **404** unless viewer is **owner**, **participant**, or has a **usable `PENDING` invite**. Optional JWT via **`UserPrincipal`**. Done: [`docs/tickets/done/2026-04-21-participants-list-access-control.md`](../../tickets/done/2026-04-21-participants-list-access-control.md). |
 
 ### 1.5 Participant sees other participants’ check-ins on one challenge
 

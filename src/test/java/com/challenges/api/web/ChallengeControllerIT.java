@@ -189,6 +189,19 @@ class ChallengeControllerIT {
 
 		mockMvc.perform(get("/api/challenges/" + challengeId).header(HV, V1))
 				.andExpect(status().isNotFound());
+
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerOwner2))
+				.andExpect(status().isNotFound());
+
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants").header(HV, V1))
+				.andExpect(status().isNotFound());
 	}
 
 	@Test
@@ -353,5 +366,10 @@ class ChallengeControllerIT {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.title").value("Invite only"))
 				.andExpect(jsonPath("$.private").value(true));
+
+		mockMvc.perform(get("/api/challenges/" + challengeId + "/participants")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerInvitee))
+				.andExpect(status().isOk());
 	}
 }

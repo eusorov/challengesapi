@@ -10,6 +10,7 @@ import com.challenges.api.repo.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,16 +27,34 @@ public class ParticipantService {
 	private final ChallengeRepository challenges;
 	private final UserRepository users;
 	private final InviteService inviteService;
+	private final ChallengeService challengeService;
 
 	public ParticipantService(
 			ParticipantRepository participants,
 			ChallengeRepository challenges,
 			UserRepository users,
-			InviteService inviteService) {
+			InviteService inviteService,
+			ChallengeService challengeService) {
 		this.participants = participants;
 		this.challenges = challenges;
 		this.users = users;
 		this.inviteService = inviteService;
+		this.challengeService = challengeService;
+	}
+
+	/**
+	 * Paged participants if the challenge exists and the viewer may see it (same visibility as {@code GET
+	 * /api/challenges/{id}}). Otherwise {@link HttpStatus#NOT_FOUND}.
+	 */
+	@Transactional(readOnly = true)
+	public @NonNull Page<Participant> listForChallengeIfVisible(
+			@NonNull Long challengeId, @Nullable Long viewerUserId, @NonNull Pageable pageable) {
+		Assert.notNull(challengeId, "challengeId must not be null");
+		Assert.notNull(pageable, "pageable must not be null");
+		if (challengeService.findByIdForViewer(challengeId, viewerUserId).isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		}
+		return listForChallenge(challengeId, pageable);
 	}
 
 	@Transactional(readOnly = true)
