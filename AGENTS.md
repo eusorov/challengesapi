@@ -55,6 +55,8 @@ This repository is intended to host the **challenges API** — a Java Spring Boo
 - **Versioning:** send header **`API-Version: 1`** on HTTP requests; controllers are mapped at **`version = "1"`**.
 - **Layering:** **`@RestController`** classes in **`com.challenges.api.web`** delegate to **`@Service`** types in **`com.challenges.api.service`**; **repositories** are only used from services. Auth endpoints and JWT filters live under **`com.authspring.api`**.
 - **Invites → participants:** When an invite is **`ACCEPTED`** (**`InviteStatus.ACCEPTED`**), the API creates a **`Participant`** row for the invitee (challenge-wide or subtask-scoped to match the invite).
+- **`POST /api/challenges/{id}/join`:** Authenticated user self-join per [`docs/superpowers/specs/2026-04-21-challenge-join-design.md`](docs/superpowers/specs/2026-04-21-challenge-join-design.md) — public challenges allow open join; private challenges require a usable **`PENDING`** invite. Returns **`ParticipantResponse`**; **201** on first challenge-wide insert, **200** when already a challenge-wide participant.
+- **`POST /api/challenges` (create):** The **owner** automatically gets a **challenge-wide** **`Participant`** row (same as join semantics for membership).
 - **Authentication:** **JWT** — most **`/api/**`** routes require a **Bearer** token after login/register; **public** paths include **`POST /api/login`**, **`POST /api/register`**, **`POST /api/users`**, password reset / forgot-password, and **`GET /api/email/verify/**`**. See **`SecurityConfig`** for the exact allowlist.
 
 **Scope:** Only the REST API in this repository—**React** UI and server-rendered templates are not built here.
