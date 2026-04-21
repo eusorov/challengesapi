@@ -9,9 +9,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.challenges.api.model.Challenge;
 import com.challenges.api.model.ChallengeCategory;
+import com.challenges.api.model.Participant;
 import com.challenges.api.model.SubTask;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
+import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.support.JwtLoginSupport;
@@ -39,6 +41,7 @@ class CheckInControllerIT {
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
 	private final SubTaskRepository subTasks;
+	private final ParticipantRepository participants;
 	private final ObjectMapper objectMapper;
 	private final PasswordEncoder passwordEncoder;
 
@@ -48,12 +51,14 @@ class CheckInControllerIT {
 			UserRepository users,
 			ChallengeRepository challenges,
 			SubTaskRepository subTasks,
+			ParticipantRepository participants,
 			ObjectMapper objectMapper,
 			PasswordEncoder passwordEncoder) {
 		this.mockMvc = mockMvc;
 		this.users = users;
 		this.challenges = challenges;
 		this.subTasks = subTasks;
+		this.participants = participants;
 		this.objectMapper = objectMapper;
 		this.passwordEncoder = passwordEncoder;
 	}
@@ -145,5 +150,67 @@ class CheckInControllerIT {
 		mockMvc.perform(get("/api/check-ins/" + checkInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(checkInId));
+	}
+
+	@Test
+	void createCheckInRequiresAuthentication() throws Exception {
+		String createBody = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-05-21\",\"subTaskId\":null}",
+				user.getId(), challenge.getId());
+		mockMvc.perform(post("/api/check-ins").header(HV, V1).contentType(APPLICATION_JSON).content(createBody))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void createCheckInForbiddenWhenUserIdDoesNotMatchPrincipal() throws Exception {
+		String createBody = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-05-22\",\"subTaskId\":null}",
+				user.getId(), challenge.getId());
+		mockMvc.perform(post("/api/check-ins")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, otherBearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(createBody))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void createCheckInForbiddenWhenNotParticipant() throws Exception {
+		String createBody = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-05-23\",\"subTaskId\":null}",
+				otherUser.getId(), challenge.getId());
+		mockMvc.perform(post("/api/check-ins")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, otherBearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(createBody))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void subtaskScopedParticipantMayOnlyCheckInForThatSubtask() throws Exception {
+		SubTask st = subTasks.save(new SubTask(challenge, "scoped", 0));
+		participants.save(new Participant(otherUser, challenge, st));
+
+		String challengeWide = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-05-24\",\"subTaskId\":null}",
+				otherUser.getId(), challenge.getId());
+		mockMvc.perform(post("/api/check-ins")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, otherBearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(challengeWide))
+				.andExpect(status().isForbidden());
+
+		String scoped = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-05-24\",\"subTaskId\":%d}",
+				otherUser.getId(), challenge.getId(), st.getId());
+		mockMvc.perform(post("/api/check-ins")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, otherBearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(scoped))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.subTaskId").value(st.getId().intValue()));
 	}
 }

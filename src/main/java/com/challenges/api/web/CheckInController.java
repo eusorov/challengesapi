@@ -72,8 +72,15 @@ public class CheckInController {
 	}
 
 	@PostMapping({ "/check-ins", "/check-ins/" })
-	public ResponseEntity<CheckInResponse> create(@Valid @RequestBody CheckInRequest req) {
-		return checkInService.create(req)
+	public ResponseEntity<CheckInResponse> create(
+			@Valid @RequestBody CheckInRequest req, @AuthenticationPrincipal @Nullable UserPrincipal principal) {
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		if (!req.userId().equals(principal.getId())) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		}
+		return checkInService.create(req, principal.getId())
 				.map(c -> ResponseEntity.status(HttpStatus.CREATED).body(CheckInResponse.from(c)))
 				.orElse(ResponseEntity.notFound().build());
 	}

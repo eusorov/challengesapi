@@ -1,7 +1,9 @@
 # Check-ins: require participant membership on create
 
-**Status:** Partial  
-**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) §5
+**Status:** Done (2026-04-21)  
+**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../../superpowers/specs/2026-04-21-main-workflows-api-design.md) §5
+
+**Implemented:** **`POST /api/check-ins`** requires **Bearer JWT** (**401** without). **`userId`** in JSON must equal **`UserPrincipal.getId()`** (**403** otherwise). **`CheckInService.create`** enforces **owner** or **participant**: challenge-wide check-ins need **`Participant`** with **`subTask` null** (or owner); subtask check-ins need challenge-wide membership **or** subtask-scoped membership for that **`subTaskId`**. **403** when not allowed. Tests: **`CheckInControllerIT`** (auth, mismatch, non-member, subtask-only scope); **`ChallengeDomainWorkflowIT`** uses per-user JWT on create.
 
 ## Problem
 

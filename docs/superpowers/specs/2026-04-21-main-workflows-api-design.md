@@ -139,8 +139,7 @@
 
 | Step | Method | Path | Status | Notes |
 |------|--------|------|--------|--------|
-| Create check-in (challenge-wide) | `POST` | `/api/check-ins` | **Partial** | **`CheckInRequest`**: **`userId`**, **`challengeId`**, **`checkDate`**, optional **`subTaskId`**. **Does not** verify **`userId`** is a **participant** for that challenge/subtask. |
-| Create check-in (subtask) | `POST` | `/api/check-ins` | **Partial** | Set **`subTaskId`**; subtask must belong to **`challengeId`**. |
+| Create check-in | `POST` | `/api/check-ins` | **OK** | **Bearer JWT** required (**401** without). Body **`userId`** must match the authenticated user (**403** otherwise). **Owner** or **participant** only: challenge-wide rows require challenge-wide **`Participant`** (or owner); **`subTaskId`** set requires challenge-wide **or** matching subtask-scoped **`Participant`**. Done: [`docs/tickets/done/2026-04-21-check-in-create-participant-validation.md`](../../tickets/done/2026-04-21-check-in-create-participant-validation.md). |
 | Update / delete | `PUT` `DELETE` | `/api/check-ins/{id}` | OK | |
 
 ---

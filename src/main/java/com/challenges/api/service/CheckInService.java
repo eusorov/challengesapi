@@ -126,8 +126,12 @@ public class CheckInService {
 	}
 
 	@Transactional
-	public Optional<CheckIn> create(@NonNull CheckInRequest req) {
+	public Optional<CheckIn> create(@NonNull CheckInRequest req, @NonNull Long actorUserId) {
 		Assert.notNull(req, "request must not be null");
+		Assert.notNull(actorUserId, "actorUserId must not be null");
+		if (!actorUserId.equals(req.userId())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		}
 		var user = users.findById(req.userId());
 		var challenge = challenges.findById(req.challengeId());
 		if (user.isEmpty() || challenge.isEmpty()) {
@@ -144,7 +148,29 @@ public class CheckInService {
 				throw new IllegalStateException("subTask must belong to the check-in challenge");
 			}
 		}
+		assertActorMayCreateCheckIn(actorUserId, challenge.get(), st);
 		return Optional.of(checkIns.save(new CheckIn(user.get(), challenge.get(), req.checkDate(), st)));
+	}
+
+	private void assertActorMayCreateCheckIn(
+			@NonNull Long userId, @NonNull Challenge challenge, @Nullable SubTask subTaskOrNull) {
+		if (challenge.getOwner().getId().equals(userId)) {
+			return;
+		}
+		if (subTaskOrNull == null) {
+			if (!participants.existsByUser_IdAndChallenge_IdAndSubTaskIsNull(userId, challenge.getId())) {
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+			}
+			return;
+		}
+		boolean challengeWide =
+				participants.existsByUser_IdAndChallenge_IdAndSubTaskIsNull(userId, challenge.getId());
+		boolean subTaskScoped =
+				participants.existsByUser_IdAndChallenge_IdAndSubTask_Id(
+						userId, challenge.getId(), subTaskOrNull.getId());
+		if (!challengeWide && !subTaskScoped) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		}
 	}
 
 	@Transactional

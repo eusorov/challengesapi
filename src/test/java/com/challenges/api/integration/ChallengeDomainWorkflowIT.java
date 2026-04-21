@@ -112,9 +112,11 @@ class ChallengeDomainWorkflowIT {
 				.andExpect(jsonPath("$.content[1].challengeId").value((int) challengeId))
 				.andExpect(jsonPath("$.content[1].subTaskId").isEmpty());
 
-		// --- Both users log check-ins ---
-		postCheckIn(ownerId, challengeId, LocalDate.of(2026, 7, 10), null);
-		postCheckIn(inviteeUserId, challengeId, LocalDate.of(2026, 7, 11), subWeeklyId);
+		// --- Both users log check-ins (each with their own JWT) ---
+		postCheckIn(ownerId, challengeId, LocalDate.of(2026, 7, 10), null, bearerAuth);
+		String inviteeBearer =
+				JwtLoginSupport.bearerAuthorization(mockMvc, "workflow-invitee@example.test", "password123");
+		postCheckIn(inviteeUserId, challengeId, LocalDate.of(2026, 7, 11), subWeeklyId, inviteeBearer);
 
 		mockMvc.perform(get("/api/challenges/" + challengeId + "/check-ins")
 						.header(HV, V1)
@@ -232,7 +234,8 @@ class ChallengeDomainWorkflowIT {
 				.andExpect(jsonPath("$.status").value("ACCEPTED"));
 	}
 
-	private void postCheckIn(long userId, long challengeId, LocalDate checkDate, Long subTaskId)
+	private void postCheckIn(
+			long userId, long challengeId, LocalDate checkDate, Long subTaskId, String authorization)
 			throws Exception {
 		String st = subTaskId == null ? "null" : String.valueOf(subTaskId);
 		String body = String.format(
@@ -240,7 +243,7 @@ class ChallengeDomainWorkflowIT {
 				userId, challengeId, checkDate, st);
 		mockMvc.perform(post("/api/check-ins")
 						.header(HV, V1)
-						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.header(HttpHeaders.AUTHORIZATION, authorization)
 						.contentType(APPLICATION_JSON)
 						.content(body))
 				.andExpect(status().isCreated())
