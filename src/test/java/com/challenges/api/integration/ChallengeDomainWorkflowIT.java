@@ -104,10 +104,13 @@ class ChallengeDomainWorkflowIT {
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.content.length()").value(1))
-				.andExpect(jsonPath("$.content[0].userId").value((int) inviteeUserId))
+				.andExpect(jsonPath("$.content.length()").value(2))
+				.andExpect(jsonPath("$.content[0].userId").value((int) ownerId))
 				.andExpect(jsonPath("$.content[0].challengeId").value((int) challengeId))
-				.andExpect(jsonPath("$.content[0].subTaskId").isEmpty());
+				.andExpect(jsonPath("$.content[0].subTaskId").isEmpty())
+				.andExpect(jsonPath("$.content[1].userId").value((int) inviteeUserId))
+				.andExpect(jsonPath("$.content[1].challengeId").value((int) challengeId))
+				.andExpect(jsonPath("$.content[1].subTaskId").isEmpty());
 
 		// --- Both users log check-ins ---
 		postCheckIn(ownerId, challengeId, LocalDate.of(2026, 7, 10), null);

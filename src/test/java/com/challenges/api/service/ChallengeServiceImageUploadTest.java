@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.challenges.api.model.Challenge;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
+import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.storage.ChallengeImageStorage;
 import java.util.Optional;
@@ -35,13 +36,16 @@ class ChallengeServiceImageUploadTest {
 	private ChallengeRepository challenges;
 
 	@Mock
+	private ParticipantRepository participants;
+
+	@Mock
 	private ChallengeImageStorage challengeImageStorage;
 
 	private ChallengeService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new ChallengeService(users, challenges, challengeImageStorage);
+		service = new ChallengeService(users, challenges, participants, challengeImageStorage);
 	}
 
 	@Test

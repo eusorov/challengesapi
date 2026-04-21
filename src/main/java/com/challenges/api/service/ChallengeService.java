@@ -1,7 +1,9 @@
 package com.challenges.api.service;
 
 import com.challenges.api.model.Challenge;
+import com.challenges.api.model.Participant;
 import com.challenges.api.repo.ChallengeRepository;
+import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.storage.ChallengeImageStorage;
 import com.challenges.api.support.ChallengeImagePaths;
@@ -26,12 +28,17 @@ public class ChallengeService {
 
 	private final UserRepository users;
 	private final ChallengeRepository challenges;
+	private final ParticipantRepository participants;
 	private final ChallengeImageStorage challengeImageStorage;
 
 	public ChallengeService(
-			UserRepository users, ChallengeRepository challenges, ChallengeImageStorage challengeImageStorage) {
+			UserRepository users,
+			ChallengeRepository challenges,
+			ParticipantRepository participants,
+			ChallengeImageStorage challengeImageStorage) {
 		this.users = users;
 		this.challenges = challenges;
+		this.participants = participants;
 		this.challengeImageStorage = challengeImageStorage;
 	}
 
@@ -67,7 +74,13 @@ public class ChallengeService {
 					req.category(),
 					isPrivate);
 			applyLocationFromRequest(ch, req);
-			return challenges.save(ch);
+			Challenge saved = challenges.save(ch);
+			Long oid = owner.getId();
+			Long cid = saved.getId();
+			if (!participants.existsByUser_IdAndChallenge_IdAndSubTaskIsNull(oid, cid)) {
+				participants.save(new Participant(owner, saved));
+			}
+			return saved;
 		});
 	}
 
