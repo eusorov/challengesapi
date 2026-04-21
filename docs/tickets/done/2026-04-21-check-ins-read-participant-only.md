@@ -1,7 +1,9 @@
 # Check-ins: restrict read access to challenge participants
 
-**Status:** Partial  
-**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.5
+**Status:** Done (2026-04-21)  
+**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.5
+
+**Implemented:** `CheckInService` gates **`listForChallenge`**, **`listSummariesForRolledUpChallenge`**, and **`findByIdForViewer`** with **`assertViewerMayReadCheckInsForChallenge`**: **404** when no JWT, when **`findByIdForViewer`** fails, or when the viewer is neither **owner** nor a **participant**. `CheckInController` passes **`UserPrincipal`** on the three **GET** handlers. Tests: **`CheckInControllerIT.readCheckInsRequiresAuthAndMembership`**.
 
 ## Problem
 
@@ -20,4 +22,4 @@
 
 ## References
 
-- `CheckInController`, `CheckInService`
+- `CheckInController`, `CheckInService`, `ChallengeService.findByIdForViewer`, `ParticipantRepository.existsByUser_IdAndChallenge_Id`

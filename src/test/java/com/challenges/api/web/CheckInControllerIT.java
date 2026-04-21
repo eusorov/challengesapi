@@ -59,20 +59,23 @@ class CheckInControllerIT {
 	}
 
 	private User user;
+	private User otherUser;
 	private Challenge challenge;
 	private SubTask otherSubTask;
 	private String bearerAuth;
+	private String otherBearerAuth;
 
 	@BeforeEach
 	void setup() throws Exception {
 		user = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-user@test"));
-		User other = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-other@test"));
+		otherUser = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-other@test"));
 		challenge = challenges.save(new Challenge(
 				user, "ci-ch", null, LocalDate.of(2026, 5, 1), null, ChallengeCategory.OTHER));
 		Challenge otherCh = challenges.save(new Challenge(
-				other, "other", null, LocalDate.of(2026, 5, 2), null, ChallengeCategory.OTHER));
+				otherUser, "other", null, LocalDate.of(2026, 5, 2), null, ChallengeCategory.OTHER));
 		otherSubTask = subTasks.save(new SubTask(otherCh, "foreign", 0));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-user@test", "password");
+		otherBearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-other@test", "password");
 	}
 
 	@Test
@@ -106,5 +109,41 @@ class CheckInControllerIT {
 						put("/api/check-ins/" + checkInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(okPut))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.checkDate").value("2026-05-12"));
+	}
+
+	@Test
+	void readCheckInsRequiresAuthAndMembership() throws Exception {
+		String createBody = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-05-20\",\"subTaskId\":null}",
+				user.getId(), challenge.getId());
+		String created =
+				mockMvc.perform(post("/api/check-ins").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long checkInId = objectMapper.readTree(created).get("id").asLong();
+
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/check-ins").header(HV, V1))
+				.andExpect(status().isNotFound());
+
+		mockMvc.perform(
+						get("/api/challenges/" + challenge.getId() + "/check-ins")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, otherBearerAuth))
+				.andExpect(status().isNotFound());
+
+		mockMvc.perform(get("/api/check-ins/" + checkInId).header(HV, V1)).andExpect(status().isNotFound());
+
+		mockMvc.perform(get("/api/check-ins/" + checkInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, otherBearerAuth))
+				.andExpect(status().isNotFound());
+
+		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/check-ins").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content[0].id").value(checkInId));
+
+		mockMvc.perform(get("/api/check-ins/" + checkInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(checkInId));
 	}
 }

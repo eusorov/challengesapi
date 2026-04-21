@@ -58,9 +58,9 @@
 
 | Step | Method | Path | Status | Notes |
 |------|--------|------|--------|--------|
-| List check-ins for challenge | `GET` | `/api/challenges/{challengeId}/check-ins?page=` | **Partial** | Returns **all** check-ins for that challenge (good for “see others”). **No** check that caller is a participant. |
-| Summaries after rollup | `GET` | `/api/challenges/{challengeId}/check-in-summaries` | **Partial** | Only when rollup has run for ended challenges; **404** otherwise. Same lack of participant gate. |
-| Single check-in | `GET` | `/api/check-ins/{id}` | OK | |
+| List check-ins for challenge | `GET` | `/api/challenges/{challengeId}/check-ins?page=` | **OK** | **Bearer JWT** required (**404** without). Viewer must be **owner** or have any **participant** row for the challenge (challenge-wide or subtask-scoped). Challenge must be visible to the viewer via **`ChallengeService.findByIdForViewer`** (stricter than **§1.1**: a **usable `PENDING` invite** alone does **not** grant check-in read). Returns paged check-ins for the challenge. Done: [`docs/tickets/done/2026-04-21-check-ins-read-participant-only.md`](../../tickets/done/2026-04-21-check-ins-read-participant-only.md). |
+| Summaries after rollup | `GET` | `/api/challenges/{challengeId}/check-in-summaries` | **OK** | Same read gate as list check-ins; **404** when rollup has not completed yet (unchanged). |
+| Single check-in | `GET` | `/api/check-ins/{id}` | **OK** | Same read gate as list (challenge inferred from the check-in). **404** if check-in missing or viewer not allowed. |
 
 ---
 

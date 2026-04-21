@@ -1,5 +1,6 @@
 package com.challenges.api.web;
 
+import com.authspring.api.security.UserPrincipal;
 import com.challenges.api.service.CheckInService;
 import com.challenges.api.web.dto.CheckInRequest;
 import com.challenges.api.web.dto.CheckInResponse;
@@ -8,11 +9,13 @@ import com.challenges.api.web.dto.CheckInUpdateRequest;
 import java.util.List;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,8 +40,11 @@ public class CheckInController {
 		"/challenges/{challengeId:\\d+}/check-ins/"
 	})
 	public @NonNull Page<CheckInResponse> listForChallenge(
-			@PathVariable Long challengeId, @PageableDefault(size = 20) Pageable pageable) {
-		return checkInService.listForChallenge(challengeId, pageable).map(CheckInResponse::from);
+			@PathVariable Long challengeId,
+			@AuthenticationPrincipal @Nullable UserPrincipal principal,
+			@PageableDefault(size = 20) Pageable pageable) {
+		Long viewerId = principal != null ? principal.getId() : null;
+		return checkInService.listForChallenge(challengeId, viewerId, pageable).map(CheckInResponse::from);
 	}
 
 	/**
@@ -49,13 +55,17 @@ public class CheckInController {
 		"/challenges/{challengeId:\\d+}/check-in-summaries",
 		"/challenges/{challengeId:\\d+}/check-in-summaries/"
 	})
-	public @NonNull List<CheckInSummaryResponse> listSummariesForChallenge(@PathVariable Long challengeId) {
-		return checkInService.listSummariesForRolledUpChallenge(challengeId);
+	public @NonNull List<CheckInSummaryResponse> listSummariesForChallenge(
+			@PathVariable Long challengeId, @AuthenticationPrincipal @Nullable UserPrincipal principal) {
+		Long viewerId = principal != null ? principal.getId() : null;
+		return checkInService.listSummariesForRolledUpChallenge(challengeId, viewerId);
 	}
 
 	@GetMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
-	public ResponseEntity<CheckInResponse> get(@PathVariable Long id) {
-		return checkInService.findById(id)
+	public ResponseEntity<CheckInResponse> get(
+			@PathVariable Long id, @AuthenticationPrincipal @Nullable UserPrincipal principal) {
+		Long viewerId = principal != null ? principal.getId() : null;
+		return checkInService.findByIdForViewer(id, viewerId)
 				.map(CheckInResponse::from)
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
