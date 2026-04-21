@@ -1,6 +1,10 @@
+# After changing the app or Dockerfile, rebuild the image: docker compose up --build
+# (or: docker compose build --no-cache app && docker compose up -d)
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: challengesapi
     depends_on:
       postgres:
