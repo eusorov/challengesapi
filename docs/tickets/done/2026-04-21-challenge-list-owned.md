@@ -3,7 +3,7 @@
 **Status:** Done (2026-04-21)  
 **Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../../superpowers/specs/2026-04-21-main-workflows-api-design.md) §1.2
 
-**Implemented:** Branch `ticket/challenge-list-owned`, commit `a2721ce`. `GET /api/challenges/mine` — `ChallengeController.listMine`, `ChallengeService.listOwnedByUser`, `ChallengeRepository.findIdsByOwnerUserIdOrderByIdAsc` + `findAllWithSubtasksAndOwnerByIdIn`; OpenAPI `@Operation`; tests in `ChallengeControllerIT`, `ChallengeRepositoryTest`.
+**Implemented:** Branch `ticket/challenge-list-owned`. `GET /api/challenges/mine` — `ChallengeController.listMine`, `ChallengeService.listOwnedByUser`, `ChallengeRepository.findIdsByOwnerUserIdOrderByIdAsc` + `findAllWithSubtasksAndOwnerByIdIn`; OpenAPI `@Operation`; tests in `ChallengeControllerIT`, `ChallengeRepositoryTest`.
 
 ## Problem
 
