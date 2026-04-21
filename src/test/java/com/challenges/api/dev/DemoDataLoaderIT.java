@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.CheckInRepository;
+import com.challenges.api.repo.CommentRepository;
+import com.challenges.api.repo.InviteRepository;
 import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
@@ -28,6 +30,8 @@ class DemoDataLoaderIT {
 	private final SubTaskRepository subTasks;
 	private final ParticipantRepository participants;
 	private final CheckInRepository checkIns;
+	private final InviteRepository invites;
+	private final CommentRepository comments;
 
 	@Autowired
 	DemoDataLoaderIT(
@@ -36,13 +40,17 @@ class DemoDataLoaderIT {
 			ChallengeRepository challenges,
 			SubTaskRepository subTasks,
 			ParticipantRepository participants,
-			CheckInRepository checkIns) {
+			CheckInRepository checkIns,
+			InviteRepository invites,
+			CommentRepository comments) {
 		this.seedService = seedService;
 		this.users = users;
 		this.challenges = challenges;
 		this.subTasks = subTasks;
 		this.participants = participants;
 		this.checkIns = checkIns;
+		this.invites = invites;
+		this.comments = comments;
 	}
 
 	@Test
@@ -58,7 +66,7 @@ class DemoDataLoaderIT {
 		assertThat(participants.count())
 				.isEqualTo(
 						(long) DemoDataSeedService.BULK_CHALLENGE_COUNT
-								* DemoDataSeedService.PARTICIPANTS_PER_CHALLENGE);
+								* DemoDataSeedService.PARTICIPANT_ROWS_PER_CHALLENGE);
 		// 1 + (c % 5) subtasks per challenge → 200 × (1+2+3+4+5) = 3000
 		assertThat(subTasks.count()).isEqualTo(3000L);
 		assertThat(checkIns.count())
@@ -66,5 +74,10 @@ class DemoDataLoaderIT {
 						(long) DemoDataSeedService.BULK_CHALLENGE_COUNT
 								* DemoDataSeedService.PARTICIPANTS_PER_CHALLENGE
 								* DemoDataSeedService.CHECKINS_PER_PARTICIPANT);
+		int enrichedChallenges = DemoDataSeedService.BULK_CHALLENGE_COUNT / DemoDataSeedService.ENRICH_EVERY_N_CHALLENGES;
+		assertThat(invites.count())
+				.isEqualTo((long) enrichedChallenges * DemoDataSeedService.INVITES_PER_ENRICHED_CHALLENGE);
+		assertThat(comments.count())
+				.isEqualTo((long) enrichedChallenges * DemoDataSeedService.COMMENTS_PER_ENRICHED_CHALLENGE);
 	}
 }

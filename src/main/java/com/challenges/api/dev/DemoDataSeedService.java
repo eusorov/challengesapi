@@ -3,6 +3,9 @@ package com.challenges.api.dev;
 import com.challenges.api.model.Challenge;
 import com.challenges.api.model.ChallengeCategory;
 import com.challenges.api.model.CheckIn;
+import com.challenges.api.model.Comment;
+import com.challenges.api.model.Invite;
+import com.challenges.api.model.InviteStatus;
 import com.challenges.api.model.Participant;
 import com.challenges.api.model.Schedule;
 import com.challenges.api.model.ScheduleKind;
@@ -10,12 +13,15 @@ import com.challenges.api.model.SubTask;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.ChallengeRepository;
 import com.challenges.api.repo.CheckInRepository;
+import com.challenges.api.repo.CommentRepository;
+import com.challenges.api.repo.InviteRepository;
 import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.ScheduleRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.support.ChallengeLocationMapping;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -37,9 +43,24 @@ public class DemoDataSeedService {
 	 * → indices 0, 200, 400, … are private).
 	 */
 	static final int PRIVATE_CHALLENGE_INDEX_MOD = 200;
+	/**
+	 * Non-owner participants per challenge (the owner also gets a challenge-wide {@link Participant} row, like
+	 * {@code POST /api/challenges}).
+	 */
 	static final int PARTICIPANTS_PER_CHALLENGE = 10;
+	/** Total participant rows per challenge ({@link #PARTICIPANTS_PER_CHALLENGE} + owner). */
+	static final int PARTICIPANT_ROWS_PER_CHALLENGE = PARTICIPANTS_PER_CHALLENGE + 1;
 	/** Check-ins per seeded participant (split: half challenge-wide, half on a subtask). */
 	static final int CHECKINS_PER_PARTICIPANT = 4;
+	/**
+	 * Every {@code N}th challenge gets invites, comments, and one subtask-scoped-only participant so demo data
+	 * exercises invite lists, join-related visibility, comments, and subtask-only membership.
+	 */
+	static final int ENRICH_EVERY_N_CHALLENGES = 100;
+	/** Invites added per enriched challenge (pending/accepted/declined/cancelled + subtask pending). */
+	static final int INVITES_PER_ENRICHED_CHALLENGE = 5;
+	/** Challenge-wide + subtask comments per enriched challenge. */
+	static final int COMMENTS_PER_ENRICHED_CHALLENGE = 2;
 	/**
 	 * Challenges whose index is divisible by this value have no {@code city} or {@code location} (remainder get a
 	 * rotating demo place).
@@ -53,6 +74,7 @@ public class DemoDataSeedService {
 
 	private static final int TITLE_MAX = 500;
 	private static final int DESCRIPTION_MAX = 8000;
+	private static final int COMMENT_BODY_MAX = 8000;
 
 	private static final List<DayOfWeek> MON_WED_FRI =
 			List.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY);
@@ -79,6 +101,8 @@ public class DemoDataSeedService {
 	private final ScheduleRepository schedules;
 	private final ParticipantRepository participants;
 	private final CheckInRepository checkIns;
+	private final InviteRepository invites;
+	private final CommentRepository comments;
 
 	public DemoDataSeedService(
 			UserRepository users,
@@ -86,13 +110,17 @@ public class DemoDataSeedService {
 			SubTaskRepository subTasks,
 			ScheduleRepository schedules,
 			ParticipantRepository participants,
-			CheckInRepository checkIns) {
+			CheckInRepository checkIns,
+			InviteRepository invites,
+			CommentRepository comments) {
 		this.users = users;
 		this.challenges = challenges;
 		this.subTasks = subTasks;
 		this.schedules = schedules;
 		this.participants = participants;
 		this.checkIns = checkIns;
+		this.invites = invites;
+		this.comments = comments;
 	}
 
 	@Transactional
@@ -175,18 +203,86 @@ public class DemoDataSeedService {
 			}
 		}
 
-		// Challenge-wide participants (not the owner): 10 distinct users per challenge.
-		List<Participant> allParticipants = new ArrayList<>(BULK_CHALLENGE_COUNT * PARTICIPANTS_PER_CHALLENGE);
+		// Owner as challenge-wide participant (matches create-challenge / join membership model).
+		List<Participant> ownerParticipants = new ArrayList<>(BULK_CHALLENGE_COUNT);
 		for (int c = 0; c < BULK_CHALLENGE_COUNT; c++) {
 			Challenge ch = chList.get(c);
+			ownerParticipants.add(new Participant(seedUsers.get(c), ch));
+		}
+
+		// Non-owner participants: 10 distinct users per challenge; every ENRICH_EVERY_N_CHALLENGES-th challenge
+		// uses the last slot as subtask-scoped-only (API: challenge-wide check-ins require challenge-wide row).
+		List<Participant> memberParticipants =
+				new ArrayList<>(BULK_CHALLENGE_COUNT * PARTICIPANTS_PER_CHALLENGE);
+		for (int c = 0; c < BULK_CHALLENGE_COUNT; c++) {
+			Challenge ch = chList.get(c);
+			List<SubTask> sts = subtasksByChallenge.get(c);
 			for (int k = 0; k < PARTICIPANTS_PER_CHALLENGE; k++) {
 				int uIdx = (c + 1 + k) % BULK_USER_COUNT;
-				allParticipants.add(new Participant(seedUsers.get(uIdx), ch));
+				boolean subtaskOnly =
+						isEnrichedChallenge(c) && k == PARTICIPANTS_PER_CHALLENGE - 1 && !sts.isEmpty();
+				if (subtaskOnly) {
+					memberParticipants.add(new Participant(seedUsers.get(uIdx), ch, sts.get(0)));
+				} else {
+					memberParticipants.add(new Participant(seedUsers.get(uIdx), ch));
+				}
 			}
 		}
-		participants.saveAll(allParticipants);
+		participants.saveAll(ownerParticipants);
+		participants.saveAll(memberParticipants);
 
-		// A few check-ins per participant: first half dates are challenge-wide; rest are scoped to a subtask.
+		// Invites + comments on a sample of challenges (pending join, accepted/declined/cancelled, subtask invite).
+		List<Invite> demoInvites = new ArrayList<>();
+		List<Comment> demoComments = new ArrayList<>();
+		Instant pendingExpires = Instant.now().plus(30, ChronoUnit.DAYS);
+		for (int c = 0; c < BULK_CHALLENGE_COUNT; c++) {
+			if (!isEnrichedChallenge(c)) {
+				continue;
+			}
+			Challenge ch = chList.get(c);
+			User owner = seedUsers.get(c);
+			List<SubTask> sts = subtasksByChallenge.get(c);
+
+			Invite pendingWide = new Invite(owner, seedUsers.get((c + 11) % BULK_USER_COUNT), ch);
+			pendingWide.setExpiresAt(pendingExpires);
+			demoInvites.add(pendingWide);
+
+			if (!sts.isEmpty()) {
+				Invite pendingSub = new Invite(owner, seedUsers.get((c + 12) % BULK_USER_COUNT), ch, sts.get(0));
+				demoInvites.add(pendingSub);
+			}
+
+			Invite accepted = new Invite(owner, seedUsers.get((c + 1) % BULK_USER_COUNT), ch);
+			accepted.setStatus(InviteStatus.ACCEPTED);
+			demoInvites.add(accepted);
+
+			Invite declined = new Invite(owner, seedUsers.get((c + 13) % BULK_USER_COUNT), ch);
+			declined.setStatus(InviteStatus.DECLINED);
+			demoInvites.add(declined);
+
+			Invite cancelled = new Invite(owner, seedUsers.get((c + 14) % BULK_USER_COUNT), ch);
+			cancelled.setStatus(InviteStatus.CANCELLED);
+			demoInvites.add(cancelled);
+
+			demoComments.add(
+					new Comment(
+							seedUsers.get((c + 1) % BULK_USER_COUNT),
+							ch,
+							truncate(faker.lorem().sentence(4), COMMENT_BODY_MAX)));
+			if (!sts.isEmpty()) {
+				demoComments.add(
+						new Comment(
+								owner,
+								ch,
+								sts.get(0),
+								truncate(faker.lorem().sentence(3), COMMENT_BODY_MAX)));
+			}
+		}
+		invites.saveAll(demoInvites);
+		comments.saveAll(demoComments);
+
+		// Check-ins: non-owner members only (owner has no seeded check-ins). Subtask-only members get only
+		// subtask-scoped rows so data matches {@link com.challenges.api.service.CheckInService} rules.
 		int checkInCapacity = BULK_CHALLENGE_COUNT * PARTICIPANTS_PER_CHALLENGE * CHECKINS_PER_PARTICIPANT;
 		List<CheckIn> allCheckIns = new ArrayList<>(checkInCapacity);
 		int challengeLevelCount = CHECKINS_PER_PARTICIPANT / 2;
@@ -195,8 +291,10 @@ public class DemoDataSeedService {
 			List<SubTask> sts = subtasksByChallenge.get(c);
 			for (int p = 0; p < PARTICIPANTS_PER_CHALLENGE; p++) {
 				User user = seedUsers.get((c + 1 + p) % BULK_USER_COUNT);
+				boolean subtaskOnlyMember =
+						isEnrichedChallenge(c) && p == PARTICIPANTS_PER_CHALLENGE - 1 && !sts.isEmpty();
 				for (int n = 0; n < CHECKINS_PER_PARTICIPANT; n++) {
-					boolean subtaskLevel = n >= challengeLevelCount;
+					boolean subtaskLevel = subtaskOnlyMember || n >= challengeLevelCount;
 					SubTask st =
 							subtaskLevel && !sts.isEmpty() ? sts.get(p % sts.size()) : null;
 					LocalDate date = checkDateForParticipantCheckIn(ch, p, n, c);
@@ -205,6 +303,10 @@ public class DemoDataSeedService {
 			}
 		}
 		checkIns.saveAll(allCheckIns);
+	}
+
+	private static boolean isEnrichedChallenge(int challengeIndex) {
+		return challengeIndex % ENRICH_EVERY_N_CHALLENGES == 0;
 	}
 
 	private static LocalDate checkDateForParticipantCheckIn(
