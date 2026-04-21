@@ -3,7 +3,7 @@ package com.challenges.api.web;
 import com.authspring.api.security.UserPrincipal;
 import com.challenges.api.service.InviteService;
 import com.challenges.api.web.dto.InviteListRole;
-import com.challenges.api.web.dto.InviteRequest;
+import com.challenges.api.web.dto.InviteCreateRequest;
 import com.challenges.api.web.dto.InviteResponse;
 import com.challenges.api.web.dto.InviteUpdateRequest;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -60,8 +60,13 @@ public class InviteController {
 	}
 
 	@PostMapping({ "", "/" })
-	public ResponseEntity<InviteResponse> create(@Valid @RequestBody InviteRequest req) {
-		return inviteService.create(req)
+	public ResponseEntity<InviteResponse> create(
+			@Valid @RequestBody InviteCreateRequest req, @AuthenticationPrincipal UserPrincipal principal) {
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return inviteService
+				.createForAuthenticatedInviter(principal.getId(), req)
 				.map(inv -> ResponseEntity.status(HttpStatus.CREATED).body(InviteResponse.from(inv)))
 				.orElse(ResponseEntity.notFound().build());
 	}

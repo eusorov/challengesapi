@@ -353,9 +353,9 @@ class ChallengeControllerIT {
 		long challengeId = objectMapper.readTree(created).get("id").asLong();
 
 		String inviteBody = String.format(
-				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,"
+				"{\"inviteeEmail\":\"ch-invitee-pending@test\",\"challengeId\":%d,"
 						+ "\"subTaskId\":null,\"expiresAt\":null}",
-				owner1.getId(), invitee.getId(), challengeId);
+				challengeId);
 		mockMvc.perform(post("/api/invites")
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth)

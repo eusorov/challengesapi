@@ -11,8 +11,8 @@ import com.challenges.api.repo.InviteRepository;
 import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
+import com.challenges.api.web.dto.InviteCreateRequest;
 import com.challenges.api.web.dto.InviteListRole;
-import com.challenges.api.web.dto.InviteRequest;
 import com.challenges.api.web.dto.InviteUpdateRequest;
 import java.time.Instant;
 import java.util.List;
@@ -22,9 +22,11 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class InviteService {
@@ -96,13 +98,27 @@ public class InviteService {
 	}
 
 	@Transactional
-	public Optional<Invite> create(@NonNull InviteRequest req) {
+	public Optional<Invite> createForAuthenticatedInviter(
+			@NonNull Long inviterUserId, @NonNull InviteCreateRequest req) {
+		Assert.notNull(inviterUserId, "inviterUserId must not be null");
 		Assert.notNull(req, "request must not be null");
-		var inviter = users.findById(req.inviterUserId());
-		var invitee = users.findById(req.inviteeUserId());
-		var challenge = challenges.findById(req.challengeId());
-		if (inviter.isEmpty() || invitee.isEmpty() || challenge.isEmpty()) {
+		User inviter =
+				users.findById(inviterUserId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+		User invitee =
+				users.findByEmailIgnoreCase(req.inviteeEmail().trim()).orElse(null);
+		if (invitee == null) {
 			return Optional.empty();
+		}
+		if (invitee.getId().equals(inviterUserId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		}
+		Optional<Challenge> challengeOpt = challenges.findByIdWithSubtasksAndOwner(req.challengeId());
+		if (challengeOpt.isEmpty()) {
+			return Optional.empty();
+		}
+		Challenge challenge = challengeOpt.get();
+		if (!challenge.getOwner().getId().equals(inviterUserId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 		SubTask st = null;
 		if (req.subTaskId() != null) {
@@ -111,11 +127,11 @@ public class InviteService {
 				return Optional.empty();
 			}
 			st = ost.get();
-			if (!st.getChallenge().getId().equals(challenge.get().getId())) {
+			if (!st.getChallenge().getId().equals(challenge.getId())) {
 				throw new IllegalStateException("subTask must belong to the challenge");
 			}
 		}
-		Invite inv = new Invite(inviter.get(), invitee.get(), challenge.get(), st);
+		Invite inv = new Invite(inviter, invitee, challenge, st);
 		if (req.status() != null) {
 			inv.setStatus(req.status());
 		}

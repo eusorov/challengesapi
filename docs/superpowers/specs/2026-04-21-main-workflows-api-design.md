@@ -81,7 +81,7 @@
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | Set invite to accepted | `PUT` | `/api/invites/{id}` | OK | [`2026-04-18-05-participant-on-invite-accept.md` (plan)](../plans/2026-04-18-05-participant-on-invite-accept.md) | Body can set **`status`** (e.g. **`ACCEPTED`**). **`InviteService`** syncs a **`Participant`** when status is **`ACCEPTED`** (challenge-wide vs subtask scope per invite; idempotent **`existsBy…`** checks). |
-| Create invite (pending) | `POST` | `/api/invites` | OK | [`2026-04-21-invite-create-by-email-and-principal.md`](../../tickets/2026-04-21-invite-create-by-email-and-principal.md) · [`2026-04-18-04-rest-api-controllers.md` (plan, Task 10 — Invite)](../plans/2026-04-18-04-rest-api-controllers.md) | Original REST surface in **Task 10**; **§4** / backlog ticket for email + **`UserPrincipal`**. |
+| Create invite (pending) | `POST` | `/api/invites` | OK | [`2026-04-21-invite-create-by-email-and-principal.md` (done)](../../tickets/done/2026-04-21-invite-create-by-email-and-principal.md) · [`2026-04-18-04-rest-api-controllers.md` (plan, Task 10 — Invite)](../plans/2026-04-18-04-rest-api-controllers.md) | **`InviteCreateRequest`** + JWT inviter; see **§4**. |
 
 *(Join may also accept pending invites as part of **`POST .../join`** for private challenges.)*
 
@@ -127,7 +127,7 @@
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
-| Create invite | `POST` | `/api/invites` | **Partial** | [`2026-04-21-invite-create-by-email-and-principal.md`](../../tickets/2026-04-21-invite-create-by-email-and-principal.md) | **`InviteRequest`** uses **`inviterUserId`**, **`inviteeUserId`**, **`challengeId`**, optional **`subTaskId`**, **`status`**, **`expiresAt`**. **No email field** — client resolves **email → user id** (e.g. **`GET /api/users`**) or a future API adds email. |
+| Create invite | `POST` | `/api/invites` | OK | [`2026-04-21-invite-create-by-email-and-principal.md` (done)](../../tickets/done/2026-04-21-invite-create-by-email-and-principal.md) | **`InviteCreateRequest`**: **`inviteeEmail`** (registered user), **`challengeId`**, optional **`subTaskId`**, **`status`**, **`expiresAt`**. **Bearer JWT** required (**401** without). **Inviter** is always the JWT subject (**cannot** be forged). Only the **challenge owner** may create an invite (**403**). Unknown **`inviteeEmail`** → **404**. Self-invite → **403**. |
 | Replace-on-resend | — | — | **Planned** | [`2026-04-21-invite-replace-on-resend.md`](../../tickets/2026-04-21-invite-replace-on-resend.md) | **`InviteService.create`** does **not** delete prior invites for the same inviter/invitee/challenge. |
 
 | Other invite ops | Method | Path | Status | Tickets |

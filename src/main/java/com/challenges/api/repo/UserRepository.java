@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	Optional<User> findByEmail(String email);
 
+	Optional<User> findByEmailIgnoreCase(String email);
+
 	boolean existsByEmail(String email);
 
 	@Query(value = "select u.id from User u order by u.id asc", countQuery = "select count(u) from User u")

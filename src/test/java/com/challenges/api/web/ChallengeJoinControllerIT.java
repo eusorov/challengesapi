@@ -166,9 +166,9 @@ class ChallengeJoinControllerIT {
 		long challengeId = objectMapper.readTree(created).get("id").asLong();
 
 		String inviteBody = String.format(
-				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,"
+				"{\"inviteeEmail\":\"join-user-b@test\",\"challengeId\":%d,"
 						+ "\"subTaskId\":null,\"expiresAt\":null}",
-				userA.getId(), userB.getId(), challengeId);
+				challengeId);
 
 		String inviteCreated =
 				mockMvc.perform(post("/api/invites")
@@ -222,9 +222,9 @@ class ChallengeJoinControllerIT {
 		long challengeId = objectMapper.readTree(created).get("id").asLong();
 
 		String inviteBody = String.format(
-				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,"
+				"{\"inviteeEmail\":\"join-user-b@test\",\"challengeId\":%d,"
 						+ "\"subTaskId\":null,\"expiresAt\":\"2020-01-01T00:00:00Z\"}",
-				userA.getId(), userB.getId(), challengeId);
+				challengeId);
 
 		mockMvc.perform(post("/api/invites")
 						.header(HV, V1)
@@ -261,9 +261,9 @@ class ChallengeJoinControllerIT {
 		long challengeId = objectMapper.readTree(created).get("id").asLong();
 
 		String inviteBody = String.format(
-				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,"
+				"{\"inviteeEmail\":\"join-user-b@test\",\"challengeId\":%d,"
 						+ "\"subTaskId\":null,\"expiresAt\":null}",
-				userA.getId(), userB.getId(), challengeId);
+				challengeId);
 
 		String first =
 				mockMvc.perform(post("/api/invites")

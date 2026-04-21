@@ -71,9 +71,9 @@ class InviteControllerIT {
 	@Test
 	void listInvites_receivedAndSent_scopeToCurrentUser() throws Exception {
 		String body = String.format(
-				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,"
+				"{\"inviteeEmail\":\"invitee@test\",\"challengeId\":%d,"
 						+ "\"subTaskId\":null,\"expiresAt\":null}",
-				inviter.getId(), invitee.getId(), challenge.getId());
+				challenge.getId());
 		String created =
 				mockMvc.perform(post("/api/invites")
 								.header(HV, V1)
@@ -123,9 +123,9 @@ class InviteControllerIT {
 	@Test
 	void createThenUpdateStatus() throws Exception {
 		String body = String.format(
-				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,"
+				"{\"inviteeEmail\":\"invitee@test\",\"challengeId\":%d,"
 						+ "\"subTaskId\":null,\"expiresAt\":null}",
-				inviter.getId(), invitee.getId(), challenge.getId());
+				challenge.getId());
 
 		String created =
 				mockMvc.perform(post("/api/invites").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(body))
@@ -169,8 +169,8 @@ class InviteControllerIT {
 		SubTask sub = subTasks.save(new SubTask(challenge, "scoped step", 0));
 
 		String body = String.format(
-				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,\"subTaskId\":%d}",
-				inviter.getId(), invitee.getId(), challenge.getId(), sub.getId());
+				"{\"inviteeEmail\":\"invitee@test\",\"challengeId\":%d,\"subTaskId\":%d}",
+				challenge.getId(), sub.getId());
 
 		String created =
 				mockMvc.perform(post("/api/invites").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(body))
@@ -190,5 +190,60 @@ class InviteControllerIT {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content[0].userId").value(invitee.getId().intValue()))
 				.andExpect(jsonPath("$.content[0].subTaskId").value(sub.getId().intValue()));
+	}
+
+	@Test
+	void create_requiresAuth() throws Exception {
+		String body = String.format(
+				"{\"inviteeEmail\":\"invitee@test\",\"challengeId\":%d,\"subTaskId\":null}", challenge.getId());
+		mockMvc.perform(post("/api/invites").header(HV, V1).contentType(APPLICATION_JSON).content(body))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void create_unknownInviteeEmail_notFound() throws Exception {
+		String body = String.format(
+				"{\"inviteeEmail\":\"missing-user@nowhere.test\",\"challengeId\":%d,\"subTaskId\":null}",
+				challenge.getId());
+		mockMvc.perform(post("/api/invites")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(body))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void create_selfInvite_forbidden() throws Exception {
+		String body = String.format(
+				"{\"inviteeEmail\":\"inviter@test\",\"challengeId\":%d,\"subTaskId\":null}", challenge.getId());
+		mockMvc.perform(post("/api/invites")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(body))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void create_nonOwner_forbidden() throws Exception {
+		User otherOwner = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "other-ch-owner@test"));
+		Challenge otherChallenge =
+				challenges.save(new Challenge(
+						otherOwner,
+						"not-inviter-ch",
+						null,
+						LocalDate.of(2026, 5, 1),
+						null,
+						ChallengeCategory.OTHER));
+		String body = String.format(
+				"{\"inviteeEmail\":\"invitee@test\",\"challengeId\":%d,\"subTaskId\":null}",
+				otherChallenge.getId());
+		mockMvc.perform(post("/api/invites")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+						.contentType(APPLICATION_JSON)
+						.content(body))
+				.andExpect(status().isForbidden());
 	}
 }

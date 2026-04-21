@@ -82,7 +82,7 @@ class ChallengeDomainWorkflowIT {
 				.andExpect(jsonPath("$.length()").value(2));
 
 		// --- Invite (PENDING): owner asks invitee to join the challenge ---
-		long inviteId = postInvite(ownerId, inviteeUserId, challengeId, null);
+		long inviteId = postInvite("workflow-invitee@example.test", challengeId, null);
 		mockMvc.perform(get("/api/invites/" + inviteId)
 						.header(HV, V1)
 						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
@@ -203,13 +203,12 @@ class ChallengeDomainWorkflowIT {
 		return node.get("id").asLong();
 	}
 
-	private long postInvite(long inviterId, long inviteeId, long challengeId, Long subTaskId)
-			throws Exception {
+	private long postInvite(String inviteeEmail, long challengeId, Long subTaskId) throws Exception {
 		String sub =
 				subTaskId == null ? "null" : String.valueOf(subTaskId);
 		String body = String.format(
-				"{\"inviterUserId\":%d,\"inviteeUserId\":%d,\"challengeId\":%d,\"subTaskId\":%s}",
-				inviterId, inviteeId, challengeId, sub);
+				"{\"inviteeEmail\":\"%s\",\"challengeId\":%d,\"subTaskId\":%s}",
+				inviteeEmail, challengeId, sub);
 		MvcResult res =
 				mockMvc.perform(post("/api/invites")
 								.header(HV, V1)
