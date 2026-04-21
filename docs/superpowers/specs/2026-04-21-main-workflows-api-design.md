@@ -80,8 +80,8 @@
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
-| Set invite to accepted | `PUT` | `/api/invites/{id}` | OK | — | Body can set **`status`** (e.g. **`ACCEPTED`**). **`InviteService`** creates **`Participant`** when status is **`ACCEPTED`**. |
-| Create invite (pending) | `POST` | `/api/invites` | OK | [`2026-04-21-invite-create-by-email-and-principal.md`](../../tickets/2026-04-21-invite-create-by-email-and-principal.md) (partial / follow-ups) | See **§4** for gaps. |
+| Set invite to accepted | `PUT` | `/api/invites/{id}` | OK | [`2026-04-18-05-participant-on-invite-accept.md` (plan)](../plans/2026-04-18-05-participant-on-invite-accept.md) | Body can set **`status`** (e.g. **`ACCEPTED`**). **`InviteService`** syncs a **`Participant`** when status is **`ACCEPTED`** (challenge-wide vs subtask scope per invite; idempotent **`existsBy…`** checks). |
+| Create invite (pending) | `POST` | `/api/invites` | OK | [`2026-04-21-invite-create-by-email-and-principal.md`](../../tickets/2026-04-21-invite-create-by-email-and-principal.md) · [`2026-04-18-04-rest-api-controllers.md` (plan, Task 10 — Invite)](../plans/2026-04-18-04-rest-api-controllers.md) | Original REST surface in **Task 10**; **§4** / backlog ticket for email + **`UserPrincipal`**. |
 
 *(Join may also accept pending invites as part of **`POST .../join`** for private challenges.)*
 
@@ -178,7 +178,8 @@
 1. **`AGENTS.md`** — vocabulary, JWT paths, join/create semantics.  
 2. **`2026-04-21-challenge-join-design.md`** — private join + invite interaction (product contract).  
 3. **`2026-04-21-challenge-join.md`** ([`docs/superpowers/plans/`](../plans/2026-04-21-challenge-join.md)) — implementation plan and task checklist for **`POST /api/challenges/{id}/join`**.  
-4. OpenAPI: **`/v3/api-docs`**, Swagger UI **`/swagger-ui.html`**.
+4. **`2026-04-18-05-participant-on-invite-accept.md`** ([`docs/superpowers/plans/`](../plans/2026-04-18-05-participant-on-invite-accept.md)) — **`Participant`** sync when an invite becomes **`ACCEPTED`** (**`PUT /api/invites/{id}`**).  
+5. OpenAPI: **`/v3/api-docs`**, Swagger UI **`/swagger-ui.html`**.
 
 ---
 
