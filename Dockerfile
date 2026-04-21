@@ -15,9 +15,13 @@ RUN ./gradlew --no-daemon dependencies
 
 COPY src src
 
-RUN ./gradlew --no-daemon bootJar -x test \
+# Gradle exit code is the primary success signal; also require a non-empty, readable JAR (zip).
+RUN set -e \
+    && ./gradlew --no-daemon bootJar -x test \
     && jar_path="$(find build/libs -maxdepth 1 -name '*.jar' ! -name '*-plain.jar' -print -quit)" \
     && test -n "$jar_path" \
+    && test -s "$jar_path" \
+    && jar tf "$jar_path" >/dev/null \
     && cp "$jar_path" /workspace/application.jar
 
 # --- Runtime: JRE only
