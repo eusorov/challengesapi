@@ -15,6 +15,9 @@ public interface InviteRepository extends JpaRepository<Invite, Long> {
 
 	List<Invite> findByInvitee_IdAndStatus(Long inviteeUserId, InviteStatus status);
 
+	List<Invite> findByInvitee_IdAndChallenge_IdAndStatusOrderByIdAsc(
+			Long inviteeId, Long challengeId, InviteStatus status);
+
 	@Query(value = "select i.id from Invite i order by i.id asc", countQuery = "select count(i) from Invite i")
 	Page<Long> findIdsOrderByIdAsc(Pageable pageable);
 

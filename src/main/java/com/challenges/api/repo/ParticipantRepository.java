@@ -3,6 +3,7 @@ package com.challenges.api.repo;
 import com.challenges.api.model.Participant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,6 +31,30 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 			order by p.id asc
 			""")
 	List<Participant> findByIdInWithAssociations(@Param("ids") Collection<Long> ids);
+
+	@Query(
+			"""
+			select distinct p from Participant p
+			join fetch p.user
+			join fetch p.challenge
+			left join fetch p.subTask
+			where p.user.id = :userId and p.challenge.id = :challengeId and p.subTask is null
+			""")
+	Optional<Participant> findChallengeWideWithAssociations(
+			@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+
+	@Query(
+			"""
+			select distinct p from Participant p
+			join fetch p.user
+			join fetch p.challenge
+			join fetch p.subTask
+			where p.user.id = :userId and p.challenge.id = :challengeId and p.subTask.id = :subTaskId
+			""")
+	Optional<Participant> findSubTaskScopedWithAssociations(
+			@Param("userId") Long userId,
+			@Param("challengeId") Long challengeId,
+			@Param("subTaskId") Long subTaskId);
 
 	List<Participant> findByChallenge_IdAndSubTaskIsNull(Long challengeId);
 
