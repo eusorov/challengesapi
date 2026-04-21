@@ -31,7 +31,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-      # Literal ~/... for SCP so the path is not normalized to the runner home via job env.
       - name: Copy docker-compose.yml to VPS
         uses: appleboy/scp-action@v1.0.0
         with:
@@ -48,7 +47,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             docker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.DOCKER_TOKEN }}
-            docker image prune -a
+            docker image prune -a -y 
             docker pull ${{ inputs.IMAGE_FULL_NAME }}
             
             export IMAGE_FULL_NAME="${{ inputs.IMAGE_FULL_NAME }}"
