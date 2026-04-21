@@ -174,30 +174,45 @@ public class CheckInService {
 	}
 
 	@Transactional
-	public Optional<CheckIn> replace(@NonNull Long id, @NonNull CheckInUpdateRequest req) {
+	public Optional<CheckIn> replace(@NonNull Long id, @NonNull CheckInUpdateRequest req, @NonNull Long actorUserId) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(req, "request must not be null");
-		return checkIns.findByIdWithAssociations(id).map(ci -> {
-			if (req.subTaskId() != null) {
-				SubTask st = subTasks.findById(req.subTaskId()).orElseThrow(
-						() -> new IllegalArgumentException("subTask not found"));
-				if (!st.getChallenge().getId().equals(ci.getChallenge().getId())) {
-					throw new IllegalStateException("subTask does not belong to check-in challenge");
-				}
-				ci.setSubTask(st);
-			} else {
-				ci.setSubTask(null);
+		Assert.notNull(actorUserId, "actorUserId must not be null");
+		Optional<CheckIn> loaded = checkIns.findByIdWithAssociations(id);
+		if (loaded.isEmpty()) {
+			return Optional.empty();
+		}
+		CheckIn ci = loaded.get();
+		assertViewerMayReadCheckInsForChallenge(ci.getChallenge().getId(), actorUserId);
+		if (!ci.getUser().getId().equals(actorUserId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+		}
+		if (req.subTaskId() != null) {
+			SubTask st = subTasks.findById(req.subTaskId()).orElseThrow(
+					() -> new IllegalArgumentException("subTask not found"));
+			if (!st.getChallenge().getId().equals(ci.getChallenge().getId())) {
+				throw new IllegalStateException("subTask does not belong to check-in challenge");
 			}
-			ci.setCheckDate(req.checkDate());
-			return checkIns.save(ci);
-		});
+			ci.setSubTask(st);
+		} else {
+			ci.setSubTask(null);
+		}
+		ci.setCheckDate(req.checkDate());
+		return Optional.of(checkIns.save(ci));
 	}
 
 	@Transactional
-	public boolean delete(@NonNull Long id) {
+	public boolean delete(@NonNull Long id, @NonNull Long actorUserId) {
 		Assert.notNull(id, "id must not be null");
-		if (!checkIns.existsById(id)) {
+		Assert.notNull(actorUserId, "actorUserId must not be null");
+		Optional<CheckIn> loaded = checkIns.findByIdWithAssociations(id);
+		if (loaded.isEmpty()) {
 			return false;
+		}
+		CheckIn ci = loaded.get();
+		assertViewerMayReadCheckInsForChallenge(ci.getChallenge().getId(), actorUserId);
+		if (!ci.getUser().getId().equals(actorUserId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 		checkIns.deleteById(id);
 		return true;

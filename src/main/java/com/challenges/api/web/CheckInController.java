@@ -87,16 +87,25 @@ public class CheckInController {
 
 	@PutMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
 	public ResponseEntity<CheckInResponse> replace(
-			@PathVariable Long id, @Valid @RequestBody CheckInUpdateRequest req) {
-		return checkInService.replace(id, req)
+			@PathVariable Long id,
+			@Valid @RequestBody CheckInUpdateRequest req,
+			@AuthenticationPrincipal @Nullable UserPrincipal principal) {
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return checkInService.replace(id, req, principal.getId())
 				.map(CheckInResponse::from)
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@DeleteMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
-		if (!checkInService.delete(id)) {
+	public ResponseEntity<Void> delete(
+			@PathVariable Long id, @AuthenticationPrincipal @Nullable UserPrincipal principal) {
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		if (!checkInService.delete(id, principal.getId())) {
 			return ResponseEntity.notFound().build();
 		}
 		return ResponseEntity.noContent().build();

@@ -1,6 +1,7 @@
 package com.challenges.api.web;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -212,5 +213,126 @@ class CheckInControllerIT {
 						.content(scoped))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.subTaskId").value(st.getId().intValue()));
+	}
+
+	@Test
+	void replaceAndDeleteCheckInRequireAuthentication() throws Exception {
+		String createBody = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-06-01\",\"subTaskId\":null}",
+				user.getId(), challenge.getId());
+		String created =
+				mockMvc.perform(post("/api/check-ins").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long checkInId = objectMapper.readTree(created).get("id").asLong();
+		String putBody = "{\"checkDate\":\"2026-06-02\",\"subTaskId\":null}";
+
+		mockMvc.perform(put("/api/check-ins/" + checkInId).header(HV, V1).contentType(APPLICATION_JSON).content(putBody))
+				.andExpect(status().isUnauthorized());
+		mockMvc.perform(delete("/api/check-ins/" + checkInId).header(HV, V1)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void onlyCheckInAuthorMayReplaceOrDelete() throws Exception {
+		participants.save(new Participant(otherUser, challenge));
+
+		String authorBody = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-06-10\",\"subTaskId\":null}",
+				user.getId(), challenge.getId());
+		String authorCreated =
+				mockMvc.perform(post("/api/check-ins").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(authorBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long authorCheckInId = objectMapper.readTree(authorCreated).get("id").asLong();
+
+		String otherBody = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-06-11\",\"subTaskId\":null}",
+				otherUser.getId(), challenge.getId());
+		String otherCreated =
+				mockMvc.perform(post("/api/check-ins").header(HV, V1).header(HttpHeaders.AUTHORIZATION, otherBearerAuth).contentType(APPLICATION_JSON).content(otherBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long otherCheckInId = objectMapper.readTree(otherCreated).get("id").asLong();
+
+		String putBody = "{\"checkDate\":\"2026-06-20\",\"subTaskId\":null}";
+		mockMvc.perform(
+						put("/api/check-ins/" + authorCheckInId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, otherBearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(putBody))
+				.andExpect(status().isForbidden());
+		mockMvc.perform(
+						delete("/api/check-ins/" + authorCheckInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, otherBearerAuth))
+				.andExpect(status().isForbidden());
+
+		mockMvc.perform(
+						put("/api/check-ins/" + otherCheckInId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(putBody))
+				.andExpect(status().isForbidden());
+		mockMvc.perform(
+						delete("/api/check-ins/" + otherCheckInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isForbidden());
+
+		mockMvc.perform(
+						put("/api/check-ins/" + authorCheckInId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(putBody))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.checkDate").value("2026-06-20"));
+
+		mockMvc.perform(
+						delete("/api/check-ins/" + otherCheckInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, otherBearerAuth))
+				.andExpect(status().isNoContent());
+	}
+
+	@Test
+	void replaceOrDeleteUnknownCheckInReturnsNotFound() throws Exception {
+		mockMvc.perform(
+						put("/api/check-ins/999999999")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content("{\"checkDate\":\"2026-06-30\",\"subTaskId\":null}"))
+				.andExpect(status().isNotFound());
+		mockMvc.perform(delete("/api/check-ins/999999999").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void replaceOrDeleteWhenNotAllowedToReadChallengeReturnsNotFound() throws Exception {
+		String createBody = String.format(
+				"{\"userId\":%d,\"challengeId\":%d,\"checkDate\":\"2026-07-01\",\"subTaskId\":null}",
+				user.getId(), challenge.getId());
+		String created =
+				mockMvc.perform(post("/api/check-ins").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(createBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long checkInId = objectMapper.readTree(created).get("id").asLong();
+		String putBody = "{\"checkDate\":\"2026-07-02\",\"subTaskId\":null}";
+
+		mockMvc.perform(
+						put("/api/check-ins/" + checkInId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, otherBearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(putBody))
+				.andExpect(status().isNotFound());
+		mockMvc.perform(
+						delete("/api/check-ins/" + checkInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, otherBearerAuth))
+				.andExpect(status().isNotFound());
 	}
 }
