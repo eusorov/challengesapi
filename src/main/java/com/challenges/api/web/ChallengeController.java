@@ -2,8 +2,11 @@ package com.challenges.api.web;
 
 import com.authspring.api.security.UserPrincipal;
 import com.challenges.api.service.ChallengeService;
+import com.challenges.api.service.JoinChallengeOutcome;
+import com.challenges.api.service.ParticipantService;
 import com.challenges.api.web.dto.ChallengeRequest;
 import com.challenges.api.web.dto.ChallengeResponse;
+import com.challenges.api.web.dto.ParticipantResponse;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,12 +32,15 @@ import org.springframework.web.multipart.MultipartFile;
 public class ChallengeController {
 
 	private final ChallengeService challengeService;
+	private final ParticipantService participantService;
 	private final String imagePublicBaseUrl;
 
 	public ChallengeController(
 			ChallengeService challengeService,
+			ParticipantService participantService,
 			@Value("${aws.s3.public-base-url:}") String imagePublicBaseUrl) {
 		this.challengeService = challengeService;
+		this.participantService = participantService;
 		this.imagePublicBaseUrl = imagePublicBaseUrl;
 	}
 
@@ -59,6 +65,17 @@ public class ChallengeController {
 				.map(ch -> ResponseEntity.status(HttpStatus.CREATED)
 						.body(ChallengeResponse.from(ch, imagePublicBaseUrl)))
 				.orElse(ResponseEntity.notFound().build());
+	}
+
+	@PostMapping({ "/{id:\\d+}/join", "/{id:\\d+}/join/" })
+	public ResponseEntity<ParticipantResponse> join(
+			@PathVariable Long id, @AuthenticationPrincipal UserPrincipal principal) {
+		JoinChallengeOutcome outcome = participantService.joinChallenge(id, principal.getId());
+		ParticipantResponse body = ParticipantResponse.from(outcome.participant());
+		if (outcome.created()) {
+			return ResponseEntity.status(HttpStatus.CREATED).body(body);
+		}
+		return ResponseEntity.ok(body);
 	}
 
 	@PutMapping({ "/{id:\\d+}", "/{id:\\d+}/" })
