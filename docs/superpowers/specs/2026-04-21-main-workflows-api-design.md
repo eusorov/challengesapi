@@ -74,7 +74,7 @@
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
-| Self-join | `POST` | `/api/challenges/{id}/join` | OK | — | **Public** challenge: open join. **Private**: requires usable **`PENDING`** invite; service may auto-accept oldest valid invite. **201** first time, **200** if already challenge-wide participant. See `docs/superpowers/specs/2026-04-21-challenge-join-design.md`. |
+| Self-join | `POST` | `/api/challenges/{id}/join` | OK | [`2026-04-21-challenge-join.md` (implementation plan)](../plans/2026-04-21-challenge-join.md) | **Authenticated user** (`UserPrincipal` / Bearer JWT). **Public** challenge: open join (challenge-wide **`Participant`**). **Private**: must have a usable **`PENDING`** **`Invite`** for the current user; **`ParticipantService.joinChallenge`** delegates to **`InviteService.acceptOldestUsablePendingInviteForJoin`** then ensures challenge-wide membership. **201** when a new challenge-wide **`Participant`** row is inserted, **200** when already challenge-wide. Product rules: [`2026-04-21-challenge-join-design.md`](2026-04-21-challenge-join-design.md). |
 
 ### 2.2 Accept an invite
 
@@ -176,8 +176,9 @@
 ## Suggested reading order for implementers
 
 1. **`AGENTS.md`** — vocabulary, JWT paths, join/create semantics.  
-2. **`2026-04-21-challenge-join-design.md`** — private join + invite interaction.  
-3. OpenAPI: **`/v3/api-docs`**, Swagger UI **`/swagger-ui.html`**.
+2. **`2026-04-21-challenge-join-design.md`** — private join + invite interaction (product contract).  
+3. **`2026-04-21-challenge-join.md`** ([`docs/superpowers/plans/`](../plans/2026-04-21-challenge-join.md)) — implementation plan and task checklist for **`POST /api/challenges/{id}/join`**.  
+4. OpenAPI: **`/v3/api-docs`**, Swagger UI **`/swagger-ui.html`**.
 
 ---
 
