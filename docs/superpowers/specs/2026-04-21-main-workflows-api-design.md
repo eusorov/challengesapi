@@ -19,6 +19,8 @@
 
 ## 0. Auth and current user
 
+*Workflow:* Register or log in, obtain a JWT, then call **`GET /api/user`** so the client knows who is authenticated for all later steps.
+
 | Step | Method | Path | Status | Tickets |
 |------|--------|------|--------|---------|
 | Register | `POST` | `/api/register` | OK | — |
@@ -31,7 +33,11 @@
 
 ## 1. View challenges
 
+*Workflow:* Discover challenges (public browse, “mine,” or via invites), open details when allowed, see participants, and read check-ins when the viewer is a member with the right visibility.
+
 ### 1.1 Search public challenges and open one
+
+*Workflow:* Page through **public** challenges with optional text/category/city filters, list categories for the UI, and fetch one challenge by id (**private** requires access).
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
@@ -41,11 +47,15 @@
 
 ### 1.2 Owned private challenges
 
+*Workflow:* Signed-in owner lists **all** challenges they created (public and private) for “my challenges” dashboards.
+
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | “My owned challenges” | `GET` | `/api/challenges/mine` | **OK** | [`2026-04-21-challenge-list-owned.md` (done)](../../tickets/done/2026-04-21-challenge-list-owned.md) | **Bearer JWT** required (**401** without). Paged **`ChallengeResponse`** for **`owner_user_id =` current user** (public and private). Same **`page`/`size`** defaults as **`GET /api/challenges`**. |
 
 ### 1.3 Private challenges the user was invited to
+
+*Workflow:* See **received** or **sent** invites (optionally filtered by challenge), then open the linked challenge when visibility rules allow.
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
@@ -54,11 +64,15 @@
 
 ### 1.4 Participants for a challenge
 
+*Workflow:* List who is on the challenge—same visibility as **`GET /api/challenges/{id}`** (public vs private + invite edge cases).
+
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | List participants | `GET` | `/api/challenges/{challengeId}/participants?page=` | **OK** | [`2026-04-21-participants-list-access-control.md` (done)](../../tickets/done/2026-04-21-participants-list-access-control.md) | Same visibility as **`GET /api/challenges/{id}`**: **public** — any caller; **private** — **404** unless viewer is **owner**, **participant**, or has a **usable `PENDING` invite**. Optional JWT via **`UserPrincipal`**. |
 
 ### 1.5 Participant sees other participants’ check-ins on one challenge
+
+*Workflow:* Members (or owner) page through check-ins, read rollup summaries after an ended challenge is processed, or fetch a single check-in—stricter than “invite only”: you must actually be a participant for read.
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
@@ -70,13 +84,19 @@
 
 ## 2. User participates (becomes a participant)
 
+*Workflow:* A user becomes part of a challenge either by **self-join** (when the product allows) or by **accepting an invite** that creates the right **`Participant`** row.
+
 ### 2.1 Join challenge
+
+*Workflow:* Authenticated caller adds **challenge-wide** membership: open on **public** challenges; on **private** ones, a usable **pending** invite must exist (oldest matching invite is consumed).
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | Self-join | `POST` | `/api/challenges/{id}/join` | OK | [`2026-04-21-challenge-join.md` (implementation plan)](../plans/2026-04-21-challenge-join.md) | **Authenticated user** (`UserPrincipal` / Bearer JWT). **Public** challenge: open join (challenge-wide **`Participant`**). **Private**: must have a usable **`PENDING`** **`Invite`** for the current user; **`ParticipantService.joinChallenge`** delegates to **`InviteService.acceptOldestUsablePendingInviteForJoin`** then ensures challenge-wide membership. **201** when a new challenge-wide **`Participant`** row is inserted, **200** when already challenge-wide. Product rules: [`2026-04-21-challenge-join-design.md`](2026-04-21-challenge-join-design.md). |
 
 ### 2.2 Accept an invite
+
+*Workflow:* Invitee sets invite status (e.g. **accepted**); service ensures **`Participant`** matches invite scope. Owners create pending invites via **§4**.
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
@@ -89,7 +109,11 @@
 
 ## 3. Create and manage challenges
 
+*Workflow:* Owner defines the challenge shell, cadence, subtasks, and privacy; only the owner may replace or delete the challenge and mutate subtasks.
+
 ### 3.1 Create challenge + schedule; owner becomes participant
+
+*Workflow:* Submit challenge metadata, then attach **schedule** rows to the challenge and/or subtasks; **`ChallengeService`** ensures the owner has challenge-wide **`Participant`** membership.
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
@@ -99,12 +123,16 @@
 
 ### 3.2 Private challenges excluded from public listing
 
+*Workflow:* **`private: true`** keeps a challenge off **`GET /api/challenges`** while still reachable via owner, participants, and valid invites.
+
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | Set private on create/update | body | `POST /api/challenges`, `PUT /api/challenges/{id}` | OK | — | JSON field **`private`**. **`PUT`** / **`DELETE`** are **owner-only** (**§3.4**). |
 | Public list | `GET` | `/api/challenges` | OK | [`2026-04-21-challenge-public-list-text-search.md` (done)](../../tickets/done/2026-04-21-challenge-public-list-text-search.md) | **Non-private only** repository query. |
 
 ### 3.3 Subtasks (with own schedule)
+
+*Workflow:* Owner adds ordered steps under the challenge; each can have its own schedule (**§3.1**). Reads stay open; **POST**/**PUT**/**DELETE** are owner-only.
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
@@ -114,6 +142,8 @@
 
 ### 3.4 Only owner edits challenge
 
+*Workflow:* Owner updates fields with a JWT-matching **`ownerUserId`** or deletes the challenge; ownership is **not** transferred via **`PUT`**.
+
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | Replace challenge | `PUT` | `/api/challenges/{id}` | OK | [`2026-04-21-challenge-replace-delete-owner-only.md` (done)](../../tickets/done/2026-04-21-challenge-replace-delete-owner-only.md) | **Bearer JWT** required (**401** without). **`ownerUserId`** in the body must equal the JWT subject (**403** otherwise). Only the **current owner** may update (**403**). **Ownership transfer** via **`PUT`** is **not** supported (owner stays the authenticated user). |
@@ -122,6 +152,8 @@
 ---
 
 ## 4. Invites
+
+*Workflow:* Challenge **owner** emails an invite to a registered user; invitee sees it in **`GET /api/invites`**, opens the challenge, and accepts via **`PUT`** (see **§2**). List/get/update/delete cover the rest of the lifecycle; **replace-on-resend** is still **Planned**.
 
 **Product:** Invite by **email**. **Target behavior:** if an invite already exists for the same pair/challenge (or email), **delete** the old row and **create** a fresh one.
 
@@ -141,6 +173,8 @@
 
 ## 5. Participant check-ins
 
+*Workflow:* A member logs **daily (or dated) progress** for the whole challenge or a subtask they may access; only that **same user** may **edit** or **delete** their check-in row afterward.
+
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | Create check-in | `POST` | `/api/check-ins` | **OK** | [`2026-04-21-check-in-create-participant-validation.md` (done)](../../tickets/done/2026-04-21-check-in-create-participant-validation.md) | **Bearer JWT** required (**401** without). Body **`userId`** must match the authenticated user (**403** otherwise). **Owner** or **participant** only: challenge-wide rows require challenge-wide **`Participant`** (or owner); **`subTaskId`** set requires challenge-wide **or** matching subtask-scoped **`Participant`**. |
@@ -148,7 +182,9 @@
 
 ---
 
-## 6. Check-in reminders (push)
+## 6. Check-in reminders (push)  (out of scope for now)
+
+*Workflow:* **Future:** notify users when a check-in is due (scheduler + push + copy + opt-out). Today only **rollup** of ended challenges exists; nothing sends “due today” reminders from this API.
 
 | Step | Status | Tickets | Notes |
 |------|--------|---------|--------|
@@ -158,7 +194,9 @@
 
 ---
 
-## 7. Challenge / subtask “group chat”
+## 7. Challenge / subtask “group chat” (out of scope for now)
+
+*Workflow:* **Target:** threaded chat and reactions, **participant-only**. **Today:** flat **comments** on a challenge (optional subtask thread); list/post/read/update/delete are only **partially** aligned with membership and author rules—see **Partial** rows and tickets.
 
 **Product:** Threaded discussion, reactions/likes, **visible only to participants**.
 
@@ -173,7 +211,7 @@
 
 ---
 
-## Suggested reading order for implementers
+## Suggested reading order for implementers 
 
 1. **`AGENTS.md`** — vocabulary, JWT paths, join/create semantics.  
 2. **`2026-04-21-challenge-join-design.md`** — private join + invite interaction (product contract).  
