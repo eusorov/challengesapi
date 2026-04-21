@@ -39,7 +39,7 @@
 
 | Step | Method | Path | Status | Notes |
 |------|--------|------|--------|--------|
-| “My owned challenges” | — | — | **Planned** | No **`ownerUserId`** or “mine” query on **`GET /api/challenges`**. Workaround: persist ids from **`POST /api/challenges`** or add a dedicated endpoint / filter later. |
+| “My owned challenges” | `GET` | `/api/challenges/mine` | **Planned** | Ticket: [`docs/tickets/2026-04-21-challenge-list-owned.md`](../../tickets/2026-04-21-challenge-list-owned.md). Authenticated; lists **all** challenges owned by JWT user (including **private**). Pagination like **`GET /api/challenges`**. |
 
 ### 1.3 Private challenges the user was invited to
 
