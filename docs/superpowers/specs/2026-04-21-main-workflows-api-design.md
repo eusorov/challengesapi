@@ -3,7 +3,7 @@
 **Date:** 2026-04-21  
 **Scope:** Describes end-to-end user workflows and the **challenges API** calls that implement them (or will). For every call, send header **`API-Version: 1`**. Unless noted, paths are under **`/api`**.
 
-**Auth today:** Clients should send **`Authorization: Bearer <JWT>`** after **`POST /api/login`** or register flows. **`SecurityConfig`** currently **`permitAll`**s **`/api/**`**; still wire the token so behavior stays correct when rules tighten.
+**Auth today:** Clients should send **`Authorization: Bearer <JWT>`** after **`POST /api/login`** or register flows. **`SecurityConfig`** enforces **authenticated** for **`/api/**`** except an explicit allowlist (auth endpoints, **`POST /api/users`**, email verification link, public challenge discovery **`GET`**s, **`/actuator/**`**, springdoc). Anonymous calls to protected routes receive **401** (`ProblemDetail`). Details: **§ Security: HTTP authentication** below.
 
 **Status legend**
 
@@ -27,7 +27,20 @@
 | Log in | `POST` | `/api/login` | OK | — |
 | Current user (JWT) | `GET` | `/api/user` | OK | — |
 
-*Cross-cutting (tighten **`permitAll`** / JWT enforcement):* [`2026-04-21-security-tighten-api-authentication.md`](../../tickets/2026-04-21-security-tighten-api-authentication.md).
+---
+
+## Security: HTTP authentication
+
+**Ticket / tracking:** [`2026-04-21-security-tighten-api-authentication.md`](../../tickets/2026-04-21-security-tighten-api-authentication.md) — **Done**.
+
+**Behavior:** Spring Security **`authorizeHttpRequests`** applies before controllers. **`JwtAuthenticationFilter`** still populates **`UserPrincipal`** when a valid **`Authorization: Bearer`** is present.
+
+| Class | Role |
+|-------|------|
+| [`SecurityConfig`](../../../src/main/java/com/challenges/api/config/SecurityConfig.java) | Ordered matchers: **OPTIONS**, **actuator**, **springdoc** (`/swagger-ui.html`, `/swagger-ui/**`, `/v3/api-docs`, …), **`POST`** login / register / forgot / reset password, **`GET /api/email/verify/**`**, **`POST /api/users`**, **`GET /api/categories`**, **`GET /api/challenges/mine`** (authenticated), **`GET /api/challenges`** (list), **`GET`** numeric challenge + **`/subtasks`** + **`/participants`**, **`GET /api/subtasks/{id}`**, then **`/api/**` authenticated**. |
+| [`SecurityHttpAuthorizationIT`](../../../src/test/java/com/challenges/api/config/SecurityHttpAuthorizationIT.java) | Allowlisted vs protected smoke tests. |
+
+**CORS:** Unchanged; **`OPTIONS /**`** stays **`permitAll`**.
 
 ---
 
@@ -76,7 +89,7 @@
 
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
-| List check-ins for challenge | `GET` | `/api/challenges/{challengeId}/check-ins?page=` | **OK** | [`2026-04-21-check-ins-read-participant-only.md` (done)](../../tickets/done/2026-04-21-check-ins-read-participant-only.md) | **Bearer JWT** required (**404** without). Viewer must be **owner** or have any **participant** row for the challenge (challenge-wide or subtask-scoped). Challenge must be visible to the viewer via **`ChallengeService.findByIdForViewer`** (stricter than **§1.1**: a **usable `PENDING` invite** alone does **not** grant check-in read). Returns paged check-ins for the challenge. |
+| List check-ins for challenge | `GET` | `/api/challenges/{challengeId}/check-ins?page=` | **OK** | [`2026-04-21-check-ins-read-participant-only.md` (done)](../../tickets/done/2026-04-21-check-ins-read-participant-only.md) | **Bearer JWT** required — anonymous **401**; with a token, viewer must be **owner** or have any **participant** row for the challenge (challenge-wide or subtask-scoped). Challenge must be visible via **`ChallengeService.findByIdForViewer`** (stricter than **§1.1**: a **usable `PENDING` invite** alone does **not** grant check-in read). Otherwise **404**. Returns paged check-ins for the challenge. |
 | Summaries after rollup | — | *(no HTTP route)* | — | — | **`check_in_summaries`** are written by **`CheckInRollupService`** only; clients use **`GET .../check-ins`** until rollup clears per-day rows. |
 | Single check-in | `GET` | `/api/check-ins/{id}` | **OK** | [`2026-04-21-check-ins-read-participant-only.md` (done)](../../tickets/done/2026-04-21-check-ins-read-participant-only.md) | Same read gate as list (challenge inferred from the check-in). **404** if check-in missing or viewer not allowed. |
 
@@ -214,10 +227,11 @@
 ## Suggested reading order for implementers 
 
 1. **`AGENTS.md`** — vocabulary, JWT paths, join/create semantics.  
-2. **`2026-04-21-challenge-join-design.md`** — private join + invite interaction (product contract).  
-3. **`2026-04-21-challenge-join.md`** ([`docs/superpowers/plans/`](../plans/2026-04-21-challenge-join.md)) — implementation plan and task checklist for **`POST /api/challenges/{id}/join`**.  
-4. **`2026-04-18-05-participant-on-invite-accept.md`** ([`docs/superpowers/plans/`](../plans/2026-04-18-05-participant-on-invite-accept.md)) — **`Participant`** sync when an invite becomes **`ACCEPTED`** (**`PUT /api/invites/{id}`**).  
-5. OpenAPI: **`/v3/api-docs`**, Swagger UI **`/swagger-ui.html`**.
+2. **§ Security: HTTP authentication** (this doc) — allowlist vs **`/api/**` authenticated**.  
+3. **`2026-04-21-challenge-join-design.md`** — private join + invite interaction (product contract).  
+4. **`2026-04-21-challenge-join.md`** ([`docs/superpowers/plans/`](../plans/2026-04-21-challenge-join.md)) — implementation plan and task checklist for **`POST /api/challenges/{id}/join`**.  
+5. **`2026-04-18-05-participant-on-invite-accept.md`** ([`docs/superpowers/plans/`](../plans/2026-04-18-05-participant-on-invite-accept.md)) — **`Participant`** sync when an invite becomes **`ACCEPTED`** (**`PUT /api/invites/{id}`**).  
+6. OpenAPI: **`/v3/api-docs`**, Swagger UI **`/swagger-ui.html`**.
 
 ---
 
@@ -225,5 +239,5 @@
 
 - **Placeholders:** None intentional; **Planned** rows capture future work explicitly.  
 - **Consistency:** Workflow numbering follows the product brief; duplicate “3.3” in the brief is folded into **3.2** (private) + **3.3** (subtasks).  
-- **Scope:** Single-doc map of flows ↔ API; detailed security hardening is out of scope here but gaps are called out.  
+- **Scope:** Single-doc map of flows ↔ API; HTTP auth allowlist is documented in **§ Security: HTTP authentication** (ticket **Done**).  
 - **Ambiguity:** “Search” in **1.1** means **paginated discovery** until a query parameter or search endpoint exists.

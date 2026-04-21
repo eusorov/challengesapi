@@ -131,7 +131,7 @@ class CheckInControllerIT {
 		long checkInId = objectMapper.readTree(created).get("id").asLong();
 
 		mockMvc.perform(get("/api/challenges/" + challenge.getId() + "/check-ins").header(HV, V1))
-				.andExpect(status().isNotFound());
+				.andExpect(status().isUnauthorized());
 
 		mockMvc.perform(
 						get("/api/challenges/" + challenge.getId() + "/check-ins")
@@ -139,7 +139,7 @@ class CheckInControllerIT {
 								.header(HttpHeaders.AUTHORIZATION, otherBearerAuth))
 				.andExpect(status().isNotFound());
 
-		mockMvc.perform(get("/api/check-ins/" + checkInId).header(HV, V1)).andExpect(status().isNotFound());
+		mockMvc.perform(get("/api/check-ins/" + checkInId).header(HV, V1)).andExpect(status().isUnauthorized());
 
 		mockMvc.perform(get("/api/check-ins/" + checkInId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, otherBearerAuth))
 				.andExpect(status().isNotFound());

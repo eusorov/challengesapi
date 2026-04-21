@@ -190,7 +190,10 @@ class ChallengeJoinControllerIT {
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.userId").value(userB.getId().intValue()));
 
-		mockMvc.perform(get("/api/invites/" + inviteId).header(HV, V1))
+		mockMvc.perform(
+						get("/api/invites/" + inviteId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerB))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("ACCEPTED"));
 
@@ -294,11 +297,17 @@ class ChallengeJoinControllerIT {
 						.header(HttpHeaders.AUTHORIZATION, bearerB))
 				.andExpect(status().isCreated());
 
-		mockMvc.perform(get("/api/invites/" + inviteId1).header(HV, V1))
+		mockMvc.perform(
+						get("/api/invites/" + inviteId1)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerB))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("ACCEPTED"));
 
-		mockMvc.perform(get("/api/invites/" + inviteId2).header(HV, V1))
+		mockMvc.perform(
+						get("/api/invites/" + inviteId2)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerB))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("PENDING"));
 	}

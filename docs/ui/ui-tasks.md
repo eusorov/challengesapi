@@ -10,7 +10,7 @@
 - **Headers (every request):** `API-Version: 1`.  
 - **Authenticated requests:** `Authorization: Bearer <JWT>` after login/register.  
 - **React-oriented:** use a small API client (fetch/axios) that injects those headers; keep the JWT in memory + refresh strategy as you prefer (this API does not document a refresh token flow here).  
-- **401 / 403 / 404:** map to “login required,” “no permission,” and “not found or hidden” UX; many private resources return **404** to unauthenticated or unauthorized callers—do not assume **403** for “exists but private.”
+- **401 / 403 / 404:** map to “login required,” “no permission,” and “not found or hidden” UX. **`SecurityConfig`** returns **401** for anonymous calls to protected **`/api/**`** routes; application logic may still return **404** for hidden private resources when a JWT is present—do not assume **403** for “exists but private.”
 
 ---
 
@@ -84,7 +84,7 @@
 |------------|----------|-----|
 | Page load | Fetch challenge; handle **404** as “not found or private” for logged-out users | **`GET /api/challenges/{id}`** (**read**) |
 | Participants section | List roster with pagination | **`GET /api/challenges/{id}/participants`** (**read** — visibility matches challenge) |
-| Check-ins / activity | **Only if** user is allowed: show list; otherwise hide section or show “join to see activity” | **`GET /api/challenges/{id}/check-ins`** (**read** — **Bearer** required; **404** if not owner/participant with correct visibility) |
+| Check-ins / activity | **Only if** user is allowed: show list; otherwise hide section or show “join to see activity” | **`GET /api/challenges/{id}/check-ins`** (**read** — **Bearer** required; anonymous **401**; **404** if not owner/participant with correct visibility) |
 | Subtasks list | Show steps (order, titles) | **`GET /api/challenges/{id}/subtasks`** (**read** — unauthenticated OK) |
 
 ### Screen: Check-in detail (modal or `/check-ins/:id`)

@@ -16,7 +16,7 @@ Users create **challenges**, invite others, and record **check-ins** on a **sche
 - **`GET /api/challenges`** — **public (non-private) only**; optional **`q`**, **`category`**, **`city`**. Any caller.
 - **`GET /api/challenges/{id}`** — **Public** challenge: any caller. **Private**: **404** unless the viewer (with JWT) is **owner**, **any participant**, or has a **usable `PENDING` invite** (same idea as join).
 - **`GET .../participants`** — Same visibility as **`GET /api/challenges/{id}`** (including optional JWT / `UserPrincipal`).
-- **`GET .../check-ins`** and **`GET /api/check-ins/{id}`** — **Stricter**: **Bearer JWT** required (**404** if missing). Viewer must be **owner** or **participant** (challenge-wide or subtask-scoped); challenge must pass **`findByIdForViewer`**. A **pending invite alone does not** grant check-in read.
+- **`GET .../check-ins`** and **`GET /api/check-ins/{id}`** — **Stricter**: **Bearer JWT** required — anonymous **401** at **`SecurityConfig`**; with a token, viewer must be **owner** or **participant** (challenge-wide or subtask-scoped); challenge must pass **`findByIdForViewer`**. A **pending invite alone does not** grant check-in read (**404** when not allowed).
 
 ## Main entities (what screens and models revolve around)
 
@@ -46,7 +46,7 @@ Users create **challenges**, invite others, and record **check-ins** on a **sche
 
 **Common:** base path **`/api`**, header **`API-Version: 1`**. Use **`Content-Type: application/json`** for JSON bodies unless the route is form/multipart (auth forms, register, image upload).
 
-**Auth:** Most **`/api/**`** routes expect **`Authorization: Bearer …`**. **`SecurityConfig`** defines the exact **`permitAll`** set (login, register, **`POST /api/users`**, email verify link, forgot/reset password, etc.). The workflows spec notes **`permitAll` may still apply broadly** in some builds — still send the token so behavior stays correct when rules tighten.
+**Auth:** Default is **`/api/**` authenticated**; **`SecurityConfig`** allowlists registration/auth **`POST`**s, **`GET /api/email/verify/**`**, and public discovery **`GET`**s (categories, public challenge list, challenge by id, subtasks/participants under a challenge, single subtask by id). Send **`Authorization: Bearer …`** everywhere else; anonymous protected calls get **401**.
 
 *(Springdoc may emit duplicate paths with and without a trailing slash; callers can use either form.)*
 

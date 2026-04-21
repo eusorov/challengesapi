@@ -261,7 +261,7 @@ class InviteControllerIT {
 						.getContentAsString();
 		long inviteId = objectMapper.readTree(created).get("id").asLong();
 
-		mockMvc.perform(get("/api/invites/" + inviteId).header(HV, V1))
+		mockMvc.perform(get("/api/invites/" + inviteId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(inviteId))
 				.andExpect(jsonPath("$.challengeId").value(challenge.getId().intValue()))
@@ -270,7 +270,11 @@ class InviteControllerIT {
 
 	@Test
 	void getInvite_unknown_returnsNotFound() throws Exception {
-		mockMvc.perform(get("/api/invites/999999999").header(HV, V1)).andExpect(status().isNotFound());
+		mockMvc.perform(
+						get("/api/invites/999999999")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isNotFound());
 	}
 
 	@Test
@@ -286,12 +290,24 @@ class InviteControllerIT {
 						.getContentAsString();
 		long inviteId = objectMapper.readTree(created).get("id").asLong();
 
-		mockMvc.perform(delete("/api/invites/" + inviteId).header(HV, V1)).andExpect(status().isNoContent());
-		mockMvc.perform(get("/api/invites/" + inviteId).header(HV, V1)).andExpect(status().isNotFound());
+		mockMvc.perform(
+						delete("/api/invites/" + inviteId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isNoContent());
+		mockMvc.perform(
+						get("/api/invites/" + inviteId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isNotFound());
 	}
 
 	@Test
 	void deleteInvite_unknown_returnsNotFound() throws Exception {
-		mockMvc.perform(delete("/api/invites/999999999").header(HV, V1)).andExpect(status().isNotFound());
+		mockMvc.perform(
+						delete("/api/invites/999999999")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isNotFound());
 	}
 }

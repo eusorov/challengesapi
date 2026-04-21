@@ -37,7 +37,42 @@ public class SecurityConfig {
 		http.authorizeHttpRequests(auth -> auth
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 				.requestMatchers("/actuator/**").permitAll()
-				.requestMatchers("/api/**").permitAll()
+				.requestMatchers(
+						"/swagger-ui.html",
+						"/swagger-ui/**",
+						"/v3/api-docs",
+						"/v3/api-docs.yaml",
+						"/v3/api-docs/**")
+						.permitAll()
+				.requestMatchers(
+						HttpMethod.POST,
+						"/api/login",
+						"/api/login/",
+						"/api/register",
+						"/api/register/",
+						"/api/forgot-password",
+						"/api/forgot-password/",
+						"/api/reset-password",
+						"/api/reset-password/")
+						.permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/email/verify/**").permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/users", "/api/users/").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/challenges/mine", "/api/challenges/mine/")
+						.authenticated()
+				.requestMatchers(HttpMethod.GET, "/api/challenges", "/api/challenges/").permitAll()
+				.requestMatchers(
+						HttpMethod.GET,
+						"/api/challenges/{id:\\d+}",
+						"/api/challenges/{id:\\d+}/",
+						"/api/challenges/{id:\\d+}/subtasks",
+						"/api/challenges/{id:\\d+}/subtasks/",
+						"/api/challenges/{id:\\d+}/participants",
+						"/api/challenges/{id:\\d+}/participants/")
+						.permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/subtasks/{id:\\d+}", "/api/subtasks/{id:\\d+}/")
+						.permitAll()
+				.requestMatchers("/api/**").authenticated()
 				.anyRequest().permitAll());
 		http.exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint));
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

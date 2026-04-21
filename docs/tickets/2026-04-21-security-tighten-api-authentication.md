@@ -1,22 +1,21 @@
 # Security: require authentication for mutating and sensitive API routes
 
-**Status:** Partial  
-**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) intro (Auth today)
+**Status:** Done (2026-04-21)  
+**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) — see **§ Security: HTTP authentication**.
 
-## Problem
+## Problem (resolved)
 
-`SecurityConfig` uses **`requestMatchers("/api/**").permitAll()`**, so JWT is optional at the HTTP authorization layer. Controllers that assume **`UserPrincipal`** may break or behave inconsistently; **user id spoofing** in JSON is unchecked.
+`SecurityConfig` used **`requestMatchers("/api/**").permitAll()`**, so JWT was optional at the HTTP authorization layer. Controllers that assume **`UserPrincipal`** could break or behave inconsistently; **user id spoofing** in JSON was easier.
 
-## Scope
+## Implementation
 
-- Replace blanket **permitAll** with explicit **permit** list: login, register, email verify, forgot/reset password, actuator as needed, optional public read endpoints if product requires.
-- Require **authenticated** for everything else; align with `AGENTS.md` description.
-- Audit each controller for **`@AuthenticationPrincipal`** on protected operations.
-- Document CORS + anonymous reads if any remain public.
+- **`src/main/java/com/challenges/api/config/SecurityConfig.java`** — explicit **`permitAll`** / **`authenticated()`** rules; **`/api/**`** defaults to **authenticated** after allowlisted routes (order matters: **`GET /api/challenges/mine`** before generic challenge **`GET`** patterns).
+- **Public anonymous `GET`** (discovery): **`/api/categories`**, **`GET /api/challenges`** (list), **`GET /api/challenges/{id}`** (numeric id), **`/subtasks`** and **`/participants`** under that challenge, **`GET /api/subtasks/{id}`**.
+- **Integration:** **`SecurityHttpAuthorizationIT`**, updates to tests that assumed anonymous access to protected invite/check-in routes.
 
 ## Acceptance criteria
 
-- Unauthenticated callers cannot invoke protected routes (**401** with existing entry point).
+- Unauthenticated callers cannot invoke protected routes (**401** via **`ProblemJsonAuthenticationEntryPoint`**).
 - Integration tests cover allowlisted vs protected paths.
 
 ## References
