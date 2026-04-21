@@ -13,6 +13,7 @@ import com.challenges.api.repo.SubTaskRepository;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.web.dto.InviteRequest;
 import com.challenges.api.web.dto.InviteUpdateRequest;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
@@ -116,8 +117,15 @@ public class InviteService {
 	}
 
 	private void ensureParticipantForAcceptedInvite(Invite inv) {
+		syncParticipantForAcceptedInvite(inv);
+	}
+
+	/**
+	 * @return {@code true} if a new {@link Participant} row was saved
+	 */
+	private boolean syncParticipantForAcceptedInvite(Invite inv) {
 		if (inv.getStatus() != InviteStatus.ACCEPTED) {
-			return;
+			return false;
 		}
 		User invitee = inv.getInvitee();
 		Challenge challenge = inv.getChallenge();
@@ -125,12 +133,41 @@ public class InviteService {
 		if (st == null) {
 			if (!participants.existsByUser_IdAndChallenge_IdAndSubTaskIsNull(invitee.getId(), challenge.getId())) {
 				participants.save(new Participant(invitee, challenge));
+				return true;
 			}
-		} else {
-			if (!participants.existsByUser_IdAndChallenge_IdAndSubTask_Id(invitee.getId(), challenge.getId(), st.getId())) {
-				participants.save(new Participant(invitee, challenge, st));
-			}
+			return false;
 		}
+		if (!participants.existsByUser_IdAndChallenge_IdAndSubTask_Id(invitee.getId(), challenge.getId(), st.getId())) {
+			participants.save(new Participant(invitee, challenge, st));
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Accepts the oldest usable {@link InviteStatus#PENDING} invite for (invitee, challenge),
+	 * syncs participant, returns the loaded invite with associations and whether a new participant row was inserted.
+	 */
+	@Transactional
+	public Optional<InviteJoinAcceptResult> acceptOldestUsablePendingInviteForJoin(
+			@NonNull Long inviteeUserId, @NonNull Long challengeId) {
+		Assert.notNull(inviteeUserId, "inviteeUserId must not be null");
+		Assert.notNull(challengeId, "challengeId must not be null");
+		Instant now = Instant.now();
+		List<Invite> pending =
+				invites.findByInvitee_IdAndChallenge_IdAndStatusOrderByIdAsc(
+						inviteeUserId, challengeId, InviteStatus.PENDING);
+		for (Invite inv : pending) {
+			if (inv.getExpiresAt() != null && !inv.getExpiresAt().isAfter(now)) {
+				continue;
+			}
+			inv.setStatus(InviteStatus.ACCEPTED);
+			Invite saved = invites.save(inv);
+			boolean inserted = syncParticipantForAcceptedInvite(saved);
+			Invite withAssoc = invites.findByIdWithAssociations(saved.getId()).orElseThrow();
+			return Optional.of(new InviteJoinAcceptResult(withAssoc, inserted));
+		}
+		return Optional.empty();
 	}
 
 	@Transactional
