@@ -109,8 +109,8 @@
 | Step | Method | Path | Status | Tickets | Notes |
 |------|--------|------|--------|---------|--------|
 | List subtasks | `GET` | `/api/challenges/{challengeId}/subtasks` | OK | — | |
-| Create subtask | `POST` | `/api/subtasks` | **Partial** | [`2026-04-21-subtasks-owner-only-mutations.md`](../../tickets/2026-04-21-subtasks-owner-only-mutations.md) | **`SubTaskRequest`**: **`challengeId`**, **`title`**, **`sortIndex`**. **Owner-only** restriction is **not** enforced in **`SubTaskService`** today. |
-| Update / delete subtask | `PUT` `DELETE` | `/api/subtasks/{id}` | **Partial** | [`2026-04-21-subtasks-owner-only-mutations.md`](../../tickets/2026-04-21-subtasks-owner-only-mutations.md) | Same **no owner check**. |
+| Create subtask | `POST` | `/api/subtasks` | OK | [`2026-04-21-subtasks-owner-only-mutations.md` (done)](../../tickets/done/2026-04-21-subtasks-owner-only-mutations.md) | **`SubTaskRequest`**: **`challengeId`**, **`title`**, **`sortIndex`**. **Bearer JWT** required (**401** without). **Challenge owner** only; others **403**. Unknown **`challengeId`** → **404**. |
+| Update / delete subtask | `PUT` `DELETE` | `/api/subtasks/{id}` | OK | [`2026-04-21-subtasks-owner-only-mutations.md` (done)](../../tickets/done/2026-04-21-subtasks-owner-only-mutations.md) | Same auth and **owner-only** rules; missing subtask → **404**. |
 
 ### 3.4 Only owner edits challenge
 

@@ -23,7 +23,8 @@ public interface SubTaskRepository extends JpaRepository<SubTask, Long> {
 	@Query(
 			"""
 			select distinct st from SubTask st
-			join fetch st.challenge
+			join fetch st.challenge ch
+			join fetch ch.owner
 			where st.id = :id
 			""")
 	Optional<SubTask> findByIdWithAssociations(@Param("id") Long id);

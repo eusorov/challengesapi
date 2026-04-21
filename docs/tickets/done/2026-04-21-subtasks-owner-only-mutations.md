@@ -1,7 +1,9 @@
 # Subtasks: owner-only create, update, delete
 
-**Status:** Partial  
-**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../superpowers/specs/2026-04-21-main-workflows-api-design.md) §3.3
+**Status:** Done (2026-04-21)  
+**Source:** [`docs/superpowers/specs/2026-04-21-main-workflows-api-design.md`](../../superpowers/specs/2026-04-21-main-workflows-api-design.md) §3.3
+
+**Implemented:** **`SubTaskService`** accepts **`actorUserId`** on **`create`**, **`replace`**, and **`delete`**; **`assertActorOwnsChallenge`** compares to **`challenge.owner`**. **`SubTaskRepository.findByIdWithAssociations`** fetch-joins **`challenge`** and **`owner`** for updates/deletes. **`SubTaskController`** requires **`UserPrincipal`** on mutating routes (**401** without JWT). Non-owners get **403**. **`SubTaskControllerIT`** covers owner CRUD, max subtasks, **401**, and **403** for intruders.
 
 ## Problem
 

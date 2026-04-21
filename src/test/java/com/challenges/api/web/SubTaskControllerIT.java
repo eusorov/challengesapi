@@ -57,13 +57,16 @@ class SubTaskControllerIT {
 
 	private Challenge challenge;
 	private String bearerAuth;
+	private String intruderBearerAuth;
 
 	@BeforeEach
 	void setup() throws Exception {
 		User u = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "st-owner@test"));
+		users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "st-intruder@test"));
 		challenge = challenges.save(new Challenge(
 				u, "nested", null, LocalDate.of(2026, 2, 1), null, ChallengeCategory.OTHER));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "st-owner@test", "password");
+		intruderBearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "st-intruder@test", "password");
 	}
 
 	@Test
@@ -98,6 +101,100 @@ class SubTaskControllerIT {
 				.andExpect(jsonPath("$.title").value("Step B"));
 
 		mockMvc.perform(delete("/api/subtasks/" + subTaskId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth)).andExpect(status().isNoContent());
+	}
+
+	@Test
+	void create_withoutBearer_returnsUnauthorized() throws Exception {
+		String postBody = String.format(
+				"{\"challengeId\":%d,\"title\":\"Step A\",\"sortIndex\":0}", challenge.getId());
+		mockMvc.perform(post("/api/subtasks").header(HV, V1).contentType(APPLICATION_JSON).content(postBody))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void replace_withoutBearer_returnsUnauthorized() throws Exception {
+		String postBody = String.format(
+				"{\"challengeId\":%d,\"title\":\"Step A\",\"sortIndex\":0}", challenge.getId());
+		String created =
+				mockMvc.perform(
+								post("/api/subtasks").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(postBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long subTaskId = objectMapper.readTree(created).get("id").asLong();
+		mockMvc.perform(
+						put("/api/subtasks/" + subTaskId)
+								.header(HV, V1)
+								.contentType(APPLICATION_JSON)
+								.content("{\"title\":\"X\",\"sortIndex\":0}"))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void delete_withoutBearer_returnsUnauthorized() throws Exception {
+		String postBody = String.format(
+				"{\"challengeId\":%d,\"title\":\"Step A\",\"sortIndex\":0}", challenge.getId());
+		String created =
+				mockMvc.perform(
+								post("/api/subtasks").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(postBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long subTaskId = objectMapper.readTree(created).get("id").asLong();
+		mockMvc.perform(delete("/api/subtasks/" + subTaskId).header(HV, V1)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void create_asNonOwner_returnsForbidden() throws Exception {
+		String postBody = String.format(
+				"{\"challengeId\":%d,\"title\":\"Intruder step\",\"sortIndex\":0}", challenge.getId());
+		mockMvc.perform(
+						post("/api/subtasks")
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, intruderBearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content(postBody))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void replace_asNonOwner_returnsForbidden() throws Exception {
+		String postBody = String.format(
+				"{\"challengeId\":%d,\"title\":\"Step A\",\"sortIndex\":0}", challenge.getId());
+		String created =
+				mockMvc.perform(
+								post("/api/subtasks").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(postBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long subTaskId = objectMapper.readTree(created).get("id").asLong();
+		mockMvc.perform(
+						put("/api/subtasks/" + subTaskId)
+								.header(HV, V1)
+								.header(HttpHeaders.AUTHORIZATION, intruderBearerAuth)
+								.contentType(APPLICATION_JSON)
+								.content("{\"title\":\"Hijack\",\"sortIndex\":9}"))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void delete_asNonOwner_returnsForbidden() throws Exception {
+		String postBody = String.format(
+				"{\"challengeId\":%d,\"title\":\"Step A\",\"sortIndex\":0}", challenge.getId());
+		String created =
+				mockMvc.perform(
+								post("/api/subtasks").header(HV, V1).header(HttpHeaders.AUTHORIZATION, bearerAuth).contentType(APPLICATION_JSON).content(postBody))
+						.andExpect(status().isCreated())
+						.andReturn()
+						.getResponse()
+						.getContentAsString();
+		long subTaskId = objectMapper.readTree(created).get("id").asLong();
+		mockMvc.perform(
+						delete("/api/subtasks/" + subTaskId).header(HV, V1).header(HttpHeaders.AUTHORIZATION, intruderBearerAuth))
+				.andExpect(status().isForbidden());
 	}
 
 	@Test
