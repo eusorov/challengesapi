@@ -20,6 +20,7 @@ Backend service for a **challenges** product: **users create challenges, invite 
 | Security | **Spring Security** (stateless), **JWT** (**JJWT**); auth packages live under **`com.authspring.api`** alongside **`com.challenges.api`** in one deployable app |
 | Object storage | **AWS SDK for Java 2.x** (**S3**) for challenge image uploads (bucket/region via config; see `application.yml`) |
 | API docs | **springdoc-openapi** — `/v3/api-docs`, **Swagger UI** at `/swagger-ui.html` |
+| Boilerplate | **Lombok** — configured in `build.gradle` as `compileOnly` + `annotationProcessor` (and test scopes). Entities and other types use `@Getter`, `@Setter`, `@NoArgsConstructor`, etc., instead of manual accessors. Enable the **Lombok** plugin in your IDE (or use a recent **IntelliJ IDEA**, which has built-in support) so you can jump to and refactor generated members. |
 | Other | **Spring Mail**, **Resilience4j**, **Spring Actuator** (health) |
 
 ## API conventions
