@@ -19,7 +19,7 @@ public class User {
 
 	/** BCrypt hash of "password" — for tests and API-created users until auth sets real passwords. */
 	public static final String TEST_PASSWORD_HASH =
-			"$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+			"$2a$10$vl9H0JyB3fK6UESudJxbweJu8m.SeqoLrxjRMpxGmuFetUc2Qtyme";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
