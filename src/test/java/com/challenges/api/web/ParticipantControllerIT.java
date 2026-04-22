@@ -84,7 +84,7 @@ class ParticipantControllerIT {
 
 	@Test
 	void listParticipants_privateChallenge_nonMember_returnsNotFound() throws Exception {
-		User stranger = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "part-stranger@test"));
+		users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "part-stranger@test"));
 		Challenge priv =
 				challenges.save(
 						new Challenge(

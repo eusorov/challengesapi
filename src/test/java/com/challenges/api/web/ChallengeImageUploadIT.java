@@ -57,7 +57,6 @@ class ChallengeImageUploadIT {
 	}
 
 	private User owner1;
-	private User owner2;
 	private String bearerOwner1;
 	private String bearerOwner2;
 	private long challengeId;
@@ -71,7 +70,7 @@ class ChallengeImageUploadIT {
 		Mockito.when(challengeImageStorage.putObject(any(), any(), any())).thenReturn(putOk);
 
 		owner1 = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "img-owner1@test"));
-		owner2 = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "img-owner2@test"));
+		users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "img-owner2@test"));
 		bearerOwner1 = JwtLoginSupport.bearerAuthorization(mockMvc, "img-owner1@test", "password");
 		bearerOwner2 = JwtLoginSupport.bearerAuthorization(mockMvc, "img-owner2@test", "password");
 

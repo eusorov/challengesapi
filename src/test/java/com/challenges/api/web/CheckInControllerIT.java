@@ -339,7 +339,7 @@ class CheckInControllerIT {
 	@Test
 	void pendingInviteeMayReadPrivateChallengeButNotCheckIns() throws Exception {
 		User owner = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-pend-owner@test"));
-		User pendingInvitee = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-pend-inv@test"));
+		users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-pend-inv@test"));
 		String ownerBearer = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-pend-owner@test", "password");
 		String inviteeBearer = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-pend-inv@test", "password");
 

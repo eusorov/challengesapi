@@ -335,7 +335,7 @@ class ChallengeControllerIT {
 
 	@Test
 	void privateChallenge_visibleToInviteeWithPendingInvite() throws Exception {
-		User invitee = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ch-invitee-pending@test"));
+		users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ch-invitee-pending@test"));
 		String body = String.format(
 				"{\"ownerUserId\":%d,\"title\":\"Invite only\",\"description\":null,"
 						+ "\"startDate\":\"2026-08-01\",\"endDate\":null,\"category\":\"LEARNING\",\"private\":true}",
