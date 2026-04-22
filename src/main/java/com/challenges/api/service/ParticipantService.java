@@ -9,6 +9,7 @@ import com.challenges.api.repo.ParticipantRepository;
 import com.challenges.api.repo.UserRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @Service
 public class ParticipantService {
 

@@ -79,7 +79,12 @@ dependencies {
 	implementation platform('software.amazon.awssdk:bom:2.29.51')
 	implementation 'software.amazon.awssdk:s3' 
 
-	implementation 'net.datafaker:datafaker:2.4.2' 
+	implementation 'net.datafaker:datafaker:2.4.2'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 
 	errorprone 'com.google.errorprone:error_prone_core:2.49.0' // https://github.com/google/error-prone
     errorprone 'com.uber.nullaway:nullaway:0.13.4' // https://github.com/uber/NullAway

@@ -5,11 +5,11 @@ import java.time.LocalDate;
 import org.jspecify.annotations.Nullable;
 
 public record CheckInResponse(
-		Long id, Long userId, Long challengeId, LocalDate checkDate, @Nullable Long subTaskId) {
+		Long id, Long userId, @Nullable Long challengeId, LocalDate checkDate, @Nullable Long subTaskId) {
 
 	public static CheckInResponse from(CheckIn c) {
 		Long stId = c.getSubTask() != null ? c.getSubTask().getId() : null;
 		return new CheckInResponse(
-				c.getId(), c.getUser().getId(), c.getChallenge().getId(), c.getCheckDate(), stId);
+				c.getId(), c.getUser().getId(), c.getChallenge() != null ? c.getChallenge().getId() : null, c.getCheckDate(), stId);
 	}
 }

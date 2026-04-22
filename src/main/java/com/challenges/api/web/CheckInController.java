@@ -48,8 +48,10 @@ public class CheckInController {
 	@GetMapping({ "/check-ins/{id}", "/check-ins/{id}/" })
 	public ResponseEntity<CheckInResponse> get(
 			@PathVariable Long id, @AuthenticationPrincipal @Nullable UserPrincipal principal) {
-		Long viewerId = principal != null ? principal.getId() : null;
-		return checkInService.findByIdForViewer(id, viewerId)
+		if (principal == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return checkInService.findByIdForViewer(id, principal.getId())
 				.map(CheckInResponse::from)
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());

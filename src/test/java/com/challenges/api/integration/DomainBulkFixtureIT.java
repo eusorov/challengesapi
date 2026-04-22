@@ -79,7 +79,7 @@ class DomainBulkFixtureIT {
 					chDaily
 							? Schedule.forChallenge(ch, ScheduleKind.DAILY, List.of())
 							: Schedule.forChallenge(ch, ScheduleKind.WEEKLY_ON_SELECTED_DAYS, MON_TUE_FRI);
-			ch.bindSchedule(chSch);
+			ch.setSchedule(chSch);
 			scheduleRepository.save(chSch);
 		}
 
@@ -91,7 +91,7 @@ class DomainBulkFixtureIT {
 						stDaily
 								? Schedule.forSubTask(st, ScheduleKind.DAILY, List.of())
 								: Schedule.forSubTask(st, ScheduleKind.WEEKLY_ON_SELECTED_DAYS, MON_TUE_FRI);
-				st.bindSchedule(stSch);
+				st.setSchedule(stSch);
 				scheduleRepository.save(stSch);
 			}
 		}

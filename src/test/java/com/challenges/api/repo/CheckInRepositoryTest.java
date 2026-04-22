@@ -44,7 +44,10 @@ class CheckInRepositoryTest {
 		assertThat(loadedWide.getSubTask()).isNull();
 
 		CheckIn loadedScoped = checkInRepository.findById(scoped.getId()).orElseThrow();
-		assertThat(loadedScoped.getSubTask().getId()).isEqualTo(st.getId());
 		assertThat(loadedScoped.getChallenge().getId()).isEqualTo(ch.getId());
+		assertThat(loadedScoped.getSubTask()).isNotNull();
+		if (loadedScoped.getSubTask() != null) {
+			assertThat(loadedScoped.getSubTask().getId()).isEqualTo(st.getId());
+		}
 	}
 }

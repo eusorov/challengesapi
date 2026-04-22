@@ -13,9 +13,14 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "participants")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Participant {
 
 	@Id
@@ -37,9 +42,6 @@ public class Participant {
 
 	@Column(nullable = false, updatable = false)
 	private Instant joinedAt = Instant.now();
-
-	protected Participant() {
-	}
 
 	/** Challenge-wide participation (not tied to a single subtask). */
 	public Participant(User user, Challenge challenge) {
@@ -67,25 +69,5 @@ public class Participant {
 		if (!subTask.getChallenge().getId().equals(challenge.getId())) {
 			throw new IllegalStateException("subTask must belong to the same challenge");
 		}
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public User getUser() {
-		return user;
-	}
-
-	public Challenge getChallenge() {
-		return challenge;
-	}
-
-	public SubTask getSubTask() {
-		return subTask;
-	}
-
-	public Instant getJoinedAt() {
-		return joinedAt;
 	}
 }

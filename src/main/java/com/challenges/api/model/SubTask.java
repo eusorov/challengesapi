@@ -11,9 +11,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "subtasks")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SubTask {
 
 	@Id
@@ -33,44 +40,9 @@ public class SubTask {
 	@OneToOne(mappedBy = "subTask", cascade = CascadeType.ALL, optional = true)
 	private Schedule schedule;
 
-	protected SubTask() {
-	}
-
 	public SubTask(Challenge challenge, String title, int sortIndex) {
 		this.challenge = challenge;
 		this.title = title;
-		this.sortIndex = sortIndex;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public Challenge getChallenge() {
-		return challenge;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public int getSortIndex() {
-		return sortIndex;
-	}
-
-	public Schedule getSchedule() {
-		return schedule;
-	}
-
-	public void bindSchedule(Schedule s) {
-		this.schedule = s;
-	}
-
-	public void setTitle(String title) {
-		this.title = java.util.Objects.requireNonNull(title);
-	}
-
-	public void setSortIndex(int sortIndex) {
 		this.sortIndex = sortIndex;
 	}
 }

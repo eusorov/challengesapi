@@ -7,9 +7,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "personal_access_tokens")
+@Getter
+@Setter
+@NoArgsConstructor
 public class PersonalAccessToken {
 
 	@Id
@@ -42,83 +48,4 @@ public class PersonalAccessToken {
 
 	@Column(name = "updated_at", nullable = false)
 	private Instant updatedAt;
-
-	public PersonalAccessToken() {
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getTokenableType() {
-		return tokenableType;
-	}
-
-	public void setTokenableType(String tokenableType) {
-		this.tokenableType = tokenableType;
-	}
-
-	public Long getTokenableId() {
-		return tokenableId;
-	}
-
-	public void setTokenableId(Long tokenableId) {
-		this.tokenableId = tokenableId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getToken() {
-		return token;
-	}
-
-	public void setToken(String token) {
-		this.token = token;
-	}
-
-	public String getAbilities() {
-		return abilities;
-	}
-
-	public void setAbilities(String abilities) {
-		this.abilities = abilities;
-	}
-
-	public Instant getLastUsedAt() {
-		return lastUsedAt;
-	}
-
-	public void setLastUsedAt(Instant lastUsedAt) {
-		this.lastUsedAt = lastUsedAt;
-	}
-
-	public Instant getExpiresAt() {
-		return expiresAt;
-	}
-
-	public void setExpiresAt(Instant expiresAt) {
-		this.expiresAt = expiresAt;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(Instant createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public Instant getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(Instant updatedAt) {
-		this.updatedAt = updatedAt;
-	}
 }

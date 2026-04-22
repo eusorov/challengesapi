@@ -60,22 +60,22 @@ public class ScheduleService {
 	private Schedule replaceChallengeSchedule(Challenge ch, ScheduleKind kind, List<DayOfWeek> weekDays) {
 		Schedule existing = ch.getSchedule();
 		if (existing != null) {
-			ch.bindSchedule(null);
+			ch.setSchedule(null);
 			schedules.delete(existing);
 		}
 		Schedule s = Schedule.forChallenge(ch, kind, weekDays);
-		ch.bindSchedule(s);
+		ch.setSchedule(s);
 		return Objects.requireNonNull(schedules.save(s));
 	}
 
 	private Schedule replaceSubTaskSchedule(SubTask st, ScheduleKind kind, List<DayOfWeek> weekDays) {
 		Schedule existing = st.getSchedule();
 		if (existing != null) {
-			st.bindSchedule(null);
+			st.setSchedule(null);
 			schedules.delete(existing);
 		}
 		Schedule s = Schedule.forSubTask(st, kind, weekDays);
-		st.bindSchedule(s);
+		st.setSchedule(s);
 		return Objects.requireNonNull(schedules.save(s));
 	}
 
@@ -103,10 +103,10 @@ public class ScheduleService {
 		Assert.notNull(id, "id must not be null");
 		return schedules.findByIdWithAssociations(id).map(s -> {
 			if (s.getChallenge() != null) {
-				s.getChallenge().bindSchedule(null);
+				s.getChallenge().setSchedule(null);
 			}
 			if (s.getSubTask() != null) {
-				s.getSubTask().bindSchedule(null);
+				s.getSubTask().setSchedule(null);
 			}
 			schedules.delete(s);
 			return true;

@@ -15,9 +15,16 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "invites")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Invite {
 
 	@Id
@@ -51,9 +58,6 @@ public class Invite {
 	@Column(name = "expires_at")
 	private Instant expiresAt;
 
-	protected Invite() {
-	}
-
 	public Invite(User inviter, User invitee, Challenge challenge, SubTask subTask) {
 		this.inviter = Objects.requireNonNull(inviter);
 		this.invitee = Objects.requireNonNull(invitee);
@@ -81,45 +85,5 @@ public class Invite {
 		if (!subTask.getChallenge().getId().equals(challenge.getId())) {
 			throw new IllegalStateException("subTask must belong to the same challenge");
 		}
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public User getInviter() {
-		return inviter;
-	}
-
-	public User getInvitee() {
-		return invitee;
-	}
-
-	public Challenge getChallenge() {
-		return challenge;
-	}
-
-	public SubTask getSubTask() {
-		return subTask;
-	}
-
-	public InviteStatus getStatus() {
-		return status;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Instant getExpiresAt() {
-		return expiresAt;
-	}
-
-	public void setStatus(InviteStatus status) {
-		this.status = Objects.requireNonNull(status);
-	}
-
-	public void setExpiresAt(Instant expiresAt) {
-		this.expiresAt = expiresAt;
 	}
 }

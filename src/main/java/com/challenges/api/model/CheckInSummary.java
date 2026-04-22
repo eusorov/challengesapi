@@ -11,9 +11,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "check_in_summaries")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CheckInSummary {
 
 	@Id
@@ -44,9 +49,6 @@ public class CheckInSummary {
 	@Column(name = "rolled_up_at", nullable = false)
 	private Instant rolledUpAt = Instant.now();
 
-	protected CheckInSummary() {
-	}
-
 	public CheckInSummary(
 			User user,
 			Challenge challenge,
@@ -62,37 +64,5 @@ public class CheckInSummary {
 		this.firstCheckInDate = firstCheckInDate;
 		this.lastCheckInDate = lastCheckInDate;
 		this.rolledUpAt = rolledUpAt;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public User getUser() {
-		return user;
-	}
-
-	public Challenge getChallenge() {
-		return challenge;
-	}
-
-	public SubTask getSubTask() {
-		return subTask;
-	}
-
-	public long getTotalCheckIns() {
-		return totalCheckIns;
-	}
-
-	public LocalDate getFirstCheckInDate() {
-		return firstCheckInDate;
-	}
-
-	public LocalDate getLastCheckInDate() {
-		return lastCheckInDate;
-	}
-
-	public Instant getRolledUpAt() {
-		return rolledUpAt;
 	}
 }

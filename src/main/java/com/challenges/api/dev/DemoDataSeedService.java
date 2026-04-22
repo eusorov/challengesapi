@@ -167,7 +167,7 @@ public class DemoDataSeedService {
 			Challenge ch = chList.get(i);
 			SchedulePattern p = SchedulePattern.forIndex(i);
 			Schedule sch = Schedule.forChallenge(ch, p.kind, p.weekDays());
-			ch.bindSchedule(sch);
+			ch.setSchedule(sch);
 			schedules.save(sch);
 		}
 
@@ -198,7 +198,7 @@ public class DemoDataSeedService {
 				SubTask st = allSubTasks.get(subTaskCursor++);
 				SchedulePattern p = SchedulePattern.forIndex(c * 31 + s);
 				Schedule stSch = Schedule.forSubTask(st, p.kind, p.weekDays());
-				st.bindSchedule(stSch);
+				st.setSchedule(stSch);
 				schedules.save(stSch);
 			}
 		}

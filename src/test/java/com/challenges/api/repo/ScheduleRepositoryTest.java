@@ -37,13 +37,13 @@ class ScheduleRepositoryTest {
 				u, "Scheduled", null, LocalDate.of(2026, 5, 1), null, ChallengeCategory.OTHER, null, null, false));
 
 		Schedule chSch = Schedule.forChallenge(ch, ScheduleKind.DAILY, List.of());
-		ch.bindSchedule(chSch);
+		ch.setSchedule(chSch);
 		scheduleRepository.save(chSch);
 
 		SubTask st = entityManager.persistAndFlush(new SubTask(ch, "Sub with cadence", 1));
 		Schedule stSch =
 				Schedule.forSubTask(st, ScheduleKind.WEEKLY_ON_SELECTED_DAYS, List.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY));
-		st.bindSchedule(stSch);
+		st.setSchedule(stSch);
 		scheduleRepository.save(stSch);
 
 		entityManager.flush();

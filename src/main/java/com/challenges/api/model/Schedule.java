@@ -18,37 +18,45 @@ import jakarta.persistence.Table;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "schedules")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Schedule {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Setter(AccessLevel.NONE)
 	private Long id;
 
 	/** When set, this schedule belongs to the challenge (subtask must be null). */
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "challenge_id", unique = true)
+	@Setter(AccessLevel.NONE)
 	private Challenge challenge;
 
 	/** When set, this schedule belongs to the subtask (challenge must be null). */
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "subtask_id", unique = true)
+	@Setter(AccessLevel.NONE)
 	private SubTask subTask;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 40)
+	@Setter
 	private ScheduleKind kind = ScheduleKind.DAILY;
 
 	@ElementCollection
 	@Enumerated(EnumType.STRING)
 	@CollectionTable(name = "schedule_weekdays", joinColumns = @JoinColumn(name = "schedule_id"))
 	@Column(name = "day_of_week", nullable = false, length = 16)
+	@Setter(AccessLevel.NONE)
 	private List<DayOfWeek> weekDays = new ArrayList<>();
-
-	protected Schedule() {
-	}
 
 	/** Schedule for a challenge (not for a subtask). */
 	public static Schedule forChallenge(Challenge challenge, ScheduleKind kind, List<DayOfWeek> weekDays) {
@@ -82,30 +90,6 @@ public class Schedule {
 		if (hasC == hasS) {
 			throw new IllegalStateException("Schedule must have exactly one of challenge or subTask");
 		}
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public Challenge getChallenge() {
-		return challenge;
-	}
-
-	public SubTask getSubTask() {
-		return subTask;
-	}
-
-	public ScheduleKind getKind() {
-		return kind;
-	}
-
-	public List<DayOfWeek> getWeekDays() {
-		return weekDays;
-	}
-
-	public void setKind(ScheduleKind kind) {
-		this.kind = java.util.Objects.requireNonNull(kind);
 	}
 
 	public void replaceWeekDays(List<DayOfWeek> days) {

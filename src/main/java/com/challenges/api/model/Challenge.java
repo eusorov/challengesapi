@@ -24,9 +24,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "challenges")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Challenge {
 
 	@Id
@@ -59,7 +65,7 @@ public class Challenge {
 	private Instant createdAt = Instant.now();
 
 	@OneToOne(mappedBy = "challenge", cascade = CascadeType.ALL, optional = true)
-	private Schedule schedule;
+	private @Nullable Schedule schedule;
 
 	@OneToMany(mappedBy = "challenge", fetch = FetchType.LAZY)
 	@OrderBy("sortIndex ASC")
@@ -76,9 +82,6 @@ public class Challenge {
 
 	@Column(columnDefinition = "geography(Point,4326)")
 	private @Nullable Point location;
-
-	protected Challenge() {
-	}
 
 	public Challenge(
 			User owner,
@@ -109,103 +112,4 @@ public class Challenge {
 		}
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public User getOwner() {
-		return owner;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public @Nullable String getDescription() {
-		return description;
-	}
-
-	public ChallengeCategory getCategory() {
-		return category;
-	}
-
-	public LocalDate getStartDate() {
-		return startDate;
-	}
-
-	public @Nullable LocalDate getEndDate() {
-		return endDate;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Schedule getSchedule() {
-		return schedule;
-	}
-
-	public List<SubTask> getSubtasks() {
-		return subtasks;
-	}
-
-	public @Nullable String getImageObjectKey() {
-		return imageObjectKey;
-	}
-
-	public void setImageObjectKey(String imageObjectKey) {
-		this.imageObjectKey = imageObjectKey;
-	}
-
-	public void bindSchedule(Schedule s) {
-		this.schedule = s;
-	}
-
-	public void setOwner(User owner) {
-		this.owner = java.util.Objects.requireNonNull(owner);
-	}
-
-	public void setTitle(String title) {
-		this.title = java.util.Objects.requireNonNull(title);
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public void setCategory(ChallengeCategory category) {
-		this.category = java.util.Objects.requireNonNull(category);
-	}
-
-	public void setStartDate(LocalDate startDate) {
-		this.startDate = java.util.Objects.requireNonNull(startDate);
-	}
-
-	public void setEndDate(LocalDate endDate) {
-		this.endDate = endDate;
-	}
-
-	public boolean isPrivate() {
-		return isPrivate;
-	}
-
-	public void setPrivate(boolean isPrivate) {
-		this.isPrivate = isPrivate;
-	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public Point getLocation() {
-		return location;
-	}
-
-	public void setLocation(Point location) {
-		this.location = location;
-	}
 }

@@ -13,9 +13,16 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "comments")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment {
 
 	@Id
@@ -43,9 +50,6 @@ public class Comment {
 
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt = Instant.now();
-
-	protected Comment() {
-	}
 
 	/** Challenge-wide comment (not tied to a single subtask). */
 	public Comment(User author, Challenge challenge, String body) {
@@ -75,33 +79,5 @@ public class Comment {
 		if (!subTask.getChallenge().getId().equals(challenge.getId())) {
 			throw new IllegalStateException("subTask must belong to the same challenge");
 		}
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public User getAuthor() {
-		return author;
-	}
-
-	public Challenge getChallenge() {
-		return challenge;
-	}
-
-	public SubTask getSubTask() {
-		return subTask;
-	}
-
-	public String getBody() {
-		return body;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setBody(String body) {
-		this.body = Objects.requireNonNull(body);
 	}
 }

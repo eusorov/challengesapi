@@ -10,9 +10,16 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
 	public static final String DEFAULT_ROLE = "USER";
@@ -52,9 +59,6 @@ public class User {
 	@Column(name = "updated_at", nullable = false)
 	private Instant updatedAt;
 
-	protected User() {
-	}
-
 	public User(String name, String email, String password, String role) {
 		this.name = java.util.Objects.requireNonNull(name);
 		this.email = java.util.Objects.requireNonNull(email);
@@ -79,77 +83,5 @@ public class User {
 	@PreUpdate
 	void onUpdate() {
 		updatedAt = Instant.now();
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public Instant getEmailVerifiedAt() {
-		return emailVerifiedAt;
-	}
-
-	public void setEmailVerifiedAt(Instant emailVerifiedAt) {
-		this.emailVerifiedAt = emailVerifiedAt;
-	}
-
-	public LocalDate getDateClosed() {
-		return dateClosed;
-	}
-
-	public void setDateClosed(LocalDate dateClosed) {
-		this.dateClosed = dateClosed;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public String getRole() {
-		return role;
-	}
-
-	public String getRememberToken() {
-		return rememberToken;
-	}
-
-	public void setRememberToken(String rememberToken) {
-		this.rememberToken = rememberToken;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Instant getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(Instant updatedAt) {
-		this.updatedAt = java.util.Objects.requireNonNull(updatedAt);
-	}
-
-	public void setEmail(String email) {
-		this.email = java.util.Objects.requireNonNull(email);
-	}
-
-	public void setName(String name) {
-		this.name = java.util.Objects.requireNonNull(name);
-	}
-
-	public void setPassword(String password) {
-		this.password = java.util.Objects.requireNonNull(password);
-	}
-
-	public void setRole(String role) {
-		this.role = java.util.Objects.requireNonNull(role);
 	}
 }
