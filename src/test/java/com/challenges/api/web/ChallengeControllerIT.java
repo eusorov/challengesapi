@@ -239,6 +239,15 @@ class ChallengeControllerIT {
 				.andExpect(jsonPath("$.totalElements").value(1))
 				.andExpect(jsonPath("$.content[0].title").value("Morning marathon"));
 
+		// clients that send JSON-style ?q="marathon" (literal surrounding quotes) still match
+		mockMvc.perform(get("/api/challenges")
+						.param("q", "\"marathon\"")
+						.header(HV, V1)
+						.header(HttpHeaders.AUTHORIZATION, bearerAuth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.totalElements").value(1))
+				.andExpect(jsonPath("$.content[0].title").value("Morning marathon"));
+
 		mockMvc.perform(get("/api/challenges")
 						.param("category", "PRODUCTIVITY")
 						.header(HV, V1)

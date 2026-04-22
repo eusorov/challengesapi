@@ -248,6 +248,15 @@ public class ChallengeService {
 			return null;
 		}
 		String t = q.trim();
+		// Some clients pass JSON-style wrapped values (e.g. ?q="Wind") so the literal string is "Wind" with
+		// quotes, which would not match title/description. Strip one layer of matching ASCII quotes.
+		if (t.length() >= 2) {
+			char a = t.charAt(0);
+			char b = t.charAt(t.length() - 1);
+			if ((a == '"' && b == '"') || (a == '\'' && b == '\'')) {
+				t = t.substring(1, t.length() - 1).trim();
+			}
+		}
 		return t.isEmpty() ? null : t;
 	}
 
