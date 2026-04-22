@@ -23,10 +23,6 @@ public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 	 * Paged ids of non-private challenges only (no joins). Intended flow: call this with {@link Pageable}, then
 	 * {@link #findAllWithSubtasksAndOwnerByIdIn} with {@link Page#getContent()} so fetch-joins apply only to one page.
 	 *
-	 * @param searchText optional case-insensitive substring match on {@code title} and {@code description}
-	 * @param category optional exact category
-	 * @param cityNormalized optional city match against {@code lower(trim(c.city))}; pass {@code null} to skip; when set,
-	 *        compare to stored city as lowercase (caller normalizes the parameter)
 	 */
 	@Query(
 			value = "select c.id from Challenge c where c.isPrivate = false order by c.id asc",

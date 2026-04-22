@@ -166,7 +166,7 @@ public class DemoDataSeedService {
 		for (int i = 0; i < BULK_CHALLENGE_COUNT; i++) {
 			Challenge ch = chList.get(i);
 			SchedulePattern p = SchedulePattern.forIndex(i);
-			Schedule sch = Schedule.forChallenge(ch, p.kind, p.weekDays);
+			Schedule sch = Schedule.forChallenge(ch, p.kind, p.weekDays());
 			ch.bindSchedule(sch);
 			schedules.save(sch);
 		}
@@ -197,7 +197,7 @@ public class DemoDataSeedService {
 			for (int s = 0; s < subtaskCount; s++) {
 				SubTask st = allSubTasks.get(subTaskCursor++);
 				SchedulePattern p = SchedulePattern.forIndex(c * 31 + s);
-				Schedule stSch = Schedule.forSubTask(st, p.kind, p.weekDays);
+				Schedule stSch = Schedule.forSubTask(st, p.kind, p.weekDays());
 				st.bindSchedule(stSch);
 				schedules.save(stSch);
 			}
@@ -345,18 +345,26 @@ public class DemoDataSeedService {
 	 * {@link ScheduleKind#WEEKLY_ON_SELECTED_DAYS} with a short list of weekdays.
 	 */
 	private enum SchedulePattern {
-		DAILY_EMPTY(ScheduleKind.DAILY, List.of()),
-		WEEKLY_MON_WED_FRI(ScheduleKind.WEEKLY_ON_SELECTED_DAYS, MON_WED_FRI),
-		WEEKLY_TUE_THU(ScheduleKind.WEEKLY_ON_SELECTED_DAYS, TUE_THU),
-		WEEKLY_WEEKDAYS(ScheduleKind.WEEKLY_ON_SELECTED_DAYS, WEEKDAYS),
-		WEEKLY_WEEKEND(ScheduleKind.WEEKLY_ON_SELECTED_DAYS, SAT_SUN);
+		DAILY_EMPTY(ScheduleKind.DAILY),
+		WEEKLY_MON_WED_FRI(ScheduleKind.WEEKLY_ON_SELECTED_DAYS),
+		WEEKLY_TUE_THU(ScheduleKind.WEEKLY_ON_SELECTED_DAYS),
+		WEEKLY_WEEKDAYS(ScheduleKind.WEEKLY_ON_SELECTED_DAYS),
+		WEEKLY_WEEKEND(ScheduleKind.WEEKLY_ON_SELECTED_DAYS);
 
 		final ScheduleKind kind;
-		final List<DayOfWeek> weekDays;
 
-		SchedulePattern(ScheduleKind kind, List<DayOfWeek> weekDays) {
+		SchedulePattern(ScheduleKind kind) {
 			this.kind = kind;
-			this.weekDays = weekDays;
+		}
+
+		List<DayOfWeek> weekDays() {
+			return switch (this) {
+				case DAILY_EMPTY -> List.of();
+				case WEEKLY_MON_WED_FRI -> MON_WED_FRI;
+				case WEEKLY_TUE_THU -> TUE_THU;
+				case WEEKLY_WEEKDAYS -> WEEKDAYS;
+				case WEEKLY_WEEKEND -> SAT_SUN;
+			};
 		}
 
 		static SchedulePattern forIndex(int i) {

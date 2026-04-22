@@ -8,6 +8,18 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * Body for {@code POST /api/challenges}: owner is the JWT subject.
+ * @param ownerUserId the ID of the user who is the owner of the challenge
+ * @param title the title of the challenge
+ * @param description the description of the challenge
+ * @param startDate the start date of the challenge
+ * @param endDate the end date of the challenge
+ * @param category the category of the challenge
+ * @param city the city of the challenge
+ * @param location the location of the challenge
+ * @param isPrivate whether the challenge is private, when omitted or null, treated as not private (false).
+ */
 public record ChallengeRequest(
 		@NotNull Long ownerUserId,
 		@NotBlank String title,
@@ -15,7 +27,6 @@ public record ChallengeRequest(
 		@NotNull LocalDate startDate,
 		@Nullable LocalDate endDate,
 		@NotNull ChallengeCategory category,
-		@Nullable String city,
+		@Nullable String city, 
 		@Valid @Nullable ChallengeLocationDto location,
-		/** When omitted or null, treated as not private (false). */
 		@JsonProperty("private") @Nullable Boolean isPrivate) {}

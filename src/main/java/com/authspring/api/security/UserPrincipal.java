@@ -3,6 +3,7 @@ package com.authspring.api.security;
 import com.challenges.api.model.User;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,7 +33,7 @@ public final class UserPrincipal implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+		return List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase(Locale.ROOT)));
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import com.challenges.api.support.ChallengeLocationMapping;
 import com.challenges.api.web.dto.ChallengeRequest;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -26,6 +27,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import java.util.UUID;
 
 @Service
 public class ChallengeService {
@@ -191,7 +193,11 @@ public class ChallengeService {
 							|| contentType.equals("image/webp"))) {
 				throw new IllegalArgumentException("Only image/jpeg, image/png, image/webp allowed");
 			}
-			String key = ChallengeImagePaths.objectKey(ch, file.getOriginalFilename());
+			String originalFilename = file.getOriginalFilename();
+			if(originalFilename==null) {
+				originalFilename = UUID.randomUUID().toString();
+			}
+			String key = ChallengeImagePaths.objectKey(ch, originalFilename);
 			try {
 				byte[] bytes = file.getBytes();
 				if (bytes.length == 0) {
@@ -227,16 +233,12 @@ public class ChallengeService {
 	}
 
 	private static void applyLocationFromRequest(Challenge ch, ChallengeRequest req) {
-		ch.setCity(normalizeCity(req.city()));
+		ch.setCity(req.city() != null ? normalizeCity(req.city()) : null);
 		ch.setLocation(req.location() != null ? ChallengeLocationMapping.toPoint(req.location()) : null);
 	}
 
 	private static String normalizeCity(String city) {
-		if (city == null) {
-			return null;
-		}
-		String trimmed = city.trim();
-		return trimmed.isEmpty() ? null : trimmed;
+		return city.trim();
 	}
 
 	private static @Nullable String normalizeSearchText(@Nullable String q) {
@@ -257,7 +259,6 @@ public class ChallengeService {
 
 	/** Lowercase trimmed city for repository comparison with {@code lower(trim(c.city))}. */
 	private static @Nullable String normalizeCityFilter(@Nullable String city) {
-		String n = normalizeCity(city);
-		return n == null ? null : n.toLowerCase();
+		return city == null ? null : normalizeCity(city).toLowerCase(Locale.ROOT);
 	}
 }

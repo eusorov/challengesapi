@@ -66,7 +66,7 @@ public class SignedUrlValidator {
 		try {
 			long ts = Long.parseLong(exp);
 			return Instant.now().getEpochSecond() <= ts;
-		} catch (NumberFormatException _) {
+		} catch (NumberFormatException ignore) {
 			return false;
 		}
 	}

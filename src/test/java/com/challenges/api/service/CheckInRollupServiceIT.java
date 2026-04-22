@@ -13,6 +13,7 @@ import com.challenges.api.repo.CheckInRollupRunRepository;
 import com.challenges.api.repo.CheckInSummaryRepository;
 import com.challenges.api.repo.UserRepository;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,7 +44,7 @@ class CheckInRollupServiceIT {
 	@Test
 	void rollupChallenge_movesRowsToSummariesAndDeletesCheckIns() {
 		User u = users.save(User.forTest("rollup-user@example.com"));
-		LocalDate end = LocalDate.now().minusDays(100);
+		LocalDate end = LocalDate.now(ZoneId.systemDefault()).minusDays(100);
 		Challenge ch = challenges.save(new Challenge(u, "Past", null, end.minusMonths(1), end, ChallengeCategory.PRODUCTIVITY));
 		checkIns.save(new CheckIn(u, ch, end.minusDays(1), null));
 
@@ -61,7 +62,7 @@ class CheckInRollupServiceIT {
 	@Test
 	void rollupChallenge_idempotentWhenAlreadyComplete() {
 		User u = users.save(User.forTest("rollup-idem@example.com"));
-		LocalDate end = LocalDate.now().minusDays(100);
+		LocalDate end = LocalDate.now(ZoneId.systemDefault()).minusDays(100);
 		Challenge ch = challenges.save(new Challenge(u, "Past2", null, end.minusMonths(1), end, ChallengeCategory.PRODUCTIVITY));
 		checkIns.save(new CheckIn(u, ch, end.minusDays(2), null));
 

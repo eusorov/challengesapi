@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
 	public ResponseEntity<ProblemDetail> badRequest(RuntimeException ex) {
-		return problem(HttpStatus.BAD_REQUEST, ex.getMessage());
+		return problem(HttpStatus.BAD_REQUEST, ex.getMessage() != null ? ex.getMessage() : "Bad request");
 	}
 
 	@ExceptionHandler(DataIntegrityViolationException.class)

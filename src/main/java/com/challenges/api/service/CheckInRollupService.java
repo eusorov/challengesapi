@@ -9,6 +9,7 @@ import com.challenges.api.repo.CheckInRollupRunRepository;
 import com.challenges.api.repo.CheckInSummaryRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.time.ZoneId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class CheckInRollupService {
 	 * retention grace period.
 	 */
 	public void runBatch() {
-		LocalDate maxEndDate = LocalDate.now().minusDays(retentionProps.retentionDaysAfterChallengeEnd());
+		LocalDate maxEndDate = LocalDate.now(ZoneId.systemDefault()).minusDays(retentionProps.retentionDaysAfterChallengeEnd());
 		List<Long> ids =
 				challenges.findIdsEligibleForCheckInRollup(maxEndDate, retentionProps.rollupBatchSize());
 		for (Long challengeId : ids) {

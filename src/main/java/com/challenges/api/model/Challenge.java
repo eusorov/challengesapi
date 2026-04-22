@@ -17,6 +17,8 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+
 import org.locationtech.jts.geom.Point;
 import java.time.Instant;
 import java.time.LocalDate;

@@ -46,11 +46,14 @@ public class ScheduleController {
 					.map(s -> ResponseEntity.status(HttpStatus.CREATED).body(s))
 					.orElse(ResponseEntity.notFound().build());
 		}
-		return scheduleService
-				.createForSubTask(req.subTaskId(), req.kind(), days)
-				.map(ScheduleResponse::from)
-				.map(s -> ResponseEntity.status(HttpStatus.CREATED).body(s))
-				.orElse(ResponseEntity.notFound().build());
+		if (req.subTaskId() != null) {
+			return scheduleService
+					.createForSubTask(req.subTaskId(), req.kind(), days)
+					.map(ScheduleResponse::from)
+					.map(s -> ResponseEntity.status(HttpStatus.CREATED).body(s))
+					.orElse(ResponseEntity.notFound().build());
+		}
+		throw new IllegalArgumentException("Exactly one of challengeId or subTaskId must be set");
 	}
 
 	@PutMapping({ "/{id}", "/{id}/" })

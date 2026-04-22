@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		if (path.isEmpty()) {
 			path = request.getRequestURI();
 		}
-		if (("POST".equalsIgnoreCase(request.getMethod()))
+		if ("POST".equalsIgnoreCase(request.getMethod())
 				&& ("/api/login".equals(path)
 						|| "/api/register".equals(path)
 						|| "/api/reset-password".equals(path)

@@ -1,6 +1,7 @@
 package com.challenges.api.support;
 
 import com.challenges.api.web.dto.ChallengeLocationDto;
+import org.jspecify.annotations.Nullable;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -23,7 +24,7 @@ public final class ChallengeLocationMapping {
 		return toPoint(dto.latitude(), dto.longitude());
 	}
 
-	public static ChallengeLocationDto fromPoint(Point point) {
+	public static @Nullable ChallengeLocationDto fromPoint(@Nullable Point point) {
 		if (point == null || point.isEmpty()) {
 			return null;
 		}

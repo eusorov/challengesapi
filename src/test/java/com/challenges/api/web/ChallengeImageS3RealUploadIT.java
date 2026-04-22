@@ -10,6 +10,7 @@ import com.challenges.api.config.AwsS3Properties;
 import com.challenges.api.model.User;
 import com.challenges.api.repo.UserRepository;
 import com.challenges.api.support.JwtLoginSupport;
+import org.jspecify.annotations.Nullable;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +35,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
  *
  * <p>Requires AWS credentials in the environment (same as production: default provider chain), a
  * writable bucket, and {@code AWS_S3_BUCKET}. Optional: {@code AWS_REGION}, {@code
- * AWS_S3_PUBLIC_BASE_URL} (otherwise derived as {@code https://&lt;bucket&gt;.s3.&lt;region&gt;.amazonaws.com}).
+ * AWS_S3_PUBLIC_BASE_URL}.
  *
  * <p>Run:
  *
@@ -84,7 +85,7 @@ class ChallengeImageS3RealUploadIT {
 	private User owner;
 	private String bearer;
 	private long challengeId;
-	private String uploadedObjectKey;
+	private @Nullable String uploadedObjectKey;
 
 	@Autowired
 	ChallengeImageS3RealUploadIT(

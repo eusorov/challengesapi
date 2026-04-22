@@ -3,13 +3,14 @@ package com.challenges.api.web.dto;
 import com.challenges.api.model.Invite;
 import com.challenges.api.model.InviteStatus;
 import java.time.Instant;
+import org.jspecify.annotations.Nullable;
 
 public record InviteResponse(
 		Long id,
 		Long inviterUserId,
 		Long inviteeUserId,
 		Long challengeId,
-		Long subTaskId,
+		@Nullable Long subTaskId,
 		InviteStatus status,
 		Instant createdAt,
 		Instant expiresAt) {

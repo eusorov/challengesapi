@@ -4,11 +4,12 @@ import com.challenges.api.model.Schedule;
 import com.challenges.api.model.ScheduleKind;
 import java.time.DayOfWeek;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public record ScheduleResponse(
 		Long id,
-		Long challengeId,
-		Long subTaskId,
+		@Nullable Long challengeId,
+		@Nullable Long subTaskId,
 		ScheduleKind kind,
 		List<String> weekDays) {
 

@@ -2,12 +2,13 @@ package com.challenges.api.web.dto;
 
 import com.challenges.api.model.Comment;
 import java.time.Instant;
+import org.jspecify.annotations.Nullable;
 
 public record CommentResponse(
 		Long id,
 		Long userId,
 		Long challengeId,
-		Long subTaskId,
+		@Nullable Long subTaskId,
 		String body,
 		Instant createdAt) {
 
