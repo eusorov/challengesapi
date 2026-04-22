@@ -81,6 +81,9 @@ dependencies {
 
 	implementation 'net.datafaker:datafaker:2.4.2'
 
+	// Fast restarts on classpath changes in local dev; excluded from bootJar (not for production)
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok'
