@@ -117,7 +117,7 @@ class InviteControllerIT {
 		invitee = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "invitee@test"));
 		challenge =
 				challenges.save(new Challenge(
-						inviter, "invite-ch", null, LocalDate.of(2026, 4, 1), null, ChallengeCategory.OTHER));
+						inviter, "invite-ch", null, LocalDate.of(2026, 4, 1), null, ChallengeCategory.OTHER, null, null, false));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "inviter@test", "password");
 	}
 
@@ -236,7 +236,10 @@ class InviteControllerIT {
 						null,
 						LocalDate.of(2026, 5, 1),
 						null,
-						ChallengeCategory.OTHER));
+						ChallengeCategory.OTHER,
+						null,
+						null,
+						false));
 		String body = String.format(
 				"{\"inviteeEmail\":\"invitee@test\",\"challengeId\":%d,\"subTaskId\":null}",
 				otherChallenge.getId());

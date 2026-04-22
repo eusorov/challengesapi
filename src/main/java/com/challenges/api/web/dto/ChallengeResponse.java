@@ -30,15 +30,15 @@ public record ChallengeResponse(
 		Long id,
 		Long ownerUserId,
 		String title,
-		String description,
+		@Nullable String description,
 		ChallengeCategory category,
 		@JsonProperty("private") boolean isPrivate,
 		@Nullable String city,
 		@Nullable ChallengeLocationDto location,
 		LocalDate startDate,
-		LocalDate endDate,
+		@Nullable LocalDate endDate,
 		Instant createdAt,
-		String imageObjectKey,
+		@Nullable String imageObjectKey,
 		@Nullable String imageUrl,
 		List<SubTaskResponse> subtasks) {
 

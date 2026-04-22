@@ -35,7 +35,7 @@ class ParticipantRepositoryTest {
 		User u2 = entityManager.persistAndFlush(User.forTest("p2@example.com"));
 		Challenge ch =
 				entityManager.persistAndFlush(new Challenge(
-						u1, "P challenge", null, LocalDate.of(2026, 4, 1), null, ChallengeCategory.OTHER));
+						u1, "P challenge", null, LocalDate.of(2026, 4, 1), null, ChallengeCategory.OTHER, null, null, false));
 		SubTask st = entityManager.persistAndFlush(new SubTask(ch, "Scoped sub", 0));
 
 		Participant wide = participantRepository.save(new Participant(u1, ch));

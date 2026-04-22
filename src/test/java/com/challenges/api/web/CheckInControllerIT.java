@@ -76,9 +76,9 @@ class CheckInControllerIT {
 		user = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-user@test"));
 		otherUser = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "ci-other@test"));
 		challenge = challenges.save(new Challenge(
-				user, "ci-ch", null, LocalDate.of(2026, 5, 1), null, ChallengeCategory.OTHER));
+				user, "ci-ch", null, LocalDate.of(2026, 5, 1), null, ChallengeCategory.OTHER, null, null, false));
 		Challenge otherCh = challenges.save(new Challenge(
-				otherUser, "other", null, LocalDate.of(2026, 5, 2), null, ChallengeCategory.OTHER));
+				otherUser, "other", null, LocalDate.of(2026, 5, 2), null, ChallengeCategory.OTHER, null, null, false));
 		otherSubTask = subTasks.save(new SubTask(otherCh, "foreign", 0));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-user@test", "password");
 		otherBearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "ci-other@test", "password");

@@ -60,7 +60,7 @@ class ParticipantControllerIT {
 		participantUser = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "part-user@test"));
 		challenge =
 				challenges.save(new Challenge(
-						participantUser, "part-ch", null, LocalDate.of(2026, 6, 1), null, ChallengeCategory.OTHER));
+						participantUser, "part-ch", null, LocalDate.of(2026, 6, 1), null, ChallengeCategory.OTHER, null, null, false));
 		participants.save(new Participant(participantUser, challenge));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "part-user@test", "password");
 	}
@@ -94,6 +94,8 @@ class ParticipantControllerIT {
 								LocalDate.of(2026, 7, 1),
 								null,
 								ChallengeCategory.OTHER,
+								null,
+								null,
 								true));
 		participants.save(new Participant(participantUser, priv));
 		String bearerStranger = JwtLoginSupport.bearerAuthorization(mockMvc, "part-stranger@test", "password");

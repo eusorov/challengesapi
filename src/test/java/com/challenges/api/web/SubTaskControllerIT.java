@@ -64,7 +64,7 @@ class SubTaskControllerIT {
 		User u = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "st-owner@test"));
 		users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "st-intruder@test"));
 		challenge = challenges.save(new Challenge(
-				u, "nested", null, LocalDate.of(2026, 2, 1), null, ChallengeCategory.OTHER));
+				u, "nested", null, LocalDate.of(2026, 2, 1), null, ChallengeCategory.OTHER, null, null, false));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "st-owner@test", "password");
 		intruderBearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "st-intruder@test", "password");
 	}

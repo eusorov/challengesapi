@@ -65,7 +65,7 @@ class ScheduleControllerIT {
 	void setup() throws Exception {
 		User u = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "sch-owner@test"));
 		challenge = challenges.save(new Challenge(
-				u, "scheduled", null, LocalDate.of(2026, 3, 1), null, ChallengeCategory.OTHER));
+				u, "scheduled", null, LocalDate.of(2026, 3, 1), null, ChallengeCategory.OTHER, null, null, false));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "sch-owner@test", "password");
 	}
 

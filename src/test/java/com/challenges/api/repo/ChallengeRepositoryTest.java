@@ -32,7 +32,7 @@ class ChallengeRepositoryTest {
 		User u = entityManager.persistAndFlush(User.forTest("owner-bounded@example.com"));
 		LocalDate start = LocalDate.of(2026, 1, 1);
 		LocalDate end = LocalDate.of(2026, 1, 31);
-		Challenge ch = new Challenge(u, "Jan 2026", null, start, end, ChallengeCategory.PRODUCTIVITY);
+		Challenge ch = new Challenge(u, "Jan 2026", null, start, end, ChallengeCategory.PRODUCTIVITY, null, null, false);
 		challengeRepository.save(ch);
 		entityManager.flush();
 		entityManager.clear();
@@ -48,7 +48,7 @@ class ChallengeRepositoryTest {
 	void persistsOpenEndedChallengeWithNullEndDate() {
 		User u = entityManager.persistAndFlush(User.forTest("owner-open@example.com"));
 		LocalDate start = LocalDate.of(2026, 2, 1);
-		Challenge ch = new Challenge(u, "Open", "no end", start, null, ChallengeCategory.SLEEP);
+		Challenge ch = new Challenge(u, "Open", "no end", start, null, ChallengeCategory.SLEEP, null, null, false);
 		challengeRepository.save(ch);
 		entityManager.flush();
 		entityManager.clear();
@@ -64,8 +64,8 @@ class ChallengeRepositoryTest {
 	void findNonPrivateIdsOrderByIdAsc_excludesPrivateChallenges() {
 		User u = entityManager.persistAndFlush(User.forTest("owner-mix@example.com"));
 		LocalDate d = LocalDate.of(2026, 3, 1);
-		Challenge pub = new Challenge(u, "public ch", null, d, null, ChallengeCategory.OTHER, false);
-		Challenge priv = new Challenge(u, "private ch", null, d, null, ChallengeCategory.OTHER, true);
+		Challenge pub = new Challenge(u, "public ch", null, d, null, ChallengeCategory.OTHER, null, null, false);
+		Challenge priv = new Challenge(u, "private ch", null, d, null, ChallengeCategory.OTHER, null, null, true);
 		challengeRepository.saveAll(List.of(pub, priv));
 		entityManager.flush();
 		entityManager.clear();
@@ -80,9 +80,9 @@ class ChallengeRepositoryTest {
 		User u = entityManager.persistAndFlush(User.forTest("owner-filter@example.com"));
 		LocalDate d = LocalDate.of(2026, 4, 1);
 		Challenge a =
-				new Challenge(u, "Morning run club", "weekly runs", d, null, ChallengeCategory.HEALTH_AND_FITNESS);
+				new Challenge(u, "Morning run club", "weekly runs", d, null, ChallengeCategory.HEALTH_AND_FITNESS, null, null, false);
 		a.setCity("Berlin");
-		Challenge b = new Challenge(u, "Evening walk", null, d, null, ChallengeCategory.PRODUCTIVITY);
+		Challenge b = new Challenge(u, "Evening walk", null, d, null, ChallengeCategory.PRODUCTIVITY, null, null, false);
 		b.setCity("Paris");
 		challengeRepository.saveAll(List.of(a, b));
 		entityManager.flush();
@@ -109,9 +109,9 @@ class ChallengeRepositoryTest {
 		User u1 = entityManager.persistAndFlush(User.forTest("repo-owner-a@example.com"));
 		User u2 = entityManager.persistAndFlush(User.forTest("repo-owner-b@example.com"));
 		LocalDate d = LocalDate.of(2026, 5, 1);
-		Challenge c1 = new Challenge(u1, "a1", null, d, null, ChallengeCategory.OTHER);
-		Challenge c2 = new Challenge(u1, "a2", null, d, null, ChallengeCategory.OTHER, true);
-		Challenge c3 = new Challenge(u2, "b1", null, d, null, ChallengeCategory.OTHER);
+		Challenge c1 = new Challenge(u1, "a1", null, d, null, ChallengeCategory.OTHER, null, null, false);
+		Challenge c2 = new Challenge(u1, "a2", null, d, null, ChallengeCategory.OTHER, null, null, true);
+		Challenge c3 = new Challenge(u2, "b1", null, d, null, ChallengeCategory.OTHER, null, null, false);
 		challengeRepository.saveAll(List.of(c1, c2, c3));
 		entityManager.flush();
 		entityManager.clear();

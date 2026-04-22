@@ -130,6 +130,8 @@ public class ChallengeService {
 					req.startDate(),
 					req.endDate(),
 					req.category(),
+					req.city(),
+					req.location() != null ? ChallengeLocationMapping.toPoint(req.location()) : null,
 					isPrivate);
 			applyLocationFromRequest(ch, req);
 			Challenge saved = challenges.save(ch);

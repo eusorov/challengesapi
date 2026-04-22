@@ -29,7 +29,7 @@ class SubTaskRepositoryTest {
 	@Test
 	void persistsSubTaskLinkedToChallenge() {
 		User u = entityManager.persistAndFlush(User.forTest("st-owner@example.com"));
-		Challenge ch = new Challenge(u, "Main", null, LocalDate.of(2026, 3, 1), null, ChallengeCategory.OTHER);
+		Challenge ch = new Challenge(u, "Main", null, LocalDate.of(2026, 3, 1), null, ChallengeCategory.OTHER, null, null, false);
 		entityManager.persistAndFlush(ch);
 		SubTask st = new SubTask(ch, "First sub", 0);
 		subTaskRepository.save(st);

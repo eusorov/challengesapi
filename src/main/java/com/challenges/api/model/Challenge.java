@@ -17,9 +17,9 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 
 import org.locationtech.jts.geom.Point;
+import org.jspecify.annotations.Nullable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class Challenge {
 	private String title;
 
 	@Column(length = 8000)
-	private String description;
+	private @Nullable String description;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 64)
@@ -53,7 +53,7 @@ public class Challenge {
 
 	/** Inclusive end of the challenge window, or {@code null} for an open-ended challenge. When non-null, must not be before {@link #startDate}. */
 	@Column(name = "end_date")
-	private LocalDate endDate;
+	private @Nullable LocalDate endDate;
 
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt = Instant.now();
@@ -66,16 +66,16 @@ public class Challenge {
 	private List<SubTask> subtasks = new ArrayList<>();
 
 	@Column(name = "image_object_key", length = 1024)
-	private String imageObjectKey;
+	private @Nullable String imageObjectKey;
 
 	@Column(name = "is_private", nullable = false)
 	private boolean isPrivate = false;
 
 	@Column(length = 255)
-	private String city;
+	private @Nullable String city;
 
 	@Column(columnDefinition = "geography(Point,4326)")
-	private Point location;
+	private @Nullable Point location;
 
 	protected Challenge() {
 	}
@@ -83,20 +83,12 @@ public class Challenge {
 	public Challenge(
 			User owner,
 			String title,
-			String description,
+			@Nullable String description,
 			LocalDate startDate,
-			LocalDate endDate,
-			ChallengeCategory category) {
-		this(owner, title, description, startDate, endDate, category, false);
-	}
-
-	public Challenge(
-			User owner,
-			String title,
-			String description,
-			LocalDate startDate,
-			LocalDate endDate,
+			@Nullable LocalDate endDate,
 			ChallengeCategory category,
+			@Nullable String city,
+			@Nullable Point location,
 			boolean isPrivate) {
 		this.owner = owner;
 		this.title = title;
@@ -105,6 +97,8 @@ public class Challenge {
 		this.endDate = endDate;
 		this.category = java.util.Objects.requireNonNull(category);
 		this.isPrivate = isPrivate;
+		this.city = city;
+		this.location = location;
 	}
 
 	@PrePersist
@@ -127,7 +121,7 @@ public class Challenge {
 		return title;
 	}
 
-	public String getDescription() {
+	public @Nullable String getDescription() {
 		return description;
 	}
 
@@ -139,7 +133,7 @@ public class Challenge {
 		return startDate;
 	}
 
-	public LocalDate getEndDate() {
+	public @Nullable LocalDate getEndDate() {
 		return endDate;
 	}
 
@@ -155,7 +149,7 @@ public class Challenge {
 		return subtasks;
 	}
 
-	public String getImageObjectKey() {
+	public @Nullable String getImageObjectKey() {
 		return imageObjectKey;
 	}
 

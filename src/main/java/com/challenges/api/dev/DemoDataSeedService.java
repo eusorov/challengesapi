@@ -151,7 +151,7 @@ public class DemoDataSeedService {
 			String description = truncate(faker.lorem().paragraph(2 + (i % 3)), DESCRIPTION_MAX);
 			boolean isPrivate = i % PRIVATE_CHALLENGE_INDEX_MOD == 0;
 			Challenge ch = new Challenge(
-					owner, title, description, start, end, categories[i % categories.length], isPrivate);
+					owner, title, description, start, end, categories[i % categories.length], null, null, isPrivate);
 			if (i % NO_LOCATION_CHALLENGE_INDEX_MOD != 0) {
 				DemoCity place = SEED_CITIES.get(Math.floorMod(i, SEED_CITIES.size()));
 				ch.setCity(place.city);

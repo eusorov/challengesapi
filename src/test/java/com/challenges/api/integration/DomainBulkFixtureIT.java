@@ -63,7 +63,7 @@ class DomainBulkFixtureIT {
 			User owner = users.get(i / 2);
 			LocalDate start = LocalDate.of(2026, 1, 1).plusDays(i);
 			challenges.add(challengeRepository.save(
-					new Challenge(owner, "ch" + i, null, start, null, ChallengeCategory.OTHER)));
+					new Challenge(owner, "ch" + i, null, start, null, ChallengeCategory.OTHER, null, null, false)));
 		}
 
 		for (int c = 0; c < 10; c++) {

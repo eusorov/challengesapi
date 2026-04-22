@@ -45,7 +45,7 @@ class CheckInRollupServiceIT {
 	void rollupChallenge_movesRowsToSummariesAndDeletesCheckIns() {
 		User u = users.save(User.forTest("rollup-user@example.com"));
 		LocalDate end = LocalDate.now(ZoneId.systemDefault()).minusDays(100);
-		Challenge ch = challenges.save(new Challenge(u, "Past", null, end.minusMonths(1), end, ChallengeCategory.PRODUCTIVITY));
+		Challenge ch = challenges.save(new Challenge(u, "Past", null, end.minusMonths(1), end, ChallengeCategory.PRODUCTIVITY, null, null, false));
 		checkIns.save(new CheckIn(u, ch, end.minusDays(1), null));
 
 		assertThat(checkIns.countByChallenge_Id(ch.getId())).isEqualTo(1);
@@ -63,7 +63,7 @@ class CheckInRollupServiceIT {
 	void rollupChallenge_idempotentWhenAlreadyComplete() {
 		User u = users.save(User.forTest("rollup-idem@example.com"));
 		LocalDate end = LocalDate.now(ZoneId.systemDefault()).minusDays(100);
-		Challenge ch = challenges.save(new Challenge(u, "Past2", null, end.minusMonths(1), end, ChallengeCategory.PRODUCTIVITY));
+		Challenge ch = challenges.save(new Challenge(u, "Past2", null, end.minusMonths(1), end, ChallengeCategory.PRODUCTIVITY, null, null, false));
 		checkIns.save(new CheckIn(u, ch, end.minusDays(2), null));
 
 		rollupService.rollupChallenge(ch.getId());

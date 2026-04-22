@@ -72,7 +72,7 @@ class CommentControllerIT {
 		commenter = users.save(JwtLoginSupport.userWithLoginPassword(passwordEncoder, "commenter@test"));
 		challenge =
 				challenges.save(new Challenge(
-						owner, "ch-comments", null, LocalDate.of(2026, 4, 1), null, ChallengeCategory.OTHER));
+						owner, "ch-comments", null, LocalDate.of(2026, 4, 1), null, ChallengeCategory.OTHER, null, null, false));
 		bearerAuth = JwtLoginSupport.bearerAuthorization(mockMvc, "owner-comments@test", "password");
 	}
 
