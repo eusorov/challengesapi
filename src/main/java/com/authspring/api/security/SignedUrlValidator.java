@@ -42,6 +42,7 @@ public class SignedUrlValidator {
 		return provided != null && constantTimeEquals(expected, provided);
 	}
 
+	@SuppressWarnings("StringSplitter") // '&' is only a delimiter, not a regex pattern
 	static String stripSignatureParameter(String queryString) {
 		if (queryString == null || queryString.isEmpty()) {
 			return "";
