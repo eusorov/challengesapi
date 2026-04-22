@@ -109,7 +109,7 @@ tasks.named('test') {
 	systemProperty 'spring.profiles.active', 'test'
 	if (!runDemoSeedIT) {
 		filter {
-			excludeTestsMatching '.*\\.DemoDataLoaderIT'
+			excludeTestsMatching 'com.challenges.api.dev.DemoDataLoaderIT*'
 		}
 	}
 }
